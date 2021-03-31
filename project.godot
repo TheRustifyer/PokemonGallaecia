@@ -17,9 +17,8 @@ _global_script_class_icons={
 
 config/name="LearnRustWithGodot"
 run/main_scene="res://godot/main.tscn"
-config/icon="res://godot/icon.png"
+config/icon="res://icon.png"
 
 [debug]
 
-settings/stdout/print_fps=false
 settings/stdout/verbose_stdout=true
