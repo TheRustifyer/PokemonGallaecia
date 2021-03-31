@@ -1,0 +1,41 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://godot/LoginScreen.gd" type="Script" id=1]
+[ext_resource path="res://godot/Background.gdns" type="Script" id=2]
+[ext_resource path="res://gfx/blackboard.jpg" type="Texture" id=3]
+[ext_resource path="res://gfx/Feltpen.ttf" type="DynamicFontData" id=4]
+
+[sub_resource type="DynamicFont" id=1]
+size = 42
+font_data = ExtResource( 4 )
+
+[node name="LearnRustWithGodot" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Background" type="TextureRect" parent="."]
+anchor_right = 1.875
+anchor_bottom = 2.102
+margin_top = 3.1748
+margin_right = -0.00012207
+margin_bottom = -0.0251465
+texture = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+custom_fonts/font = SubResource( 1 )
+text = "Hola Cacharelo"
+align = 1
+valign = 1
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
