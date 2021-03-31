@@ -5,7 +5,7 @@ var LoginScreen = preload("res://godot/Background.gdns")
 func _init():
 	print("Constructed!")
 	var my_rust_instance = LoginScreen.new()
-	var rust_method = my_rust_instance.set_label_text("LearnRustWithGodot/VBoxContainer/Label", "Text to change")
+	var rust_method = my_rust_instance.set_label_text("VBoxContainer/Label", "Text to change")
 	print(rust_method) # This method returns null
 
 

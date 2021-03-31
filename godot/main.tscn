@@ -1,5 +1,6 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
+[ext_resource path="res://godot/Main.gd" type="Script" id=1]
 [ext_resource path="res://godot/Background.gdns" type="Script" id=2]
 [ext_resource path="res://gfx/blackboard.jpg" type="Texture" id=3]
 [ext_resource path="res://gfx/Feltpen.ttf" type="DynamicFontData" id=4]
@@ -48,6 +49,7 @@ custom_fonts/font = SubResource( 1 )
 text = "Hola Cacharelo"
 align = 1
 valign = 1
+script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
