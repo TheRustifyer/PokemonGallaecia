@@ -38,6 +38,15 @@ impl LoginScreen {
         godot_print!("_owner on print_player_input: {:?}", _owner);
         let line_edit = unsafe { _owner.get_node_as::<LineEdit>("VBoxContainer/PlayerInput") }.unwrap();
         godot_print!("Player input: {:?}", line_edit);
+        line_edit.set_placeholder("Hello");
+    }
+    
+    #[export]
+    fn _on_player_input_text_entered(&self, _owner: &Node, new_text: GodotString) {
+        let line_edit = unsafe { _owner.get_node_as::<LineEdit>("VBoxContainer/PlayerInput") }.unwrap();
+        let label = unsafe { _owner.get_node_as::<Label>("VBoxContainer/Label") }.unwrap();
+        label.set_text(new_text);
+        line_edit.clear();
     }
     
 }

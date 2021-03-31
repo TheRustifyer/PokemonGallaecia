@@ -59,3 +59,4 @@ margin_top = 70.0
 margin_right = 376.0
 margin_bottom = 118.0
 custom_fonts/font = SubResource( 2 )
+[connection signal="text_entered" from="VBoxContainer/PlayerInput" to="." method="_on_player_input_text_entered"]
