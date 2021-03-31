@@ -16,10 +16,10 @@ _global_script_class_icons={
 [application]
 
 config/name="LearnRustWithGodot"
-run/main_scene="res://godot/Checker.tscn"
-config/icon="res://icon.png"
+run/main_scene="res://godot/main.tscn"
+config/icon="res://godot/icon.png"
 
 [debug]
 
-settings/stdout/print_fps=true
+settings/stdout/print_fps=false
 settings/stdout/verbose_stdout=true
