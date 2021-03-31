@@ -24,7 +24,9 @@ impl LoginScreen {
     fn set_label_text(&self, _owner: &Node, _label_identifier: String, text: String) {
         godot_print!("Set Label got called! again! :)");
         godot_print!("_owner on set_label: {:?}", _owner);
+        godot_print!("_label_identifier: {:?}, text: {:?}", _label_identifier, text);
         let label = unsafe { _owner.get_node_as::<Label>(&_label_identifier) }.unwrap();
+        // Here code panics, on line 28
         godot_print!("Label var value on set_label_text: {:?}", label);
         label.set_text(text)
     }
