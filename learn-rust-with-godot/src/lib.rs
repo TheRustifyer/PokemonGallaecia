@@ -1,6 +1,8 @@
 use gdnative::prelude::*;
 
+pub mod player;
 mod login_screen;
+pub mod utils;
 
 fn init(handle: InitHandle) {
     // Here we register the Rust Structs that will register as classes on GDScript
