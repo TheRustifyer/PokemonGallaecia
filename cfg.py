@@ -4,6 +4,8 @@ import platform
 import subprocess
 import re
 
+import threading
+
 # Getting the base details
 current_path = os.path.abspath((os.getcwd()))
 OS = platform.system()
@@ -28,7 +30,11 @@ else:
     pass # Not interested in working with Mac nowadays...
 
 # This will give us back a list with all files inside
-rust_files = os.listdir(rust_compiling_folder)
+try:
+    rust_files = os.listdir(rust_compiling_folder)
+except Exception:
+    print('The path isn\'t already created. Please, run "cargo build" for the first time.')
+
 
 # Finding out target dynamic library
 candidates = [file for file in rust_files if re.search(rf'\{desired_extension}$', file)]
@@ -67,6 +73,7 @@ def replace_rust_dll():
         '''To avoid use PIPES on stdout and stderr...
         and in W10, prompt gets waiting if no PIPE de process... so...'''
         subprocess.call(['exit'], shell=True)
+
     else:
         pass
     

@@ -17,8 +17,7 @@ def compile_rust(path):
     if not process_stderr:
         process_stdout = process.stdout.read(1000)
         execution_result = process_stdout.decode('UTF-8').strip()
-        print('Coping files, wait...')
-        print('\t' + execution_result)
+        print(execution_result)
 
     subprocess.call(['exit'], shell=True)
 
