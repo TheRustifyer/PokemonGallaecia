@@ -1,25 +1,23 @@
 import subprocess
 import os
 
-def compile_rust(path):
-    os.chdir(path)
-    print('Path of __init__.py file ' + os.path.abspath(os.getcwd()))
+def compile_rust(prev_path, desired_path):
+    os.chdir(desired_path)
+
     process = subprocess.Popen(
             'cargo build', 
             shell=True, 
             stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
         )
 
-    process_stderr = process.stderr.read(100)
-    # //TODO: Still have to write the code to handle stderr
-    
-    if not process_stderr:
-        process_stdout = process.stdout.read(1000)
-        execution_result = process_stdout.decode('UTF-8').strip()
-        print(execution_result)
+    process_stdout = process.stdout.read(1000)
+    execution_result_out = process_stdout.decode('UTF-8').strip()
+    if not process_stdout:
+        print('\t*** Rust code compilation successfully ***')
+    else:
+        print(f'stdout -> {execution_result_out}')
 
     subprocess.call(['exit'], shell=True)
 
-    os.chdir(path)
-    print('Path of __init__.py file' + os.path.abspath(os.getcwd()))
+    os.chdir(prev_path)
+
