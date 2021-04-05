@@ -15,8 +15,8 @@ _global_script_class_icons={
 
 [application]
 
-config/name="LearnRustWithGodot"
-run/main_scene="res://godot/main.tscn"
+config/name="LearnProgrammingWithGodot"
+run/main_scene="res://godot/login_screen.tscn"
 config/icon="res://icon.png"
 
 [debug]

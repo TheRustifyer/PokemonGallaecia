@@ -1,6 +1,6 @@
 extends Control
 
-var LoginScreen = preload("res://godot/Background.gdns")
+var LoginScreen = preload("res://godot/login_screen.gdns")
 
 func _init():
 	print("Constructed!")
