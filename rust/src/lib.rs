@@ -2,6 +2,7 @@ use gdnative::prelude::*;
 
 pub mod player;
 mod login_screen;
+mod consts;
 pub mod utils;
 
 fn init(handle: InitHandle) {

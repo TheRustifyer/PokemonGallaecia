@@ -1,8 +1,0 @@
-[gd_resource type="NativeScript" load_steps=2 format=2]
-
-[ext_resource path="res://godot/learn_rust_with_godot.gdnlib" type="GDNativeLibrary" id=1]
-
-[resource]
-resource_name = "LoginScreen"
-class_name = "LoginScreen"
-library = ExtResource( 1 )
