@@ -11,7 +11,7 @@ current_path = os.path.abspath((os.getcwd()))
 OS = platform.system()
 
 # The base dirs
-godot_dir = current_path + '\godot'
+godot_dir = current_path + '\\godot'
 rust_dir = current_path + '\\rust'
 
 # Setting concrete folders
