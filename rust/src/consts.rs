@@ -5,3 +5,11 @@ pub mod labels {
         "VBoxContainer/Label";
 
 }
+
+pub mod line_edit {
+    /* Line edits are text input fields */
+    pub const USERNAME_LINE_EDIT_PATH: &str =
+        "VBoxContainer/HBoxContainer/UsernameInput";
+    pub const PASSWORD_LINE_EDIT_PATH: &str =
+        "VBoxContainer/HBoxContainer/PasswordInput";
+}
