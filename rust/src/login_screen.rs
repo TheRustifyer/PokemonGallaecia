@@ -98,7 +98,7 @@ impl LoginScreen {
             (true, true) =>  {
                 new_player = Player::create_new_player(username, password, 1);
                 godot_print!("New Player is: {:?}", new_player);
-                &self.go_next_scene(_owner, "res://2DGame.tscn".to_string());
+                &self.go_next_scene(_owner, "res://godot/2DGame.tscn".to_string());
                 Some(new_player) // Returns a "Some" new player instance
             },
             (true, false) => { godot_print!("Wrong password. Try again."); None },
@@ -123,13 +123,12 @@ impl LoginScreen {
             unsafe { self.current_scene()
             .unwrap().assume_safe() };
         
-        
         let new_scene = SceneTree::change_scene(
             &scene_tree_ref, next_scene_path);
         
         match new_scene {
             Ok(()) => (),
-            Err(GodotError) => ()
+            Err(err) => println!("{}", err)
         }
     }
 
