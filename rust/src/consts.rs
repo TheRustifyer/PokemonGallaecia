@@ -13,3 +13,8 @@ pub mod line_edit {
     pub const PASSWORD_LINE_EDIT_PATH: &str =
         "VBoxContainer/HBoxContainer/PasswordInput";
 }
+
+pub mod scenes {
+    pub const MAIN_SCENE: &str =
+        "res://godot/2DGame.tscn";
+}
