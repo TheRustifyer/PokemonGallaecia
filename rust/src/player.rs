@@ -3,7 +3,7 @@ pub mod player_mod {
     use gdnative::api::{AnimatedSprite, Area2D, CollisionShape2D, KinematicBody2D};
     #[derive(NativeClass)]
     #[inherit(KinematicBody2D)]
-    // #[user_data(user_data::MutexData<Player>)]
+    #[user_data(user_data::MutexData<Player>)]
     // #[register_with(Self::register_player)]
     #[derive(Debug)]
     pub struct Player {
@@ -18,15 +18,15 @@ pub mod player_mod {
         }
     }
     
-    #[methods]
+    #[gdnative::methods]
     impl Player {  
         // The public constructor
         fn new(_owner: &KinematicBody2D) -> Self {
+            godot_print!("CONSTRUCTOR");
             Self {
                 username: None,
                 password: None,
                 level: None,
-                
             }
         }
 
@@ -64,30 +64,30 @@ pub mod player_mod {
                 motion.x = VELOCITY;
             } 
             if Input::is_action_pressed(&input, "up") {
-                motion.y = VELOCITY;
+                motion.y = -VELOCITY;
             } 
             if Input::is_action_pressed(&input, "down") {
                 motion.y = VELOCITY;
             }
 
-        //     owner.move_and_slide(
-        //         motion,
-        //         motion,
-        //         false,
-        //         4,
-        //         0.785398,
-        //         true
-        //     );
-        // }
+            owner.move_and_slide(
+                motion,
+                motion,
+                false,
+                4,
+                0.785398,
+                true
+            );
+        
 
         
-        let change = motion * delta;
-        let position = owner.global_position() + change;
-        let position = Vector2::new(
-            position.x.max(0.0).min(screen_size.x),
-            position.y.max(0.0).min(screen_size.y),
-        );
-        owner.set_global_position(position);
+        // let change = motion * delta;
+        // let position = owner.global_position() + change;
+        // let position = Vector2::new(
+        //     position.x.max(0.0).min(screen_size.x),
+        //     position.y.max(0.0).min(screen_size.y),
+        // );
+        // owner.set_global_position(position);
     }
 
         // fn register_player(builder: &ClassBuilder<Self>) {

@@ -11,6 +11,7 @@ fn init(handle: InitHandle) {
     //First just will register a class that only prints a greet on the Godot Engine console
     //to ensure that all bindings, export and boilerplate stuff are done correctly
     handle.add_class::<login_screen::LoginScreen>();
+    handle.add_class::<player::player_mod::Player>();
 }
 
 godot_init!(init);
