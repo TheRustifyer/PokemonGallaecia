@@ -3,6 +3,6 @@
 [ext_resource path="res://godot/rust_library.gdnlib" type="GDNativeLibrary" id=1]
 
 [resource]
-resource_name = "LoginScreen"
-class_name = "LoginScreen"
+resource_name = "Player"
+class_name = "Player"
 library = ExtResource( 1 )

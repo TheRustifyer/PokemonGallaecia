@@ -1,15 +1,12 @@
 use gdnative::prelude::*;
-use gdnative::api::{Label, LineEdit, Node};
+use gdnative::api::{LineEdit, Node};
 
-use crate::player::player_mod::Player;
 use crate::utils;
+use crate::player::player_mod::Player;
 use crate::consts::{labels, line_edit, scenes};
-
 #[derive(NativeClass)]
 #[inherit(Node)]
 pub struct LoginScreen {
-    app_title: Option<String>,
-    current_scene: Option<Ref<SceneTree, Shared>>,
     player: Option<Player>,
 }
 
@@ -19,28 +16,16 @@ impl LoginScreen {
     // The "constructor of the class"
     fn new(_owned: &Node) -> Self {
         Self { 
-            app_title: None,
-            current_scene: None,
             player: None
         }
     }
 
-    // Getters and setters
-    // Get a reference to the login screen's current scene.
-    pub fn current_scene(&self) -> &Option<Ref<SceneTree, Shared>> {
-        &self.current_scene
-        }
-    // Set the login screen's current scene.
-    pub fn set_current_scene(&mut self, current_scene: Option<Ref<SceneTree, Shared>>) {
-        self.current_scene = current_scene;
-        }
-    
+    #[warn(dead_code)]
     /// Get a reference to the login screen's player.
-    fn get_player(&self) -> &Option<Player> {
+    pub fn get_player(&self) -> &Option<Player> {
         &self.player
     }
-
-    /// Set the login screen's player.
+    /// Setter for the logged player
     fn set_player(&mut self, player: Option<Player>) {
         self.player = player;
     }
@@ -48,25 +33,13 @@ impl LoginScreen {
     #[export]
     fn _ready(&mut self, _owner: &Node) {
         //Setting the intro of the app :)
-        &self.set_label_text(_owner, 
-            labels::APP_TITLE_LABEL_PATH.to_string(), 
-            labels::APP_TITLE_LABEL.to_string()
+        utils::set_label_text(_owner, 
+            &labels::APP_TITLE_LABEL_PATH.to_string(), 
+            &labels::APP_TITLE_LABEL.to_string()
             );
     }
 
-    #[export]
-    fn set_label_text(&self, _owner: &Node, _label_path: String, text: String) {
-        let app_title_label = unsafe { 
-            _owner.get_node_as::<Label>(&_label_path) }
-            .unwrap();
-            
-        app_title_label.
-            set_text(&self.app_title
-                .as_ref()
-                .unwrap_or(&text)
-            );
-    }
-
+    /// Gets the inputed credentials on the Login Screen Line Edits
     fn retrieve_credentials(&self, _owner: &Node) -> (String, String){
         let get_username_on_input = unsafe 
             { _owner.get_node_as::<LineEdit>(
@@ -79,15 +52,13 @@ impl LoginScreen {
             .unwrap()
             .text();
 
-        // Returns a tuple with the credentials converted from GodotString to Rust String Struct
-        Player::credentials_to_rust_string(
-            (get_username_on_input, get_password_on_input)
-            )
+        // Returns a tuple with the credentials converted from GodotString to Rust String
+        Player::credentials_to_rust_string((get_username_on_input, get_password_on_input))
     }
 
-
     #[export]
-    fn _on_login_button_pressed(&self, _owner: &Node) {
+    /// The receiver of the signal from Godot when the login button gets pressed
+    fn _on_login_button_pressed(&mut self, _owner: &Node) {
 
         let (username, password): (String, String) = self.retrieve_credentials(_owner);
 
@@ -99,17 +70,19 @@ impl LoginScreen {
         let new_player: Player;
         match credentials_status {
             (true, true) =>  {
-                // Credentials are correcto, so instanciate a new player
+                // Credentials are correct, so a new player is instanciated
                 new_player = Player::create_new_player(username, password, 1);
-                godot_print!("New Player is: {:?}", new_player);
-                // Entering the main scene
-                utils::go_next_scene(_owner, scenes::MAIN_SCENE.to_string());
+                utils::show_player_attributes(&new_player);
+                
+                // Storing a reference to the new player as the current player for the "game session"
+                &mut self.set_player(Some(new_player));
+                
+                // Finally, with the new player creaded we can move to the main scene
+                utils::change_scene(_owner, scenes::MAIN_SCENE.to_string());
             },
+            // This should be changed for on screen labels on the future. Fine for now ;)
             (true, false) => godot_print!("Wrong password. Try again."),
             _ => godot_print!("Wrong credentials. Try again.")
         }     
     }
-
-
-
 }

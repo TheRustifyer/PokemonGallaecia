@@ -1,16 +1,34 @@
 use gdnative::prelude::*;
 use gdnative::api::Node;
 
+use crate::player::player_mod::Player;
+
+/// For debug purposes, it's an easy way to check on stdout the provided credentials
 pub fn print_login_credentials(credentials_tup: (&String, &String)) {
     godot_print!("Username: {:?}", credentials_tup.0);
     godot_print!("Password: {:?}", credentials_tup.1);
 }
 
-// pub fn get_node_info() -> Option<Ref<SceneTree, Shared>> {
-//     Node::get_tree()
-// }
+/// Prints on console the current data on the Player struct
+/// This can be useful to debug the "in place" current values of Player attributes
+pub fn show_player_attributes(player: &Player) {
+    godot_print!("New Player is: {:?}", player);
+}
 
-pub fn go_next_scene(_owner: &Node, next_scene_path: String) -> () {
+/// Changes the text of a label, if an _owner, a text and a path are provided.
+/// The path to the label are a String like "res://path_to_the_label"
+pub fn set_label_text(_owner: &Node, _label_path: &String, text: &String) {
+    let app_title_label = unsafe { 
+        _owner.get_node_as::<Label>(&_label_path) }
+        .unwrap();
+        
+    app_title_label.
+        set_text(text);
+}
+
+/// Convenient function to change scene just passing the _owner and a path as a String
+pub fn change_scene(_owner: &Node, next_scene_path: String) -> () {
+    
     let scene_tree_ref = 
         unsafe { Node::get_tree(_owner)
         .unwrap().assume_safe() };
