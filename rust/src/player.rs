@@ -30,17 +30,8 @@ pub mod player_mod {
         pub fn check_credentials(username: Option<&String>, password: Option<&String>) -> (bool, bool) {
 
             let mut credentials_flag: (bool, bool) = (false, false);
-            
-            // Very trivial example to check the program flux
-            // Classical if-else block
-            // if username == "root" || username == "Root" {
-            //     credentials_flag.0 = true;
-            // }
-            // if password == "root" || password == "Root" {
-            //     credentials_flag.1 = true;
-            // }
 
-            // Upgraded flat String redentials to std::option:Option, so pattern matching
+            // Upgraded flat String credentials to std::option:Option, so pattern matching
             //to make an ez way to scale multiples options when will be checked on a REST-backend
             match username {
                 Some(usnm) if usnm == "root" || usnm == "Root" => credentials_flag.0 = true,
@@ -57,6 +48,11 @@ pub mod player_mod {
             }
             // Returns a tuple representing the checked status of each credential
             credentials_flag
+        }
+
+        pub fn credentials_to_rust_string(cred_tup: (GodotString, GodotString)) -> (String, String) {
+            let credentials = cred_tup;
+            (credentials.0.to_string(), credentials.1.to_string())
         }
 
     }
