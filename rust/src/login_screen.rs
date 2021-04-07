@@ -37,7 +37,8 @@ impl LoginScreen {
     #[export]
     fn _ready(&mut self, _owner: &Node) {
         //Setting the intro of the app :)
-        &self.set_label_text(_owner, 
+        &self.set_label_text(
+            _owner, 
              &self.app_title,
             labels::APP_TITLE_LABEL_PATH.to_string()
             );
