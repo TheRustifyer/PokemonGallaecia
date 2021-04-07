@@ -52,9 +52,6 @@ impl LoginScreen {
             labels::APP_TITLE_LABEL_PATH.to_string(), 
             labels::APP_TITLE_LABEL.to_string()
             );
-        // Prints on console real time info sended FROM Rust
-        // &mut self.get_current_tree_node(_owner);
-
     }
 
     #[export]
@@ -90,7 +87,7 @@ impl LoginScreen {
 
 
     #[export]
-    fn _on_login_button_pressed(&self, _owner: &Node) -> Option<Player> {
+    fn _on_login_button_pressed(&self, _owner: &Node) {
 
         let (username, password): (String, String) = self.retrieve_credentials(_owner);
 
@@ -102,40 +99,17 @@ impl LoginScreen {
         let new_player: Player;
         match credentials_status {
             (true, true) =>  {
+                // Credentials are correcto, so instanciate a new player
                 new_player = Player::create_new_player(username, password, 1);
                 godot_print!("New Player is: {:?}", new_player);
+                // Entering the main scene
                 utils::go_next_scene(_owner, scenes::MAIN_SCENE.to_string());
-                Some(new_player) // Returns a "Some" new player instance
             },
-            (true, false) => { godot_print!("Wrong password. Try again."); None },
-            _ => { godot_print!("Wrong credentials. Try again."); None }
+            (true, false) => godot_print!("Wrong password. Try again."),
+            _ => godot_print!("Wrong credentials. Try again.")
         }     
     }
 
-    // #[export]
-    // fn get_current_tree_node(&mut self, _owner: &Node) -> Option<Ref<SceneTree, Shared>> {
-    //     if let Some(node_tree_info) = Node::get_tree(_owner) {
-    //         godot_print!("Scene Tree => {:?}", node_tree_info);
-    //         &mut self.set_current_scene(Node::get_tree(_owner));
-    //         Some(node_tree_info)
-    //     } else {
-    //         None
-    //     }  
-    // }
 
-    // #[export]
-    // fn go_next_scene(&self, _owner: &Node, next_scene_path: String) -> () {
-    //     let scene_tree_ref = 
-    //         unsafe { self.current_scene()
-    //         .unwrap().assume_safe() };
-        
-    //     let new_scene = SceneTree::change_scene(
-    //         &scene_tree_ref, next_scene_path);
-        
-    //     match new_scene {
-    //         Ok(()) => (),
-    //         Err(err) => println!("{}", err)
-    //     }
-    // }
 
 }
