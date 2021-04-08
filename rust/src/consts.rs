@@ -16,5 +16,10 @@ pub mod line_edit {
 
 pub mod scenes {
     pub const MAIN_SCENE: &str =
-        "res://godot/2DGame.tscn";
+        "";
+    pub const PLAYER_AS_SCENE: &str =
+        "res://godot/Player.tscn";
+
+    pub const LEVEL_1: &str =
+        "res://godot/Levels/Level_1.tscn";
 }

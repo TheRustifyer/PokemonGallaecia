@@ -1,6 +1,11 @@
 pub mod player_mod {
     use gdnative::prelude::*;
     use gdnative::api::{AnimatedSprite, Area2D, CollisionShape2D, KinematicBody2D};
+
+    pub const VELOCITY: f32 = 300.0;
+    pub const GRAVITY: f32 = 500.0;
+    const SCREEN_SIZE: Vector2 = Vector2::new(0.0, 0.0);
+
     #[derive(NativeClass)]
     #[inherit(KinematicBody2D)]
     #[user_data(user_data::MutexData<Player>)]
@@ -47,15 +52,13 @@ pub mod player_mod {
         #[export]
         fn _physics_process(&mut self, owner: &KinematicBody2D, delta: f32) {
             // First of all, we need a reference to our singleton(scene, node, value that exists through out the game) Input 
-            godot_print!("I am here! Delta => {}", delta);
             let input: &Input = Input::godot_singleton();
-
-            const VELOCITY: f32 = 300.0;
 
             // A Vector2, which is a Godot type, which represents the (x, y) coordinates on 2D space
             let mut motion: Vector2 = Vector2::new(0.0, 0.0);
 
-            let screen_size = Vector2::new(0.0, 0.0);
+            // All Y axis motions are affected first by the gravity
+            motion.y += GRAVITY;
 
             if Input::is_action_pressed(&input, "left") {
                 motion.x = -VELOCITY;
@@ -120,7 +123,7 @@ pub mod player_mod {
             credentials_flag
         }
 
-        /// Little method to convert the credentials (retrieved as a tuple of GodotStrings>) into a tuple of Strings
+        /// Little method to convert the credentials (retrieved as a tuple of GodotStrings) into a tuple of Strings
         pub fn credentials_to_rust_string(cred_tup: (GodotString, GodotString)) -> (String, String) {
             let credentials = cred_tup;
             (credentials.0.to_string(), credentials.1.to_string())

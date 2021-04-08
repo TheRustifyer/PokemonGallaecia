@@ -78,7 +78,7 @@ impl LoginScreen {
                 &mut self.set_player(Some(new_player));
                 
                 // Finally, with the new player creaded we can move to the main scene
-                utils::change_scene(_owner, scenes::MAIN_SCENE.to_string());
+                utils::change_scene(_owner, scenes::LEVEL_1.to_string());
             },
             // This should be changed for on screen labels on the future. Fine for now ;)
             (true, false) => godot_print!("Wrong password. Try again."),
