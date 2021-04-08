@@ -66,20 +66,21 @@ impl Player {
         if Input::is_action_pressed(&input, "Jump") && owner.is_on_floor() {
             self.motion.y -= JUMP_SPEED
         }
-
-        if Input::is_action_pressed(&input, "Left") {
+        else if Input::is_action_pressed(&input, "Left") && 
+            !Input::is_action_pressed(&input, "Right") {
             self.motion.x = -VELOCITY;
         } 
-        if Input::is_action_pressed(&input, "Right") {
+        else if Input::is_action_pressed(&input, "Right") && 
+            !Input::is_action_pressed(&input, "Left") {
             self.motion.x = VELOCITY;
         } 
-        if Input::is_action_pressed(&input, "Up") {
+        else if Input::is_action_pressed(&input, "Up") {
             self.motion.y = -VELOCITY;
         } 
-        if Input::is_action_pressed(&input, "Down") {
+        else if Input::is_action_pressed(&input, "Down") {
             self.motion.y = VELOCITY;
         }
-        if Input::is_action_just_pressed(&input, "") {
+        else {
             self.motion.x = 0.0;
         }
 
@@ -89,7 +90,7 @@ impl Player {
             false,
             4,
             0.785398,
-            true
+            false
         );
 
     }
