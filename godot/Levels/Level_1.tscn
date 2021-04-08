@@ -1,19 +1,22 @@
 [gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://godot/Player.tscn" type="PackedScene" id=1]
-[ext_resource path="res://ground_grass_small.png" type="Texture" id=2]
+[ext_resource path="res://gfx/Tilemaps/ground_grass_small.png" type="Texture" id=2]
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 111, 54 )
+extents = Vector2( 333.574, 54 )
 
 [node name="Level_1" type="Node2D"]
-position = Vector2( 119, 18 )
+position = Vector2( 0.0793457, -1.02731 )
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
-position = Vector2( -10, -46 )
+position = Vector2( 396.748, 332.606 )
 
 [node name="Floor" type="StaticBody2D" parent="."]
-position = Vector2( 0, 8 )
+position = Vector2( 22.2554, 80.0199 )
+__meta__ = {
+"_edit_lock_": true
+}
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Floor"]
 position = Vector2( 404, 449 )

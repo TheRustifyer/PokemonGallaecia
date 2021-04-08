@@ -2,7 +2,7 @@ use gdnative::prelude::*;
 use gdnative::api::{LineEdit, Node};
 
 use crate::utils;
-use crate::player::player_mod::Player;
+use crate::player::Player;
 use crate::consts::{labels, line_edit, scenes};
 #[derive(NativeClass)]
 #[inherit(Node)]

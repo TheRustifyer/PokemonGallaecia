@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/ground_grass_small.png-4a39cf2d7e6c75a925cd30e60fba2960.stex"
+path="res://.import/character_zombie_walk1.png-867cc6e352e598976689cf101aaed645.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://ground_grass_small.png"
-dest_files=[ "res://.import/ground_grass_small.png-4a39cf2d7e6c75a925cd30e60fba2960.stex" ]
+source_file="res://gfx/Players/walk_right/character_zombie_walk1.png"
+dest_files=[ "res://.import/character_zombie_walk1.png-867cc6e352e598976689cf101aaed645.stex" ]
 
 [params]
 

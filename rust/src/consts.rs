@@ -1,9 +1,15 @@
+pub mod game_options {
+    use gdnative::prelude::*;
+    
+    pub const SCREEN_SIZE: Vector2 = 
+        Vector2::new(0.0, 0.0);
+}
+
 pub mod labels {
     pub const APP_TITLE_LABEL: &str = 
         "Learn Programming With Godot";
     pub const APP_TITLE_LABEL_PATH: &str = 
         "VBoxContainer/Label";
-
 }
 
 pub mod line_edit {
