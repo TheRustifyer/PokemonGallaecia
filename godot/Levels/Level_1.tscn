@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=2]
 
-[ext_resource path="res://godot/Player.tscn" type="PackedScene" id=1]
+[ext_resource path="res://godot/Player/Player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://gfx/Tilemaps/ground_grass_small.png" type="Texture" id=2]
 
 [sub_resource type="RectangleShape2D" id=1]
@@ -26,3 +26,8 @@ shape = SubResource( 1 )
 position = Vector2( 404, 447.5 )
 scale = Vector2( 1, 1.03 )
 texture = ExtResource( 2 )
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2( 511.58, 302.04 )
+current = true
+zoom = Vector2( 2, 2 )

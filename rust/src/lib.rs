@@ -12,6 +12,7 @@ fn init(handle: InitHandle) {
     //to ensure that all bindings, export and boilerplate stuff are done correctly
     handle.add_class::<login_screen::LoginScreen>();
     handle.add_class::<player::Player>();
+    handle.add_class::<player::PlayerAnimation>();
 }
 
 godot_init!(init);

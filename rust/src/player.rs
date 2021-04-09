@@ -1,5 +1,5 @@
 use gdnative::prelude::*;
-use gdnative::api::{AnimatedSprite, Area2D, CollisionShape2D, KinematicBody2D};
+use gdnative::api::{AnimatedSprite, KinematicBody2D, PhysicsBody2D};
 
 pub const VELOCITY: f32 = 500.0;
 pub const GRAVITY: f32 = 300.0;
@@ -8,8 +8,8 @@ pub const UP: Vector2 = Vector2::new(0.0, -1.0);
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
-#[user_data(user_data::MutexData<Player>)]
-// #[register_with(Self::register_player)]
+// #[user_data(user_data::MutexData<Player>)]
+#[register_with(Self::register_signal)]
 #[derive(Debug)]
 pub struct Player {
     username: Option<String>,
@@ -28,7 +28,26 @@ impl ToVariant for Player {
 
 #[gdnative::methods]
 impl Player {  
-    // The public constructor
+
+    /// Method for register a new signal to a designed class. You can find on the GUI Godot
+    /// that signal registered on the Node panel on the same way if the signal was created directly on the GUI.
+    /// The name of the method is completly arbitrary, is just a way to encapsulate the info passed to the builder object and transport it back to Godot 
+    fn register_signal(builder: &ClassBuilder<Self>) {
+        
+        // let motion_as_signal_arg: SignalArgument =
+        
+        builder.add_signal(Signal {
+            name: "animate",
+            args: &[ SignalArgument {
+                name: "motion",
+                default: Variant::from_vector2(&Vector2::new(0.0, 0.0)),
+                export_info: ExportInfo::new(VariantType::Vector2),
+                usage: PropertyUsage::DEFAULT,
+            }],
+        });
+    }
+
+    // The constructor
     fn new(_owner: &KinematicBody2D) -> Self {
         Self {
             username: None,
@@ -53,7 +72,7 @@ impl Player {
     }
     
     #[export]
-    fn _physics_process(&mut self, owner: &KinematicBody2D, delta: f32) {
+    fn _physics_process(&mut self, owner: &KinematicBody2D, _delta: f32) {
         // First of all, we need a reference to our singleton(scene, node, value that exists through out the game) Input 
         let input: &Input = Input::godot_singleton();
 
@@ -104,28 +123,8 @@ impl Player {
     }
 
     fn animate_character(&self, owner: &KinematicBody2D) {
-        let character_animated_sprite = unsafe 
-            { owner.get_node_as::<AnimatedSprite>(
-                "AnimatedSprite"
-                ) }
-                .unwrap();
-
-        if self.motion.x == 0.0f32 {
-            character_animated_sprite.play("idle", false);
-        } else if self.motion.x > 0.0f32 {
-            character_animated_sprite.play("walk right", false);
-        } else if self.motion.x < 0.0f32 {
-            character_animated_sprite.play("walk left", false);
-        }
-
+        owner.emit_signal("animate", &[self.motion.to_variant()]);
     }
-
-    // fn register_player(builder: &ClassBuilder<Self>) {
-    //     builder.add_signal(Signal {
-    //         name: "hit",
-    //         args: &[],
-    //     });
-    // }
 
     pub fn check_credentials(username: Option<&String>, password: Option<&String>) -> (bool, bool) {
 
@@ -155,5 +154,37 @@ impl Player {
         let credentials = cred_tup;
         (credentials.0.to_string(), credentials.1.to_string())
     }
+
+}
+
+
+#[derive(NativeClass)]
+#[inherit(AnimatedSprite)]
+pub struct PlayerAnimation;
+
+#[gdnative::methods]
+impl PlayerAnimation {
+    fn new(_owner: &AnimatedSprite) -> Self {
+        Self
+    }
+
+    #[export]
+    fn _on_player_animate(&mut self, _owner: &AnimatedSprite, _motion: Vector2) {
+        
+        let character_animated_sprite = unsafe 
+        { _owner.get_node_as::<AnimatedSprite>(
+            "."
+            ) }
+            .unwrap();
+            
+        if _motion.x == 0.0f32 {
+            character_animated_sprite.play("idle", false);
+        } else if _motion.x > 0.0f32 {
+            character_animated_sprite.play("walk right", false);
+        } else if _motion.x < 0.0f32 {
+            character_animated_sprite.play("walk left", false);
+        }
+    }
+
 
 }
