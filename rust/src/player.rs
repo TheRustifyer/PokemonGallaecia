@@ -34,8 +34,6 @@ impl Player {
     /// The name of the method is completly arbitrary, is just a way to encapsulate the info passed to the builder object and transport it back to Godot 
     fn register_signal(builder: &ClassBuilder<Self>) {
         
-        // let motion_as_signal_arg: SignalArgument =
-        
         builder.add_signal(Signal {
             name: "animate",
             args: &[ SignalArgument {
