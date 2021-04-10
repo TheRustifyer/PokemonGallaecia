@@ -5,20 +5,26 @@
 [ext_resource path="res://godot/Player/PlayerAnimation.gdns" type="Script" id=3]
 
 [sub_resource type="CapsuleShape2D" id=1]
-radius = 74.3834
-height = 59.5792
+radius = 15.2072
+height = 2.88495
 
 [node name="Player" type="KinematicBody2D"]
 position = Vector2( 402, 233 )
 script = ExtResource( 2 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( 29.53, 35.173 )
+position = Vector2( 106.739, 52.904 )
 shape = SubResource( 1 )
-__meta__ = {
-"_edit_group_": true
-}
 
 [node name="PlayerAnimation" parent="." instance=ExtResource( 1 )]
+position = Vector2( 102.344, 64.1447 )
+scale = Vector2( 2, 2 )
+animation = "walk left"
+frame = 1
 script = ExtResource( 3 )
+
+[node name="Camera2D" type="Camera2D" parent="."]
+position = Vector2( 110.471, 64.1447 )
+current = true
+zoom = Vector2( 2, 2 )
 [connection signal="animate" from="." to="PlayerAnimation" method="_on_player_animate"]

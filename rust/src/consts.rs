@@ -1,8 +1,7 @@
 pub mod game_options {
-    use gdnative::prelude::*;
     
-    pub const SCREEN_SIZE: Vector2 = 
-        Vector2::new(0.0, 0.0);
+    // pub const SCREEN_SIZE: Vector2 = 
+    //     Vector2::new(0.0, 0.0);
 }
 
 pub mod labels {
@@ -21,10 +20,10 @@ pub mod line_edit {
 }
 
 pub mod scenes {
-    pub const MAIN_SCENE: &str =
-        "";
-    pub const PLAYER_AS_SCENE: &str =
-        "res://godot/Player.tscn";
+    // pub const MAIN_SCENE: &str =
+    //     "";
+    // pub const PLAYER_AS_SCENE: &str =
+    //     "res://godot/Player.tscn";
 
     pub const LEVEL_1: &str =
         "res://godot/Levels/Level_1.tscn";

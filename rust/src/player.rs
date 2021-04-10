@@ -1,5 +1,5 @@
 use gdnative::prelude::*;
-use gdnative::api::{AnimatedSprite, KinematicBody2D, PhysicsBody2D};
+use gdnative::api::{AnimatedSprite, KinematicBody2D};
 
 pub const VELOCITY: f32 = 500.0;
 pub const GRAVITY: f32 = 300.0;
@@ -34,7 +34,7 @@ impl Player {
     /// The name of the method is completly arbitrary, is just a way to encapsulate the info passed to the builder object and transport it back to Godot 
     fn register_signal(builder: &ClassBuilder<Self>) {
         
-        builder.add_signal(Signal {
+        builder.add_signal( Signal {
             name: "animate",
             args: &[ SignalArgument {
                 name: "motion",
@@ -75,7 +75,7 @@ impl Player {
         let input: &Input = Input::godot_singleton();
 
         // All Y axis motions are affected first by the gravity
-        self.apply_gravity(&owner);
+        // self.apply_gravity(&owner);
 
         // Calling the method who animates the sprite when KinematicBody2D is moving
         self.animate_character(&owner);
@@ -83,22 +83,33 @@ impl Player {
         if Input::is_action_pressed(&input, "Jump") && owner.is_on_floor() {
             self.motion.y -= JUMP_SPEED
         }
-        else if Input::is_action_pressed(&input, "Left") && 
-            !Input::is_action_pressed(&input, "Right") {
+        if Input::is_action_pressed(&input, "Left") && 
+            !Input::is_action_pressed(&input, "Right") &&
+            !Input::is_action_pressed(&input, "Up") &&
+            !Input::is_action_pressed(&input, "Down") {
             self.motion.x = -VELOCITY;
         } 
         else if Input::is_action_pressed(&input, "Right") && 
-            !Input::is_action_pressed(&input, "Left") {
+            !Input::is_action_pressed(&input, "Left") &&
+            !Input::is_action_pressed(&input, "Up") &&
+            !Input::is_action_pressed(&input, "Down") {
             self.motion.x = VELOCITY;
         } 
-        else if Input::is_action_pressed(&input, "Up") {
+        else if Input::is_action_pressed(&input, "Up") &&
+            !Input::is_action_pressed(&input, "Down") &&
+            !Input::is_action_pressed(&input, "Right") &&
+            !Input::is_action_pressed(&input, "Left") {
             self.motion.y = -VELOCITY;
         } 
-        else if Input::is_action_pressed(&input, "Down") {
+        else if Input::is_action_pressed(&input, "Down") &&
+            !Input::is_action_pressed(&input, "Up") &&
+            !Input::is_action_pressed(&input, "Left") &&
+            !Input::is_action_pressed(&input, "Right") {
             self.motion.y = VELOCITY;
         }
         else {
             self.motion.x = 0.0;
+            self.motion.y = 0.0;
         }
 
         owner.move_and_slide(
@@ -112,13 +123,13 @@ impl Player {
 
     }
 
-    fn apply_gravity(&mut self, owner: &KinematicBody2D) {
-        if owner.is_on_floor() {
-            self.motion.y = 0.0;
-        } else {
-            self.motion.y += GRAVITY;
-        }
-    }
+    // fn apply_gravity(&mut self, owner: &KinematicBody2D) {
+    //     if owner.is_on_floor() {
+    //         self.motion.y = 0.0;
+    //     } else {
+    //         self.motion.y += GRAVITY;
+    //     }
+    // }
 
     fn animate_character(&self, owner: &KinematicBody2D) {
         owner.emit_signal("animate", &[self.motion.to_variant()]);
@@ -152,9 +163,7 @@ impl Player {
         let credentials = cred_tup;
         (credentials.0.to_string(), credentials.1.to_string())
     }
-
 }
-
 
 #[derive(NativeClass)]
 #[inherit(AnimatedSprite)]
@@ -175,14 +184,48 @@ impl PlayerAnimation {
             ) }
             .unwrap();
             
-        if _motion.x == 0.0f32 {
-            character_animated_sprite.play("idle", false);
-        } else if _motion.x > 0.0f32 {
+        let current_player_direction: PlayerDirection;
+        let idle_player_direction: PlayerDirection;
+
+        match _motion {
+            x if x.x > 0.0 => { current_player_direction = PlayerDirection::Right; idle_player_direction = PlayerDirection::Right },
+            x if x.x < 0.0 => { current_player_direction = PlayerDirection::Left; idle_player_direction = PlayerDirection::Left },
+            y if y.y < 0.0 => { current_player_direction = PlayerDirection::Upwards	; idle_player_direction = PlayerDirection::Upwards },
+            y if y.y > 0.0 => { current_player_direction = PlayerDirection::Downwards; idle_player_direction = PlayerDirection::Downwards },
+            _ => { current_player_direction = PlayerDirection::Idle; idle_player_direction = current_player_direction.clone() }
+        }
+
+        if current_player_direction == PlayerDirection::Idle {
+            println!("Type of idle_player_direction: {:?}", idle_player_direction );
+            match idle_player_direction {
+                PlayerDirection::Downwards => { character_animated_sprite.play("idle front", false); godot_print!("Idle front") }
+                PlayerDirection::Upwards => { character_animated_sprite.play("idle back", false); godot_print!("Idle back") }
+                PlayerDirection::Left => { character_animated_sprite.play("idle left", false); godot_print!("Idle left") }
+                PlayerDirection::Right => { character_animated_sprite.play("idle right", false); godot_print!("Idle right") }
+                _ => {godot_print!("INOTHING")}
+            }  
+            godot_print!("Idle");
+        } else if PlayerDirection::Right == current_player_direction {
             character_animated_sprite.play("walk right", false);
-        } else if _motion.x < 0.0f32 {
+            godot_print!("Right");
+        } else if PlayerDirection::Left == current_player_direction {
             character_animated_sprite.play("walk left", false);
+            godot_print!("Left");
+        } else if PlayerDirection::Downwards == current_player_direction {
+            character_animated_sprite.play("walk downwards", false);
+            godot_print!("Downwards");
+        } else if PlayerDirection::Upwards == current_player_direction {
+            character_animated_sprite.play("walk upwards", false);
+            godot_print!("Upwards");
         }
     }
+}
 
-
+#[derive(PartialEq, Clone, Debug)]
+enum PlayerDirection {
+    Idle,
+    Upwards,
+    Downwards,
+    Left,
+    Right
 }
