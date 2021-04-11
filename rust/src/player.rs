@@ -167,12 +167,18 @@ impl Player {
 
 #[derive(NativeClass)]
 #[inherit(AnimatedSprite)]
-pub struct PlayerAnimation;
+pub struct PlayerAnimation {
+    current_player_direction: PlayerDirection,
+    idle_player_direction: PlayerDirection
+}
 
 #[gdnative::methods]
 impl PlayerAnimation {
     fn new(_owner: &AnimatedSprite) -> Self {
-        Self
+        Self {
+            current_player_direction: Default::default(),
+            idle_player_direction: Default::default()
+        }
     }
 
     #[export]
@@ -183,40 +189,42 @@ impl PlayerAnimation {
             "."
             ) }
             .unwrap();
-            
-        let current_player_direction: PlayerDirection;
-        let idle_player_direction: PlayerDirection;
 
         match _motion {
-            x if x.x > 0.0 => { current_player_direction = PlayerDirection::Right; idle_player_direction = PlayerDirection::Right },
-            x if x.x < 0.0 => { current_player_direction = PlayerDirection::Left; idle_player_direction = PlayerDirection::Left },
-            y if y.y < 0.0 => { current_player_direction = PlayerDirection::Upwards	; idle_player_direction = PlayerDirection::Upwards },
-            y if y.y > 0.0 => { current_player_direction = PlayerDirection::Downwards; idle_player_direction = PlayerDirection::Downwards },
-            _ => { current_player_direction = PlayerDirection::Idle; idle_player_direction = current_player_direction.clone() }
+            x if x.x > 0.0 => { self.current_player_direction = PlayerDirection::Right;  },
+            x if x.x < 0.0 => { self.current_player_direction = PlayerDirection::Left;  },
+            y if y.y < 0.0 => { self.current_player_direction = PlayerDirection::Upwards	;  },
+            y if y.y > 0.0 => { self.current_player_direction = PlayerDirection::Downwards;  },
+            z => if z.x == 0.0 && z.y == 0.0 {
+                { self.current_player_direction = PlayerDirection::Idle; }
+            }
         }
 
-        if current_player_direction == PlayerDirection::Idle {
-            println!("Type of idle_player_direction: {:?}", idle_player_direction );
-            match idle_player_direction {
+        if self.current_player_direction == PlayerDirection::Idle {
+            match self.idle_player_direction {
                 PlayerDirection::Downwards => { character_animated_sprite.play("idle front", false); godot_print!("Idle front") }
                 PlayerDirection::Upwards => { character_animated_sprite.play("idle back", false); godot_print!("Idle back") }
                 PlayerDirection::Left => { character_animated_sprite.play("idle left", false); godot_print!("Idle left") }
                 PlayerDirection::Right => { character_animated_sprite.play("idle right", false); godot_print!("Idle right") }
-                _ => {godot_print!("INOTHING")}
-            }  
-            godot_print!("Idle");
-        } else if PlayerDirection::Right == current_player_direction {
+                _ => {godot_print!("This should never be reached, but pattern matching in Rust is always an exhaustive action.")}
+            }; 
+
+        } else if self.current_player_direction == PlayerDirection::Right {
             character_animated_sprite.play("walk right", false);
-            godot_print!("Right");
-        } else if PlayerDirection::Left == current_player_direction {
+            self.idle_player_direction = PlayerDirection::Right;
+
+        } else if PlayerDirection::Left == self.current_player_direction {
             character_animated_sprite.play("walk left", false);
-            godot_print!("Left");
-        } else if PlayerDirection::Downwards == current_player_direction {
+            self.idle_player_direction = PlayerDirection::Left;
+
+        } else if PlayerDirection::Downwards == self.current_player_direction {
             character_animated_sprite.play("walk downwards", false);
-            godot_print!("Downwards");
-        } else if PlayerDirection::Upwards == current_player_direction {
+            self.idle_player_direction = PlayerDirection::Downwards;
+
+        } else if PlayerDirection::Upwards == self.current_player_direction {
             character_animated_sprite.play("walk upwards", false);
-            godot_print!("Upwards");
+            self.idle_player_direction = PlayerDirection::Upwards;
+
         }
     }
 }
@@ -228,4 +236,8 @@ enum PlayerDirection {
     Downwards,
     Left,
     Right
+}
+
+impl Default for PlayerDirection {
+    fn default() -> Self { PlayerDirection::Idle }
 }
