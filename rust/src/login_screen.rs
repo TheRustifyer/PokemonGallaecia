@@ -2,12 +2,12 @@ use gdnative::prelude::*;
 use gdnative::api::{LineEdit, Node};
 
 use crate::utils;
-use crate::player::Player;
+use crate::player::Gamer;
 use crate::consts::{labels, line_edit, scenes};
 #[derive(NativeClass)]
 #[inherit(Node)]
 pub struct LoginScreen {
-    player: Option<Player>,
+    gamer: Option<Gamer>,
 }
 
 #[gdnative::methods]
@@ -16,7 +16,7 @@ impl LoginScreen {
     // The "constructor of the class"
     fn new(_owned: &Node) -> Self {
         Self { 
-            player: None
+            gamer: None
         }
     }
 
@@ -25,8 +25,8 @@ impl LoginScreen {
     //     &self.player
     // }
     /// Setter for the logged player
-    fn set_player(&mut self, player: Option<Player>) {
-        self.player = player;
+    fn set_player(&mut self, player: Option<Gamer>) {
+        self.gamer = player;
     }
 
     #[export]
@@ -52,7 +52,7 @@ impl LoginScreen {
             .text();
 
         // Returns a tuple with the credentials converted from GodotString to Rust String
-        Player::credentials_to_rust_string((get_username_on_input, get_password_on_input))
+        Gamer::credentials_to_rust_string((get_username_on_input, get_password_on_input))
     }
 
     #[export]
@@ -62,18 +62,18 @@ impl LoginScreen {
         let (username, password): (String, String) = self.retrieve_credentials(_owner);
 
         let credentials_status = 
-            Player::check_credentials(
+            Gamer::check_credentials(
                 Option::Some(&username), 
                 Option::Some(&password));
 
-        let new_player: Player;
+        let new_player: Gamer;
         match credentials_status {
             (true, true) =>  {
-                // Credentials are correct, so a new player is instanciated
-                new_player = Player::create_new_player(username, password, 1);
+                // Credentials are correct, so a new Gamer is instanciated
+                new_player = Gamer::gamer_login(username, password, 1);
                 utils::show_player_attributes(&new_player);
                 
-                // Storing a reference to the new player as the current player for the "game session"
+                // Storing a reference to the new player as the current Gamer for the "game session"
                 &mut self.set_player(Some(new_player));
                 
                 // Finally, with the new player creaded we can move to the main scene

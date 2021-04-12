@@ -1,138 +1,38 @@
 use gdnative::prelude::*;
 use gdnative::api::{AnimatedSprite, KinematicBody2D};
 
-pub const VELOCITY: f32 = 500.0;
-pub const GRAVITY: f32 = 300.0;
-pub const JUMP_SPEED: f32 = 3000.0;
-pub const UP: Vector2 = Vector2::new(0.0, -1.0);
+use crate::consts::in_game_constant;
 
-#[derive(NativeClass)]
-#[inherit(KinematicBody2D)]
-// #[user_data(user_data::MutexData<Player>)]
-#[register_with(Self::register_signal)]
+/// Base class for that holds the user's account related data of the real person
+///
+/// This one allows to create new Gamer instances mapping the `client actions`: 
+/// * account level -> Global level of the Gamer Player
+/// * see your points/coins
+/// * unlocked features
+/// * choose avatars 
+/// * track languages progress -> Player Character level
+/// * character designs...
 #[derive(Debug)]
-pub struct Player {
+pub struct Gamer {
     username: Option<String>,
     password: Option<String>,
-    level: Option<u8>,
+    level: Option<i8>, // This should be a hash map that tracks language : level
+}
+
+impl Gamer {
     
-    // A Vector2, which is a Godot type, which represents the (x, y) coordinates on 2D space
-    motion: Vector2,
-}
-
-impl ToVariant for Player {
-    fn to_variant(&self) -> Variant {
-        todo!()
-    }
-}
-
-#[gdnative::methods]
-impl Player {  
-
-    /// Method for register a new signal to a designed class. You can find on the GUI Godot
-    /// that signal registered on the Node panel on the same way if the signal was created directly on the GUI.
-    /// The name of the method is completly arbitrary, is just a way to encapsulate the info passed to the builder object and transport it back to Godot 
-    fn register_signal(builder: &ClassBuilder<Self>) {
-        
-        builder.add_signal( Signal {
-            name: "animate",
-            args: &[ SignalArgument {
-                name: "motion",
-                default: Variant::from_vector2(&Vector2::new(0.0, 0.0)),
-                export_info: ExportInfo::new(VariantType::Vector2),
-                usage: PropertyUsage::DEFAULT,
-            }],
-        });
-    }
-
-    // The constructor
-    fn new(_owner: &KinematicBody2D) -> Self {
-        Self {
-            username: None,
-            password: None,
-            level: None,
-            motion: Vector2::new(0.0, 0.0)
-        }
-    }
-
-    pub fn create_new_player(
+    /// Method that login into the client a registered gamer
+    pub fn gamer_login(
         username: String, 
         password: String, 
-        level: u8) -> Self {
+        level: i8) -> Self {
 
-        let player: Player = Player { 
+        let gamer: Gamer = Gamer { 
             username: Some(username), 
             password: Some(password), 
             level: Some(level),
-            motion: Default::default(),
         };
-        player
-    }
-    
-    #[export]
-    fn _physics_process(&mut self, owner: &KinematicBody2D, _delta: f32) {
-        // First of all, we need a reference to our singleton(scene, node, value that exists through out the game) Input 
-        let input: &Input = Input::godot_singleton();
-
-        // All Y axis motions are affected first by the gravity
-        // self.apply_gravity(&owner);
-
-        // Calling the method who animates the sprite when KinematicBody2D is moving
-        self.animate_character(&owner);
-
-        if Input::is_action_pressed(&input, "Jump") && owner.is_on_floor() {
-            self.motion.y -= JUMP_SPEED
-        }
-        if Input::is_action_pressed(&input, "Left") && 
-            !Input::is_action_pressed(&input, "Right") &&
-            !Input::is_action_pressed(&input, "Up") &&
-            !Input::is_action_pressed(&input, "Down") {
-            self.motion.x = -VELOCITY;
-        } 
-        else if Input::is_action_pressed(&input, "Right") && 
-            !Input::is_action_pressed(&input, "Left") &&
-            !Input::is_action_pressed(&input, "Up") &&
-            !Input::is_action_pressed(&input, "Down") {
-            self.motion.x = VELOCITY;
-        } 
-        else if Input::is_action_pressed(&input, "Up") &&
-            !Input::is_action_pressed(&input, "Down") &&
-            !Input::is_action_pressed(&input, "Right") &&
-            !Input::is_action_pressed(&input, "Left") {
-            self.motion.y = -VELOCITY;
-        } 
-        else if Input::is_action_pressed(&input, "Down") &&
-            !Input::is_action_pressed(&input, "Up") &&
-            !Input::is_action_pressed(&input, "Left") &&
-            !Input::is_action_pressed(&input, "Right") {
-            self.motion.y = VELOCITY;
-        }
-        else {
-            self.motion.x = 0.0;
-            self.motion.y = 0.0;
-        }
-
-        owner.move_and_slide(
-            self.motion,
-            UP,
-            false,
-            4,
-            0.785398,
-            false
-        );
-
-    }
-
-    // fn apply_gravity(&mut self, owner: &KinematicBody2D) {
-    //     if owner.is_on_floor() {
-    //         self.motion.y = 0.0;
-    //     } else {
-    //         self.motion.y += GRAVITY;
-    //     }
-    // }
-
-    fn animate_character(&self, owner: &KinematicBody2D) {
-        owner.emit_signal("animate", &[self.motion.to_variant()]);
+        gamer
     }
 
     pub fn check_credentials(username: Option<&String>, password: Option<&String>) -> (bool, bool) {
@@ -166,11 +66,132 @@ impl Player {
 }
 
 #[derive(NativeClass)]
+#[inherit(KinematicBody2D)]
+#[register_with(Self::register_signal)]
+#[derive(Debug)]
+pub struct PlayerCharacter {
+    // A Vector2, which is a Godot type, which represents the (x, y) coordinates on 2D space
+    motion: Vector2,
+}
+
+// impl ToVariant for Player {
+//     fn to_variant(&self) -> Variant {
+//         todo!()
+//     }
+// }
+
+#[gdnative::methods]
+impl PlayerCharacter {  
+
+    /// Method for register a new signal to a designed class. You can find on the GUI Godot
+    /// that signal registered on the Node panel on the same way if the signal was created directly on the GUI.
+    /// The name of the method is completly arbitrary, is just a way to encapsulate the info passed to the builder object and transport it back to Godot 
+    fn register_signal(builder: &ClassBuilder<Self>) {
+        
+        builder.add_signal( Signal {
+            name: "animate",
+            args: &[ SignalArgument {
+                name: "motion",
+                default: Variant::from_vector2(&Vector2::new(0.0, 0.0)),
+                export_info: ExportInfo::new(VariantType::Vector2),
+                usage: PropertyUsage::DEFAULT,
+            }],
+        });
+    }
+
+    // The constructor
+    fn new(_owner: &KinematicBody2D) -> Self {
+        Self {
+            motion: Vector2::new(0.0, 0.0)
+        }
+    }
+    
+    #[export]
+    fn _physics_process(&mut self, owner: &KinematicBody2D, _delta: f32) {
+        // First of all, we need a reference to our singleton(scene, node, value that exists through out the game) Input 
+        let input: &Input = Input::godot_singleton();
+
+        // All Y axis motions are affected first by the gravity
+        // self.apply_gravity(&owner);
+
+        // Calling the method who animates the sprite when KinematicBody2D is moving
+        self.animate_character(&owner);
+
+        if Input::is_action_pressed(&input, "Jump") && owner.is_on_floor() {
+            self.motion.y -= in_game_constant::JUMP_SPEED
+        }
+        if Input::is_action_pressed(&input, "Left") && 
+            !Input::is_action_pressed(&input, "Right") &&
+            !Input::is_action_pressed(&input, "Up") &&
+            !Input::is_action_pressed(&input, "Down") {
+            self.motion.x = in_game_constant::VELOCITY * -1.0;
+        } 
+        else if Input::is_action_pressed(&input, "Right") && 
+            !Input::is_action_pressed(&input, "Left") &&
+            !Input::is_action_pressed(&input, "Up") &&
+            !Input::is_action_pressed(&input, "Down") {
+            self.motion.x = in_game_constant::VELOCITY;
+        } 
+        else if Input::is_action_pressed(&input, "Up") &&
+            !Input::is_action_pressed(&input, "Down") &&
+            !Input::is_action_pressed(&input, "Right") &&
+            !Input::is_action_pressed(&input, "Left") {
+            self.motion.y = in_game_constant::VELOCITY * - 1.0;
+        } 
+        else if Input::is_action_pressed(&input, "Down") &&
+            !Input::is_action_pressed(&input, "Up") &&
+            !Input::is_action_pressed(&input, "Left") &&
+            !Input::is_action_pressed(&input, "Right") {
+            self.motion.y = in_game_constant::VELOCITY;
+        }
+        else {
+            self.motion.x = 0.0;
+            self.motion.y = 0.0;
+        }
+
+        owner.move_and_slide(
+            self.motion,
+            in_game_constant::UP,
+            false,
+            4,
+            0.785398,
+            false
+        );
+
+    }
+
+    // fn apply_gravity(&mut self, owner: &KinematicBody2D) {
+    //     if owner.is_on_floor() {
+    //         self.motion.y = 0.0;
+    //     } else {
+    //         self.motion.y += in_game_constant::GRAVITY;
+    //     }
+    // }
+
+    fn animate_character(&self, owner: &KinematicBody2D) {
+        owner.emit_signal("animate", &[self.motion.to_variant()]);
+    }
+}
+
+#[derive(NativeClass)]
 #[inherit(AnimatedSprite)]
 pub struct PlayerAnimation {
     current_player_direction: PlayerDirection,
     idle_player_direction: PlayerDirection
 }
+#[derive(PartialEq, Clone, Debug)]
+enum PlayerDirection {
+    Idle,
+    Upwards,
+    Downwards,
+    Left,
+    Right
+}
+
+impl Default for PlayerDirection {
+    fn default() -> Self { PlayerDirection::Idle }
+}
+
 
 #[gdnative::methods]
 impl PlayerAnimation {
@@ -191,10 +212,10 @@ impl PlayerAnimation {
             .unwrap();
 
         match _motion {
-            x if x.x > 0.0 => { self.current_player_direction = PlayerDirection::Right;  },
-            x if x.x < 0.0 => { self.current_player_direction = PlayerDirection::Left;  },
-            y if y.y < 0.0 => { self.current_player_direction = PlayerDirection::Upwards	;  },
-            y if y.y > 0.0 => { self.current_player_direction = PlayerDirection::Downwards;  },
+            x if x.x > 0.0 => self.current_player_direction = PlayerDirection::Right,
+            x if x.x < 0.0 => self.current_player_direction = PlayerDirection::Left,
+            y if y.y < 0.0 => self.current_player_direction = PlayerDirection::Upwards,
+            y if y.y > 0.0 => self.current_player_direction = PlayerDirection::Downwards,
             z => if z.x == 0.0 && z.y == 0.0 {
                 { self.current_player_direction = PlayerDirection::Idle; }
             }
@@ -206,7 +227,8 @@ impl PlayerAnimation {
                 PlayerDirection::Upwards => { character_animated_sprite.play("idle back", false); godot_print!("Idle back") }
                 PlayerDirection::Left => { character_animated_sprite.play("idle left", false); godot_print!("Idle left") }
                 PlayerDirection::Right => { character_animated_sprite.play("idle right", false); godot_print!("Idle right") }
-                _ => {godot_print!("This should never be reached, but pattern matching in Rust is always an exhaustive action.")}
+                _ => { character_animated_sprite.play("idle front", false);
+                    godot_print!("This should never be reached, but pattern matching in Rust is always an exhaustive action.") }
             }; 
 
         } else if self.current_player_direction == PlayerDirection::Right {
@@ -227,17 +249,4 @@ impl PlayerAnimation {
 
         }
     }
-}
-
-#[derive(PartialEq, Clone, Debug)]
-enum PlayerDirection {
-    Idle,
-    Upwards,
-    Downwards,
-    Left,
-    Right
-}
-
-impl Default for PlayerDirection {
-    fn default() -> Self { PlayerDirection::Idle }
 }

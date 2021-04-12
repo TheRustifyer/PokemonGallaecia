@@ -1,7 +1,7 @@
 use gdnative::prelude::*;
 use gdnative::api::Node;
 
-use crate::player::Player;
+use crate::player::Gamer;
 
 /// For debug purposes, it's an easy way to check on stdout the provided credentials
 pub fn print_login_credentials(credentials_tup: (&String, &String)) {
@@ -11,7 +11,7 @@ pub fn print_login_credentials(credentials_tup: (&String, &String)) {
 
 /// Prints on console the current data on the Player struct
 /// This can be useful to debug the "in place" current values of Player attributes
-pub fn show_player_attributes(player: &Player) {
+pub fn show_player_attributes(player: &Gamer) {
     godot_print!("New Player is: {:?}", player);
 }
 
