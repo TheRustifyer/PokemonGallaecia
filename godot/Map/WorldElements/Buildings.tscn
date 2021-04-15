@@ -132,8 +132,8 @@ scale = Vector2( 0.755525, 0.721154 )
 polygon = PoolVector2Array( -56, 56, -56, -48, -56, -48, 56.5045, -47.7703, 56, 56 )
 
 [node name="House (slanted roof, two stories)" type="Sprite" parent="."]
-position = Vector2( 806, 686 )
-scale = Vector2( 2, 2 )
+position = Vector2( 798, 1092 )
+scale = Vector2( 5, 5 )
 texture = ExtResource( 16 )
 
 [node name="StaticBodyHouseRedRoof2" type="StaticBody2D" parent="House (slanted roof, two stories)"]

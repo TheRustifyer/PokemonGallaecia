@@ -214,12 +214,12 @@ impl PlayerAnimation {
                 { self.current_player_direction = PlayerDirection::Downwards; self.current_player_motion = PlayerMotionStatus::Walking },
             
             _ => 
-                { self.current_player_direction = PlayerDirection::Idle; self.current_player_motion = PlayerMotionStatus::Idle }
+                { self.current_player_motion = PlayerMotionStatus::Idle }
                 
         }
 
 
-        if self.current_player_direction == PlayerDirection::Idle {
+        if self.current_player_motion == PlayerMotionStatus::Idle {
             match self.idle_player_direction {
                 PlayerDirection::Downwards => { character_animated_sprite.play("idle front", false); godot_print!("Idle front") }
                 PlayerDirection::Upwards => { character_animated_sprite.play("idle back", false); godot_print!("Idle back") }
@@ -249,7 +249,7 @@ impl PlayerAnimation {
     }
 }
 
-
+#[derive(PartialEq, Clone, Debug)]
 enum PlayerMotionStatus {
     Idle,
     Walking,

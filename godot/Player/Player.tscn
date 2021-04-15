@@ -21,11 +21,9 @@ shape = SubResource( 1 )
 position = Vector2( 102.344, 64.1447 )
 scale = Vector2( 2, 2 )
 animation = "walk left"
-frame = 2
 script = ExtResource( 3 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2( 110.471, 64.1447 )
 current = true
-zoom = Vector2( 2, 2 )
 [connection signal="animate" from="." to="PlayerAnimation" method="_on_player_animate"]
