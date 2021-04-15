@@ -176,27 +176,16 @@ impl PlayerCharacter {
 #[derive(NativeClass)]
 #[inherit(AnimatedSprite)]
 pub struct PlayerAnimation {
+    current_player_motion: PlayerMotionStatus,
     current_player_direction: PlayerDirection,
     idle_player_direction: PlayerDirection
 }
-#[derive(PartialEq, Clone, Debug)]
-enum PlayerDirection {
-    Idle,
-    Upwards,
-    Downwards,
-    Left,
-    Right
-}
-
-impl Default for PlayerDirection {
-    fn default() -> Self { PlayerDirection::Idle }
-}
-
 
 #[gdnative::methods]
 impl PlayerAnimation {
     fn new(_owner: &AnimatedSprite) -> Self {
         Self {
+            current_player_motion: Default::default(),
             current_player_direction: Default::default(),
             idle_player_direction: Default::default()
         }
@@ -212,14 +201,23 @@ impl PlayerAnimation {
             .unwrap();
 
         match _motion {
-            x if x.x > 0.0 => self.current_player_direction = PlayerDirection::Right,
-            x if x.x < 0.0 => self.current_player_direction = PlayerDirection::Left,
-            y if y.y < 0.0 => self.current_player_direction = PlayerDirection::Upwards,
-            y if y.y > 0.0 => self.current_player_direction = PlayerDirection::Downwards,
-            z => if z.x == 0.0 && z.y == 0.0 {
-                { self.current_player_direction = PlayerDirection::Idle; }
-            }
+            x if x.x > 0.0 => 
+                { self.current_player_direction = PlayerDirection::Right; self.current_player_motion = PlayerMotionStatus::Walking },
+
+            x if x.x < 0.0 => 
+                { self.current_player_direction = PlayerDirection::Left; self.current_player_motion = PlayerMotionStatus::Walking }, 
+
+            x if x.y < 0.0 => 
+                { self.current_player_direction = PlayerDirection::Upwards; self.current_player_motion = PlayerMotionStatus::Walking },
+            
+            x if x.y > 0.0 => 
+                { self.current_player_direction = PlayerDirection::Downwards; self.current_player_motion = PlayerMotionStatus::Walking },
+            
+            _ => 
+                { self.current_player_direction = PlayerDirection::Idle; self.current_player_motion = PlayerMotionStatus::Idle }
+                
         }
+
 
         if self.current_player_direction == PlayerDirection::Idle {
             match self.idle_player_direction {
@@ -227,8 +225,8 @@ impl PlayerAnimation {
                 PlayerDirection::Upwards => { character_animated_sprite.play("idle back", false); godot_print!("Idle back") }
                 PlayerDirection::Left => { character_animated_sprite.play("idle left", false); godot_print!("Idle left") }
                 PlayerDirection::Right => { character_animated_sprite.play("idle right", false); godot_print!("Idle right") }
-                _ => { character_animated_sprite.play("idle front", false);
-                    godot_print!("This should never be reached, but pattern matching in Rust is always an exhaustive action.") }
+                // The starting position when the Player spawns on the screen
+                _ => character_animated_sprite.play("idle front", false)
             }; 
 
         } else if self.current_player_direction == PlayerDirection::Right {
@@ -249,4 +247,28 @@ impl PlayerAnimation {
 
         }
     }
+}
+
+
+enum PlayerMotionStatus {
+    Idle,
+    Walking,
+    Running
+}
+
+impl Default for PlayerMotionStatus {
+    fn default() -> Self { PlayerMotionStatus::Idle }
+}
+
+#[derive(PartialEq, Clone, Debug)]
+enum PlayerDirection {
+    Idle, // De momento necesitamos esto
+    Upwards,
+    Downwards,
+    Left,
+    Right
+}
+
+impl Default for PlayerDirection {
+    fn default() -> Self { PlayerDirection::Idle }
 }

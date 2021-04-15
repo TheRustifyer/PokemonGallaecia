@@ -16,7 +16,7 @@ _global_script_class_icons={
 [application]
 
 config/name="LearnProgrammingWithGodot"
-run/main_scene="res://godot/Levels/Level_1.tscn"
+run/main_scene="res://godot/Map/Game.tscn"
 config/icon="res://godot/icon.png"
 
 [debug]

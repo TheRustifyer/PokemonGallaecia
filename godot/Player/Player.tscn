@@ -10,6 +10,7 @@ height = 2.88495
 
 [node name="Player" type="KinematicBody2D"]
 position = Vector2( 402, 233 )
+scale = Vector2( 0.5, 0.5 )
 script = ExtResource( 2 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
