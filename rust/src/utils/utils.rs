@@ -1,7 +1,7 @@
 use gdnative::prelude::*;
 use gdnative::api::Node;
 
-use crate::player::Gamer;
+use crate::game_client::gamer::Gamer;
 
 /// For debug purposes, it's an easy way to check on stdout the provided credentials
 pub fn print_login_credentials(credentials_tup: (&String, &String)) {

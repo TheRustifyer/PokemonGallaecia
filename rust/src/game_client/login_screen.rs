@@ -1,9 +1,9 @@
 use gdnative::prelude::*;
 use gdnative::api::{LineEdit, Node};
 
-use crate::utils;
-use crate::player::Gamer;
-use crate::consts::{labels, line_edit, scenes};
+use crate::utils::utils;
+use crate::game_client::gamer::Gamer;
+use crate::utils::consts::{labels, line_edit, scenes};
 #[derive(NativeClass)]
 #[inherit(Node)]
 pub struct LoginScreen {

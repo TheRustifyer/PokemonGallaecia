@@ -28,3 +28,16 @@ fn _on_player_input_text_entered(&self, _owner: &Node, new_text: GodotString) {
     // line_edit.clear(); 
     
 }
+
+
+// if Input::is_action_pressed(&input, "Jump") && owner.is_on_floor() {
+//     self.motion.y -= in_game_constant::JUMP_SPEED
+// }
+
+// fn apply_gravity(&mut self, owner: &KinematicBody2D) {
+//     if owner.is_on_floor() {
+//         self.motion.y = 0.0;
+//     } else {
+//         self.motion.y += in_game_constant::GRAVITY;
+//     }
+// }

@@ -1,7 +1,11 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://gfx/Tilemaps/Grass/Grass (short, repeating).png" type="Texture" id=1]
 [ext_resource path="res://godot/TileSet/Buildings.tres" type="TileSet" id=2]
+[ext_resource path="res://gfx/Tilemaps/Vehicles/Truck (cargo).png" type="Texture" id=3]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 14, 12 )
 
 [node name="Lore Town" type="Node2D"]
 
@@ -96,3 +100,21 @@ scale = Vector2( 2, 2 )
 tile_set = ExtResource( 2 )
 format = 1
 tile_data = PoolIntArray( 65545, 14, 0, 196612, 15, 0, 196613, 15, 0, 262149, 15, 0, 262150, 15, 0, 262151, 15, 0, 262152, 15, 0, 327688, 15, 0, 327689, 15, 0, 655364, 14, 0 )
+
+[node name="Truck (cargo)" type="Sprite" parent="."]
+position = Vector2( 216, 224 )
+scale = Vector2( 2, 2 )
+texture = ExtResource( 3 )
+__meta__ = {
+"_editor_description_": "Esto es nada más para ver que hay aquí!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+}
+
+[node name="StaticBody2D" type="StaticBody2D" parent="Truck (cargo)"]
+position = Vector2( 4, 4 )
+scale = Vector2( 2, 2 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Truck (cargo)/StaticBody2D"]
+position = Vector2( 0, -2 )
+shape = SubResource( 1 )
+
+[node name="Interact" type="Node2D" parent="Truck (cargo)/StaticBody2D"]

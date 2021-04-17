@@ -1,69 +1,7 @@
 use gdnative::prelude::*;
-use gdnative::api::{AnimatedSprite, KinematicBody2D};
+use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D, CollisionShape2D};
 
-use crate::consts::in_game_constant;
-
-/// Base class for that holds the user's account related data of the real person
-///
-/// This one allows to create new Gamer instances mapping the `client actions`: 
-/// * account level -> Global level of the Gamer Player
-/// * see your points/coins
-/// * unlocked features
-/// * choose avatars 
-/// * track languages progress -> Player Character level
-/// * character designs...
-#[derive(Debug)]
-pub struct Gamer {
-    username: Option<String>,
-    password: Option<String>,
-    level: Option<i8>, // This should be a hash map that tracks language : level
-}
-
-impl Gamer {
-    
-    /// Method that login into the client a registered gamer
-    pub fn gamer_login(
-        username: String, 
-        password: String, 
-        level: i8) -> Self {
-
-        let gamer: Gamer = Gamer { 
-            username: Some(username), 
-            password: Some(password), 
-            level: Some(level),
-        };
-        gamer
-    }
-
-    pub fn check_credentials(username: Option<&String>, password: Option<&String>) -> (bool, bool) {
-
-        let mut credentials_flag: (bool, bool) = (false, false);
-
-        // Upgraded flat String credentials to std::option:Option, in order to use pattern matching
-        //to make an ez way to scale future options when will be checked on a REST-backend
-        match username {
-            Some(usnm) if usnm == "root" || usnm == "Root" => credentials_flag.0 = true,
-            Some(usnm) if usnm == "" => godot_print!("Provide an username"), // While insert an informative label as a child isn't implemented
-            Some(_) => (),
-            None => panic!(),
-        }
-
-        match password {
-            Some(pswd) if pswd == "root" || pswd == "Root" => credentials_flag.1 = true,
-            Some(pswd) if pswd == "" => godot_print!("Provide a password"),  // While insert an informative label as a child isn't implemented
-            Some(_) => (),
-            None => panic!() 
-        }
-        // Returns a tuple representing the checked status of each credential
-        credentials_flag
-    }
-
-    /// Little method to convert the credentials (retrieved as a tuple of GodotStrings) into a tuple of Strings
-    pub fn credentials_to_rust_string(cred_tup: (GodotString, GodotString)) -> (String, String) {
-        let credentials = cred_tup;
-        (credentials.0.to_string(), credentials.1.to_string())
-    }
-}
+use crate::utils::consts::in_game_constant;
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
@@ -73,12 +11,6 @@ pub struct PlayerCharacter {
     // A Vector2, which is a Godot type, which represents the (x, y) coordinates on 2D space
     motion: Vector2,
 }
-
-// impl ToVariant for Player {
-//     fn to_variant(&self) -> Variant {
-//         todo!()
-//     }
-// }
 
 #[gdnative::methods]
 impl PlayerCharacter {  
@@ -117,60 +49,58 @@ impl PlayerCharacter {
         // Calling the method who animates the sprite when KinematicBody2D is moving
         self.animate_character(&owner);
 
-        if Input::is_action_pressed(&input, "Jump") && owner.is_on_floor() {
-            self.motion.y -= in_game_constant::JUMP_SPEED
-        }
-        if Input::is_action_pressed(&input, "Left") && 
-            !Input::is_action_pressed(&input, "Right") &&
-            !Input::is_action_pressed(&input, "Up") &&
-            !Input::is_action_pressed(&input, "Down") {
+        // Manage the player motion
+        if Input::is_action_pressed(&input, "Left") {
             self.motion.x = in_game_constant::VELOCITY * -1.0;
+            self.motion.y = 0.0;    
         } 
-        else if Input::is_action_pressed(&input, "Right") && 
-            !Input::is_action_pressed(&input, "Left") &&
-            !Input::is_action_pressed(&input, "Up") &&
-            !Input::is_action_pressed(&input, "Down") {
+        else if Input::is_action_pressed(&input, "Right") {
             self.motion.x = in_game_constant::VELOCITY;
+            self.motion.y = 0.0;
         } 
-        else if Input::is_action_pressed(&input, "Up") &&
-            !Input::is_action_pressed(&input, "Down") &&
-            !Input::is_action_pressed(&input, "Right") &&
-            !Input::is_action_pressed(&input, "Left") {
+        else if Input::is_action_pressed(&input, "Up") {
             self.motion.y = in_game_constant::VELOCITY * - 1.0;
+            self.motion.x = 0.0;
         } 
-        else if Input::is_action_pressed(&input, "Down") &&
-            !Input::is_action_pressed(&input, "Up") &&
-            !Input::is_action_pressed(&input, "Left") &&
-            !Input::is_action_pressed(&input, "Right") {
+        else if Input::is_action_pressed(&input, "Down") {
             self.motion.y = in_game_constant::VELOCITY;
+            self.motion.x = 0.0;
         }
         else {
             self.motion.x = 0.0;
             self.motion.y = 0.0;
         }
 
-        owner.move_and_slide(
-            self.motion,
-            in_game_constant::UP,
-            false,
-            4,
-            0.785398,
-            false
-        );
-
+        let player_movement = owner.move_and_collide(
+            self.motion * _delta, false, false, false);
+        
+        if Input::is_action_pressed(&input, "Interact") {
+            self.interact(owner, player_movement);
+        }
     }
 
-    // fn apply_gravity(&mut self, owner: &KinematicBody2D) {
-    //     if owner.is_on_floor() {
-    //         self.motion.y = 0.0;
-    //     } else {
-    //         self.motion.y += in_game_constant::GRAVITY;
-    //     }
-    // }
+    fn interact(&self, _owner: &KinematicBody2D, pm: Option<Ref<KinematicCollision2D>>) {
+
+        match pm {
+            Some(pm) => { 
+                let collision = unsafe { pm.assume_safe() }; 
+                godot_print!("collision: {:?}",  &collision);
+
+                let coll_body = unsafe { collision.collider().unwrap().assume_safe() };
+                godot_print!("collision with: {:?}", coll_body);
+
+                godot_print!("Has node: {:?}", coll_body.cast::<Node>().unwrap().has_node("Interact"));
+ 
+            } ,
+            _ => ()
+        }
+    }
 
     fn animate_character(&self, owner: &KinematicBody2D) {
         owner.emit_signal("animate", &[self.motion.to_variant()]);
     }
+
+
 }
 
 #[derive(NativeClass)]
@@ -221,10 +151,10 @@ impl PlayerAnimation {
 
         if self.current_player_motion == PlayerMotionStatus::Idle {
             match self.idle_player_direction {
-                PlayerDirection::Downwards => { character_animated_sprite.play("idle front", false); godot_print!("Idle front") }
-                PlayerDirection::Upwards => { character_animated_sprite.play("idle back", false); godot_print!("Idle back") }
-                PlayerDirection::Left => { character_animated_sprite.play("idle left", false); godot_print!("Idle left") }
-                PlayerDirection::Right => { character_animated_sprite.play("idle right", false); godot_print!("Idle right") }
+                PlayerDirection::Downwards => { character_animated_sprite.play("idle front", false); }//godot_print!("Idle front") }
+                PlayerDirection::Upwards => { character_animated_sprite.play("idle back", false); }//godot_print!("Idle back") }
+                PlayerDirection::Left => { character_animated_sprite.play("idle left", false); }//godot_print!("Idle left") }
+                PlayerDirection::Right => { character_animated_sprite.play("idle right", false); }//godot_print!("Idle right") }
                 // The starting position when the Player spawns on the screen
                 _ => character_animated_sprite.play("idle front", false)
             }; 

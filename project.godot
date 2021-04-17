@@ -8,9 +8,14 @@
 
 config_version=4
 
-_global_script_classes=[  ]
+_global_script_classes=[ {
+"base": "Object",
+"class": "TypeFormattingLogic",
+"language": "GDScript",
+"path": "res://addons/godot-metadata-inspector/addons/metadata_inspector/TypeFormattingLogic.gd"
+} ]
 _global_script_class_icons={
-
+"TypeFormattingLogic": ""
 }
 
 [application]
@@ -18,10 +23,6 @@ _global_script_class_icons={
 config/name="LearnProgrammingWithGodot"
 run/main_scene="res://godot/Map/Game.tscn"
 config/icon="res://godot/icon.png"
-
-[debug]
-
-settings/stdout/verbose_stdout=true
 
 [input]
 
@@ -45,7 +46,7 @@ Down={
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":83,"unicode":0,"echo":false,"script":null)
  ]
 }
-Jump={
+Interact={
 "deadzone": 0.5,
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":32,"unicode":0,"echo":false,"script":null)
  ]
