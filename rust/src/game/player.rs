@@ -1,6 +1,8 @@
 use gdnative::prelude::*;
-use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D, CollisionShape2D};
+use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D};
 
+use crate::game::*;
+use self::game_elements::Signal as PlayerSignal;
 use crate::utils::consts::in_game_constant;
 
 #[derive(NativeClass)]
@@ -8,9 +10,17 @@ use crate::utils::consts::in_game_constant;
 #[register_with(Self::register_signal)]
 #[derive(Debug)]
 pub struct PlayerCharacter {
-    // A Vector2, which is a Godot type, which represents the (x, y) coordinates on 2D space
+    // A Vector2, which is a Godot type, in this case representing the (x, y) coordinates on 2D space
     motion: Vector2,
 }
+
+/// TODO
+impl PlayerSignal for PlayerCharacter {
+    fn register_signal<T>(_t: T) -> () {
+        todo!()
+    }
+}
+
 
 #[gdnative::methods]
 impl PlayerCharacter {  
@@ -19,7 +29,6 @@ impl PlayerCharacter {
     /// that signal registered on the Node panel on the same way if the signal was created directly on the GUI.
     /// The name of the method is completly arbitrary, is just a way to encapsulate the info passed to the builder object and transport it back to Godot 
     fn register_signal(builder: &ClassBuilder<Self>) {
-        
         builder.add_signal( Signal {
             name: "animate",
             args: &[ SignalArgument {

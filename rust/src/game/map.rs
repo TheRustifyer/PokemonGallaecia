@@ -1,6 +1,5 @@
 use gdnative::prelude::*;
 
-
 #[derive(NativeClass)]
 #[inherit(Node2D)]
 #[derive(Debug)]
@@ -21,10 +20,7 @@ impl Map {
         unsafe { Node::get_tree(owner)
         .unwrap().assume_safe() };
         godot_print!("Map SCENE: {:?}", scene_tree_ref);
-        godot_print!("Map SCENE: {:?}", owner.find_node("Interact", true, false))
 
     }
-
-
-
+    
 }
