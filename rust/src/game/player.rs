@@ -79,14 +79,14 @@ impl PlayerCharacter {
         }
     }
 
-    fn interact(&self, _owner: &KinematicBody2D, pm: Option<Ref<KinematicCollision2D>>) {
+    fn interact(&self, _owner: &KinematicBody2D, pl_mov: Option<Ref<KinematicCollision2D>>) {
 
-        match pm {
-            Some(pm) => { 
-                let collision = unsafe { pm.assume_safe() }; 
+        match pl_mov {
+            Some(pl_mov) => { 
+                let collision: TRef<KinematicCollision2D, Shared> = unsafe { pl_mov.assume_safe() }; 
                 godot_print!("collision: {:?}",  &collision);
 
-                let coll_body = unsafe { collision.collider().unwrap().assume_safe() };
+                let coll_body: TRef<Object> = unsafe { collision.collider().unwrap().assume_safe() };
                 godot_print!("collision with: {:?}", coll_body);
 
                 godot_print!("Has node: {:?}", coll_body.cast::<Node>().unwrap().has_node("Interact"));
