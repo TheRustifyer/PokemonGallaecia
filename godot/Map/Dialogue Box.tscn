@@ -1,0 +1,26 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://godot/dialog_box.png" type="Texture" id=1]
+
+[node name="Dialogue Box" type="NinePatchRect"]
+margin_right = 138.0
+margin_bottom = 40.0
+texture = ExtResource( 1 )
+patch_margin_left = 17
+patch_margin_top = 5
+patch_margin_right = 17
+patch_margin_bottom = 5
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
+margin_left = 11.2806
+margin_top = 5.84185
+margin_right = 127.281
+margin_bottom = 34.8419
+custom_colors/default_color = Color( 0, 0, 0, 1 )
+text = "dsfsdfdafdsafsdfadsfadsfadsfadfadsfadsf"
+__meta__ = {
+"_edit_use_anchors_": false
+}

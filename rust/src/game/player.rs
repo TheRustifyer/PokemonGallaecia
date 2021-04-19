@@ -15,11 +15,14 @@ pub struct PlayerCharacter {
 }
 
 /// TODO
-impl PlayerSignal for PlayerCharacter {
-    fn register_signal<T>(_t: T) -> () {
-        todo!()
-    }
-}
+// impl PlayerSignal for PlayerCharacter {
+
+//     fn register_signal<T: self>(_t: &ClassBuilder<Self>) -> () 
+//         // where T: Self
+//     {
+//         todo!()
+//     }
+// }
 
 
 #[gdnative::methods]

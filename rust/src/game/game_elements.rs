@@ -1,3 +1,5 @@
+use gdnative::prelude::ClassBuilder;
+
 /// A base blueprint that defines the behaviour of the game characters.
 ///
 /// UnderDevelopment: This will grow while the game evolves!
@@ -10,16 +12,18 @@
 
 /// **Signal** -> Zero cost abstraction for handling the `Godot signals` in a custom approach
 pub trait Signal {
+
     /// Register a signal on `Godot`directly from the Rust code.
-    fn register_signal<T>(t: T) -> ();
+    fn register_signal<T>(_t: &ClassBuilder<T>) -> ();
+
 }
 
 /// Base Struct that represents a Kinematic Body as a Player Character.
-/// Can represent the Player owned by the gamer, an enemy character, a person as character in game...
+/// This "class" can represent the Player owned by the gamer, an enemy character, a person as character in game...
 pub struct Character {}
 
-impl Signal for Character {
-    fn register_signal<T>(_t: T) -> () {
-        todo!()
-    }
-}
+// impl Signal for Character {
+//     fn register_signal(_t: &ClassBuilder<Self>) -> () {
+//         todo!()
+//     }
+// }
