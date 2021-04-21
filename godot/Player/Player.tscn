@@ -29,11 +29,12 @@ position = Vector2( 110.471, 64.1447 )
 current = true
 zoom = Vector2( 0.35, 0.35 )
 
-[node name="Dialogue Box" parent="Camera2D" instance=ExtResource( 4 )]
+[node name="DialogueBox" parent="Camera2D" instance=ExtResource( 4 )]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = -353.0
+margin_left = -351.502
 margin_top = 103.593
-margin_right = 354.0
+margin_right = 355.498
 margin_bottom = 203.593
 [connection signal="animate" from="." to="PlayerAnimation" method="_on_player_animate"]

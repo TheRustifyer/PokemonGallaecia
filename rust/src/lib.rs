@@ -5,7 +5,9 @@ pub mod game_client;
 pub mod utils;
 
 use game_client::login_screen::LoginScreen;
+
 use game::map::Map;
+use game::game_elements::dialog_box::DialogueBox;
 use game::player::{PlayerAnimation, PlayerCharacter};
 
 fn init(handle: InitHandle) {
@@ -17,6 +19,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<PlayerCharacter>();
     handle.add_class::<PlayerAnimation>();
     handle.add_class::<Map>();
+    handle.add_class::<DialogueBox>();
 }
 
 godot_init!(init);
