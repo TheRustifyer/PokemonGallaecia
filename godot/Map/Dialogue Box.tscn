@@ -15,12 +15,18 @@ __meta__ = {
 }
 
 [node name="RichTextLabel" type="RichTextLabel" parent="."]
-margin_left = 11.2806
-margin_top = 5.84185
-margin_right = 127.281
-margin_bottom = 34.8419
+anchor_left = 0.0797101
+anchor_top = 0.175
+anchor_right = 0.92029
+anchor_bottom = 0.9
+margin_top = 4.76837e-07
+size_flags_horizontal = 15
+size_flags_vertical = 15
 custom_colors/default_color = Color( 0, 0, 0, 1 )
-text = "dsfsdfdafdsafsdfadsfadsfadsfadfadsfadsf"
+bbcode_enabled = true
+bbcode_text = "asdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdf"
+text = "asdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdfasdfasdfasdfasdfsassdf"
+override_selected_font_color = true
 __meta__ = {
-"_edit_use_anchors_": false
+"_edit_use_anchors_": true
 }

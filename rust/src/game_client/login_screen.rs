@@ -20,10 +20,6 @@ impl LoginScreen {
         }
     }
 
-    // /// Get a reference to the login screen's player.
-    // pub fn get_player(&self) -> &Option<Player> {
-    //     &self.player
-    // }
     /// Setter for the logged player
     fn set_player(&mut self, player: Option<Gamer>) {
         self.gamer = player;

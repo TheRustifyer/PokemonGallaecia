@@ -2,35 +2,38 @@ use gdnative::prelude::*;
 use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D};
 
 use crate::game::*;
-use self::game_elements::Signal as PlayerSignal;
+use self::game_elements::signals::RegisterSignal;
 use crate::utils::consts::in_game_constant;
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
 #[register_with(Self::register_signal)]
 #[derive(Debug)]
+
 pub struct PlayerCharacter {
     // A Vector2, which is a Godot type, in this case representing the (x, y) coordinates on 2D space
     motion: Vector2,
 }
 
-/// TODO
-// impl PlayerSignal for PlayerCharacter {
+// impl RegisterSignal for PlayerCharacter {
 
-//     fn register_signal<T: self>(_t: &ClassBuilder<Self>) -> () 
-//         // where T: Self
-//     {
-//         todo!()
+//     fn register_signal<Self>(builder: &ClassBuilder<Self>) {
+//         builder.add_signal( Signal {
+//             name: "animate",
+//             args: &[ SignalArgument {
+//                 name: "motion",
+//                 default: Variant::from_vector2(&Vector2::new(0.0, 0.0)),
+//                 export_info: ExportInfo::new(VariantType::Vector2),
+//                 usage: PropertyUsage::DEFAULT,
+//             }],
+//         });
 //     }
 // }
 
 
 #[gdnative::methods]
 impl PlayerCharacter {  
-
-    /// Method for register a new signal to a designed class. You can find on the GUI Godot
-    /// that signal registered on the Node panel on the same way if the signal was created directly on the GUI.
-    /// The name of the method is completly arbitrary, is just a way to encapsulate the info passed to the builder object and transport it back to Godot 
+    
     fn register_signal(builder: &ClassBuilder<Self>) {
         builder.add_signal( Signal {
             name: "animate",

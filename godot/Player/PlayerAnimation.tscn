@@ -50,39 +50,39 @@ region = Rect2( 64, 64, 32, 32 )
 [sub_resource type="AtlasTexture" id=10]
 flags = 4
 atlas = ExtResource( 18 )
-region = Rect2( 32, 96, 32, 32 )
-
-[sub_resource type="AtlasTexture" id=12]
-flags = 4
-atlas = ExtResource( 18 )
-region = Rect2( 32, 64, 32, 32 )
-
-[sub_resource type="AtlasTexture" id=13]
-flags = 4
-atlas = ExtResource( 18 )
 region = Rect2( 32, 32, 32, 32 )
 
-[sub_resource type="AtlasTexture" id=14]
+[sub_resource type="AtlasTexture" id=11]
 flags = 4
 atlas = ExtResource( 18 )
 region = Rect2( 0, 32, 32, 32 )
 
-[sub_resource type="AtlasTexture" id=15]
+[sub_resource type="AtlasTexture" id=12]
 flags = 4
 atlas = ExtResource( 18 )
 region = Rect2( 32, 32, 32, 32 )
 
-[sub_resource type="AtlasTexture" id=16]
+[sub_resource type="AtlasTexture" id=13]
 flags = 4
 atlas = ExtResource( 18 )
 region = Rect2( 64, 32, 32, 32 )
 
-[sub_resource type="AtlasTexture" id=17]
+[sub_resource type="AtlasTexture" id=14]
 flags = 4
 atlas = ExtResource( 18 )
 region = Rect2( 32, 0, 32, 32 )
 
-[sub_resource type="SpriteFrames" id=18]
+[sub_resource type="AtlasTexture" id=15]
+flags = 4
+atlas = ExtResource( 18 )
+region = Rect2( 32, 64, 32, 32 )
+
+[sub_resource type="AtlasTexture" id=16]
+flags = 4
+atlas = ExtResource( 18 )
+region = Rect2( 32, 96, 32, 32 )
+
+[sub_resource type="SpriteFrames" id=17]
 animations = [ {
 "frames": [ SubResource( 1 ), SubResource( 2 ), SubResource( 3 ) ],
 "loop": true,
@@ -101,33 +101,33 @@ animations = [ {
 }, {
 "frames": [ SubResource( 10 ) ],
 "loop": true,
-"name": "idle back",
-"speed": 5.0
-}, {
-"frames": [ SubResource( 12 ) ],
-"loop": true,
-"name": "idle right",
-"speed": 5.0
-}, {
-"frames": [ SubResource( 13 ) ],
-"loop": true,
 "name": "idle left",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 14 ), SubResource( 15 ), SubResource( 16 ) ],
+"frames": [ SubResource( 11 ), SubResource( 12 ), SubResource( 13 ) ],
 "loop": true,
 "name": "walk left",
 "speed": 5.0
 }, {
-"frames": [ SubResource( 17 ) ],
+"frames": [ SubResource( 14 ) ],
 "loop": true,
 "name": "idle front",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 15 ) ],
+"loop": true,
+"name": "idle right",
+"speed": 5.0
+}, {
+"frames": [ SubResource( 16 ) ],
+"loop": true,
+"name": "idle back",
 "speed": 5.0
 } ]
 
 [node name="PlayerAnimation" type="AnimatedSprite"]
 position = Vector2( -1, 0 )
 scale = Vector2( 3, 3 )
-frames = SubResource( 18 )
+frames = SubResource( 17 )
 animation = "idle front"
 playing = true

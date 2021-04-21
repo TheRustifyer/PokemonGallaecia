@@ -20,18 +20,20 @@ shape = SubResource( 1 )
 
 [node name="PlayerAnimation" parent="." instance=ExtResource( 1 )]
 position = Vector2( 102.344, 64.1447 )
-scale = Vector2( 2, 2 )
+scale = Vector2( 1, 1 )
 animation = "walk left"
 script = ExtResource( 3 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2( 110.471, 64.1447 )
 current = true
-zoom = Vector2( 0.5, 0.5 )
+zoom = Vector2( 0.35, 0.35 )
 
 [node name="Dialogue Box" parent="Camera2D" instance=ExtResource( 4 )]
-margin_left = -428.0
-margin_top = 169.0
-margin_right = 463.0
-margin_bottom = 281.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = -353.0
+margin_top = 103.593
+margin_right = 354.0
+margin_bottom = 203.593
 [connection signal="animate" from="." to="PlayerAnimation" method="_on_player_animate"]
