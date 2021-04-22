@@ -8,6 +8,7 @@ use game_client::login_screen::LoginScreen;
 
 use game::map::Map;
 use game::game_elements::dialog_box::DialogueBox;
+use game::game_elements::in_game_interactions::Truck;
 use game::player::{PlayerAnimation, PlayerCharacter};
 
 fn init(handle: InitHandle) {
@@ -20,6 +21,8 @@ fn init(handle: InitHandle) {
     handle.add_class::<PlayerAnimation>();
     handle.add_class::<Map>();
     handle.add_class::<DialogueBox>();
+    
+    handle.add_class::<Truck>();
 }
 
 godot_init!(init);

@@ -62,26 +62,28 @@ pub mod dialog_box {
     use gdnative::{api::RichTextLabel, prelude::*};
     use gdnative::api::NinePatchRect;
 
-    const DIALOGUE_SPEED: f64 = 0.1;
+    const DIALOGUE_SPEED: f64 = 0.05;
     /// Dialogue Box it's build to manage all the text interactions in the game
     #[derive(NativeClass)]
     #[inherit(NinePatchRect)]
+    
     #[derive(Debug)]
     pub struct DialogueBox {
         printing: bool,
-        timer: i32,
-        text_to_print: GodotString,
+        timer: f64,
+        text_to_print: String,
 
         current_char: i32,
     }
 
+
     #[gdnative::methods]
     impl DialogueBox {
-        
+
         fn new(_owner: &NinePatchRect) -> Self {
             Self {
                 printing: false,
-                timer: 0,
+                timer: 0.0,
                 text_to_print: Default::default(),
                 current_char: 0,
             }
@@ -91,48 +93,117 @@ pub mod dialog_box {
         #[export]
         fn _ready(&self, owner: &NinePatchRect) {
             owner.set_process(true);
-            godot_print!("Label init called");
         }
 
         #[export]
-        fn _fixed_process(&mut self, _owner: &NinePatchRect, _delta: f32) {
+        fn _process(&mut self, _owner: &NinePatchRect, _delta: f64) {
             if self.printing {
-                self.timer = _delta as i32;
-                godot_print!("Trying to set the bbcode");
-                if self.timer > DIALOGUE_SPEED as i32 {
-                    godot_print!("Trying to set the bbcode inside the check timer");
-                    self.timer = 0;
-                    
+                self.timer += _delta;
+                if self.timer > DIALOGUE_SPEED {
+                    self.timer = 0.0;
+                    // Make visible the Pokémon Dialog Box
+                    _owner.set_visible(true);
+
                     let dialogue_text_label =
                         unsafe { _owner.get_node_as::<RichTextLabel>("DialogueTextLabel") }.unwrap();
-                    dialogue_text_label.set_bbcode("Hola Pokémon Gallaecia desde Rust!");
-                    
-                    // dialogue_text_label.set_visible(visible);
+
+                    dialogue_text_label.set_bbcode(dialogue_text_label.bbcode() + 
+                        GodotString::from(String::from(self.text_to_print.chars().nth(self.current_char as usize).expect("No more chars to print"))));
 
                     self.current_char += 1;
-                    godot_print!("Trying to set the bbcode, rich text label retrieved.");
                 }
 
                 if self.current_char >= self.text_to_print.len() as i32 {
+                    godot_print!("Current char: {}", self.current_char);
                     self.current_char = 0;
-                    self.text_to_print = GodotString::from_str("");
+                    self.text_to_print = String::from("");
                     self.printing = false;
-                    self.timer = 0;
-                }
-                
+                    self.timer = 0.0;
+                }    
             }
         }
 
         #[export]
         fn _print_dialogue(&mut self, _owner: &NinePatchRect, text: GodotString) {
             self.printing = true;
-            self.text_to_print = text;
+            self.text_to_print = text.to_string();
+        }
+    }
+
+}
+
+
+pub mod in_game_interactions {
+    use gdnative::prelude::*;
+
+    // use gdnative::api::{Tree, NinePatchRect, RichTextLabel};
+    use super::signals::RegisterSignal;
+    #[derive(NativeClass)]
+    #[inherit(Sprite)]
+    #[register_with(Self::register_signal)]
+    #[derive(Debug)]
+    pub struct Truck;
+
+    impl RegisterSignal<Self> for Truck {
+        fn register_signal(_builder: &ClassBuilder<Self>) -> () {
+            _builder.add_signal( Signal {
+                name: "print_to_dialogue_box",
+                args: &[],
+            })
+        }
+    }
+
+    #[gdnative::methods]
+    impl Truck {
+        
+        fn new(_owner: &Sprite) -> Self {
+            Self
         }
 
+        #[export]
+        fn _process(&mut self, _owner: &Sprite, _delta: f32) {
+            _owner.emit_signal("print_to_dialogue_box", &[Variant::from_godot_string(
+                &GodotString::from_str("Soy el camión de Pueblo de Teo!!"))]);
+        }
 
+        #[export]
+        fn _ready(&self, _owner: TRef<Sprite>) {
+            _owner.set_process(true);
+
+            // Looking for interactions with the player
+            self.receive_player_status(_owner)
+      
+        }
+
+        #[export]
+        fn receive_player_status(&self, _owner: TRef<Sprite>) {
+            let player_signal = unsafe { Node::get_tree(&_owner).unwrap()
+                .assume_safe().root()
+                .unwrap().assume_safe()
+                .get_node("Game/Player")
+                .unwrap().assume_safe() };
+
+                player_signal.connect("player_interacting", _owner, 
+                "connect_signal", VariantArray::new_shared(), 0).unwrap();
+        }
+
+        #[export]
+        fn connect_signal(&self, _owner: &Sprite) {
+            let receiver = unsafe { Node::get_tree(_owner).unwrap()
+                .assume_safe().root()
+                .unwrap().assume_safe()
+                .get_node("Game/Player/Camera2D/DialogueBox")
+                .unwrap().assume_safe() };
+
+            let my_signal_connected = _owner.connect("print_to_dialogue_box", 
+            receiver, "_print_dialogue", VariantArray::new_shared(), 0);
+
+            match my_signal_connected {
+                Ok(()) => my_signal_connected.unwrap(),
+                Err(e) => godot_error!("{}", e)
+            };    
+        }
 
     }
 
-    
-
-}
+}   

@@ -1,22 +1,13 @@
 use std::collections::HashMap;
 
 use gdnative::prelude::*;
-use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D, NinePatchRect};
+use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D, NinePatchRect, RichTextLabel};
 
 use crate::game::*;
 use super::game_elements::signals::GodotSignal;
 use self::game_elements::signals::RegisterSignal;
 
 use crate::utils::consts::in_game_constant;
-// Signal {
-//     name: "animate",
-//     args: &[ SignalArgument {
-//         name: "motion",
-//         default: Variant::from_vector2(&Vector2::new(0.0, 0.0)),
-//         export_info: ExportInfo::new(VariantType::Vector2),
-//         usage: PropertyUsage::DEFAULT,
-//     }],
-// });
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
 #[register_with(Self::register_signal)]
@@ -30,7 +21,7 @@ pub struct PlayerCharacter {
 impl RegisterSignal<Self> for PlayerCharacter {
 
     fn register_signal(builder: &ClassBuilder<Self>) {
-
+        // The signal that indicates that the Player is moving
         builder.add_signal( Signal {
             name: "animate",
             args: &[ SignalArgument {
@@ -38,11 +29,14 @@ impl RegisterSignal<Self> for PlayerCharacter {
                 default: Variant::from_vector2(&Vector2::new(0.0, 0.0)),
                 export_info: ExportInfo::new(VariantType::Vector2),
                 usage: PropertyUsage::DEFAULT,
-                    }
-                ],
-            }
-        );
+            }],
+        });
 
+        // Indicates that the Player is interacting
+        builder.add_signal( Signal {
+            name: "player_interacting",
+            args: &[],
+        });
     }
 }
 
@@ -100,25 +94,25 @@ impl PlayerCharacter {
     }
 
     fn interact(&self, _owner: &KinematicBody2D, pl_mov: Option<Ref<KinematicCollision2D>>) {
+        // First of all, notifies the game that the player is interacting
+        _owner.emit_signal("player_interacting", &[]);
 
         match pl_mov {
             Some(pl_mov) => { 
                 let collision: TRef<KinematicCollision2D, Shared> = unsafe { pl_mov.assume_safe() }; 
                 godot_print!("collision: {:?}",  &collision);
 
-                let coll_body: TRef<Object> = unsafe { collision.collider().unwrap().assume_safe() };
+                let coll_body: TRef<Node> = unsafe { 
+                    collision
+                    .collider()
+                    .unwrap()
+                    .assume_safe()
+                 }.cast::<Node>().unwrap();
+
                 godot_print!("collision with: {:?}", coll_body);
 
-                godot_print!("Has node: {:?}", coll_body.cast::<Node>().unwrap().has_node("Interact"));
-
-                let my_label = unsafe { _owner.get_node_as::<NinePatchRect>("Camera2D/DialogueBox")
-                    .unwrap()
-                     };
-                my_label.set_visible(true);
+                godot_print!("Has node: {:?}, {:?}", coll_body.has_node("Interact"), coll_body.has_user_signal("print_to_dialogue_box"));
                 
-                    
-                // let powered_label = my_label.cast::<RichTextLabel>().unwrap();
-                godot_print!("Label visibily: {:?}", my_label.is_visible())
             } ,
             _ => ()
         }

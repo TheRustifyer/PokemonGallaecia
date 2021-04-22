@@ -22,6 +22,7 @@ shape = SubResource( 1 )
 position = Vector2( 102.344, 64.1447 )
 scale = Vector2( 1, 1 )
 animation = "walk left"
+frame = 1
 script = ExtResource( 3 )
 
 [node name="Camera2D" type="Camera2D" parent="."]
