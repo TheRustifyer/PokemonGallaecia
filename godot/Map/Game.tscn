@@ -1,12 +1,14 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://godot/Player/Player.tscn" type="PackedScene" id=1]
 [ext_resource path="res://godot/Map/Map.tscn" type="PackedScene" id=2]
+[ext_resource path="res://godot/Map/Map.gdns" type="Script" id=3]
 
 [node name="Game" type="Node2D"]
 position = Vector2( 0.0793457, -1.02731 )
 
 [node name="Map" parent="." instance=ExtResource( 2 )]
+script = ExtResource( 3 )
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
 position = Vector2( 396.748, 332.606 )

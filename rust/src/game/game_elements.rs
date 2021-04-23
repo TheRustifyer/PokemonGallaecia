@@ -74,8 +74,10 @@ pub mod dialog_box {
         text_to_print: String,
 
         current_char: i32,
-    }
 
+        dialogue_text_label: Option<Ref<RichTextLabel>>,
+
+    }
 
     #[gdnative::methods]
     impl DialogueBox {
@@ -86,13 +88,18 @@ pub mod dialog_box {
                 timer: 0.0,
                 text_to_print: Default::default(),
                 current_char: 0,
-            }
-            
+                dialogue_text_label: None,
+            } 
         }
 
         #[export]
-        fn _ready(&self, owner: &NinePatchRect) {
+        fn _ready(&mut self, owner: &NinePatchRect) {
             owner.set_process(true);
+            self.dialogue_text_label = Some(unsafe { Node::get_tree(&owner).unwrap()
+                .assume_safe().root()
+                .unwrap().assume_safe()
+                .get_node("Game/Player/Camera2D/DialogueBox/DialogueTextLabel")
+                .unwrap().assume_safe().cast::<RichTextLabel>().unwrap().assume_shared() });
         }
 
         #[export]
@@ -100,26 +107,26 @@ pub mod dialog_box {
             if self.printing {
                 self.timer += _delta;
                 if self.timer > DIALOGUE_SPEED {
+
                     self.timer = 0.0;
+                    let dialogue_text_label = unsafe { self.dialogue_text_label.unwrap().assume_safe() };
+
                     // Make visible the Pokémon Dialog Box
                     _owner.set_visible(true);
-
-                    let dialogue_text_label =
-                        unsafe { _owner.get_node_as::<RichTextLabel>("DialogueTextLabel") }.unwrap();
-
-                    dialogue_text_label.set_bbcode(dialogue_text_label.bbcode() + 
-                        GodotString::from(String::from(self.text_to_print.chars().nth(self.current_char as usize).expect("No more chars to print"))));
-
-                    self.current_char += 1;
+                    
+                    if self.current_char < self.text_to_print.len() as i32 - 1 {                       
+                        dialogue_text_label.set_bbcode(dialogue_text_label.bbcode() + 
+                            GodotString::from(String::from(self.text_to_print.chars().nth(self.current_char as usize).expect("No more chars to print"))));                       
+                        // If there still chars remaining to print, move next
+                        self.current_char += 1;
+                    } else {
+                        self.current_char = 0;
+                        self.printing = false;
+                        self.timer = 0.0;
+                        _owner.set_visible(false);
+                        dialogue_text_label.set_bbcode("");
+                    } 
                 }
-
-                if self.current_char >= self.text_to_print.len() as i32 {
-                    godot_print!("Current char: {}", self.current_char);
-                    self.current_char = 0;
-                    self.text_to_print = String::from("");
-                    self.printing = false;
-                    self.timer = 0.0;
-                }    
             }
         }
 
@@ -142,7 +149,9 @@ pub mod in_game_interactions {
     #[inherit(Sprite)]
     #[register_with(Self::register_signal)]
     #[derive(Debug)]
-    pub struct Truck;
+    pub struct Truck {
+        times_signal_emitted: i32,
+    }
 
     impl RegisterSignal<Self> for Truck {
         fn register_signal(_builder: &ClassBuilder<Self>) -> () {
@@ -157,26 +166,36 @@ pub mod in_game_interactions {
     impl Truck {
         
         fn new(_owner: &Sprite) -> Self {
-            Self
+            Self {
+                times_signal_emitted: 0,
+            }
         }
 
         #[export]
-        fn _process(&mut self, _owner: &Sprite, _delta: f32) {
+        fn _ready(&self, _owner: TRef<Sprite>) {
+            // _owner.set_process(true);
+            // Looking for interactions with the player
+            self.connect_to_player(_owner);
+            self.connect_signal_to_dialogue_box(&_owner)
+        }
+
+        // #[export]
+        // fn _process(&mut self, _owner: TRef<Sprite>, _delta: f32) {   
+        //     if self.times_signal_emitted < 2 {
+        //         _owner.emit_signal("print_to_dialogue_box", &[Variant::from_godot_string(
+        //             &GodotString::from_str("Soy el camión de Pueblo de Teo!!"))]);
+        //             self.times_signal_emitted += 1
+        //     }    
+        // }
+
+        #[export]
+        fn emit_struct_signal(&self, _owner: TRef<Sprite>) {
             _owner.emit_signal("print_to_dialogue_box", &[Variant::from_godot_string(
                 &GodotString::from_str("Soy el camión de Pueblo de Teo!!"))]);
         }
 
         #[export]
-        fn _ready(&self, _owner: TRef<Sprite>) {
-            _owner.set_process(true);
-
-            // Looking for interactions with the player
-            self.receive_player_status(_owner)
-      
-        }
-
-        #[export]
-        fn receive_player_status(&self, _owner: TRef<Sprite>) {
+        fn connect_to_player(&self, _owner: TRef<Sprite>) {
             let player_signal = unsafe { Node::get_tree(&_owner).unwrap()
                 .assume_safe().root()
                 .unwrap().assume_safe()
@@ -184,24 +203,26 @@ pub mod in_game_interactions {
                 .unwrap().assume_safe() };
 
                 player_signal.connect("player_interacting", _owner, 
-                "connect_signal", VariantArray::new_shared(), 0).unwrap();
+                "emit_struct_signal", VariantArray::new_shared(), 0).unwrap();
         }
 
         #[export]
-        fn connect_signal(&self, _owner: &Sprite) {
+        fn connect_signal_to_dialogue_box(&self, _owner: &Sprite) {
             let receiver = unsafe { Node::get_tree(_owner).unwrap()
                 .assume_safe().root()
                 .unwrap().assume_safe()
                 .get_node("Game/Player/Camera2D/DialogueBox")
                 .unwrap().assume_safe() };
-
-            let my_signal_connected = _owner.connect("print_to_dialogue_box", 
-            receiver, "_print_dialogue", VariantArray::new_shared(), 0);
-
-            match my_signal_connected {
-                Ok(()) => my_signal_connected.unwrap(),
-                Err(e) => godot_error!("{}", e)
-            };    
+            
+            // if !receiver.is_connected("print_to_dialogue_box", receiver, "_print_dialogue") {
+                let my_signal_connected = _owner.connect("print_to_dialogue_box", 
+                receiver, "_print_dialogue", VariantArray::new_shared(), 0);
+            
+                match my_signal_connected {
+                    Ok(()) => my_signal_connected.unwrap(),
+                    Err(e) => godot_error!("{}", e)
+                };   
+            // }
         }
 
     }

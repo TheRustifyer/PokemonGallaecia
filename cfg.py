@@ -20,7 +20,7 @@ rust_dir = current_path + '\\rust'
 # Could be handled here, but it's just a semi-hardoded string, so this should be fixed at runtime when this
 # no existent path can broke the program.'''
 rust_compiling_folder = rust_dir + '\\target\\debug'
-rust_project_name = 'learn_programming_with_godot'
+rust_project_name = 'pokemon_gallaecia'
 
 # Setting actions based on what OS is currently running
 if OS == 'Windows':

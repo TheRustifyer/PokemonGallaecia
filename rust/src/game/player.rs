@@ -94,9 +94,7 @@ impl PlayerCharacter {
     }
 
     fn interact(&self, _owner: &KinematicBody2D, pl_mov: Option<Ref<KinematicCollision2D>>) {
-        // First of all, notifies the game that the player is interacting
-        _owner.emit_signal("player_interacting", &[]);
-
+        
         match pl_mov {
             Some(pl_mov) => { 
                 let collision: TRef<KinematicCollision2D, Shared> = unsafe { pl_mov.assume_safe() }; 
@@ -112,8 +110,11 @@ impl PlayerCharacter {
                 godot_print!("collision with: {:?}", coll_body);
 
                 godot_print!("Has node: {:?}, {:?}", coll_body.has_node("Interact"), coll_body.has_user_signal("print_to_dialogue_box"));
-                
-            } ,
+                // First of all, notifies the game that the player is interacting
+                if coll_body.has_node("Interact") {
+                    _owner.emit_signal("player_interacting", &[]);
+                }
+            },
             _ => ()
         }
     }
@@ -205,7 +206,7 @@ impl PlayerAnimation {
 enum PlayerMotionStatus {
     Idle,
     Walking,
-    Running
+    // Running
 }
 
 impl Default for PlayerMotionStatus {

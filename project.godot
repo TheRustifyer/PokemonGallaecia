@@ -20,7 +20,7 @@ _global_script_class_icons={
 
 [application]
 
-config/name="LearnProgrammingWithGodot"
+config/name="PokemonGallaecia"
 run/main_scene="res://godot/Map/Game.tscn"
 config/icon="res://godot/icon.png"
 
