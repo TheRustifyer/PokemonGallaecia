@@ -64,6 +64,12 @@ pub mod dialog_box {
     use gdnative::api::NinePatchRect;
 
     const DIALOGUE_SPEED: f64 = 0.05;
+    #[derive(PartialEq, Clone, Debug)]
+    pub enum DialogueBoxStatus {
+        Active,
+        Inactive
+    }
+
     /// Dialogue Box it's build to manage all the text interactions in the game
     #[derive(NativeClass)]
     #[inherit(NinePatchRect)]
@@ -76,6 +82,8 @@ pub mod dialog_box {
         current_char: i32,
         dialogue_text_label: Option<Ref<RichTextLabel>>,
         player_ref: Option<Ref<Node>>,
+        dialogue_box_status: DialogueBoxStatus,
+        times_pressed_interact: i32,
     }
 
     impl RegisterSignal<Self> for DialogueBox {
@@ -102,6 +110,8 @@ pub mod dialog_box {
                 current_char: 0,
                 dialogue_text_label: None,
                 player_ref: None,
+                dialogue_box_status: DialogueBoxStatus::Inactive,
+                times_pressed_interact: 0,
             } 
         }
 
@@ -130,11 +140,13 @@ pub mod dialog_box {
 
         #[export]
         fn _process(&mut self, _owner: &NinePatchRect, _delta: f64) {
+
             if self.printing {
                 self.timer += _delta;
                 if self.timer > DIALOGUE_SPEED {
                     _owner.emit_signal("dialogue_box_active", &[Variant::from_godot_string(
                         &GodotString::from_str("on_dialogue"))]);
+                    self.dialogue_box_status = DialogueBoxStatus::Active;
                     self.timer = 0.0;
                     let dialogue_text_label = unsafe { self.dialogue_text_label.unwrap().assume_safe() };
                     let _player_ref = unsafe { self.player_ref.unwrap().assume_safe() };
@@ -148,17 +160,23 @@ pub mod dialog_box {
                         // If there still chars remaining to print, move next
                         self.current_char += 1;
                     } else {
-                        
                         let input: &Input = Input::godot_singleton();
-                        
                         if Input::is_action_pressed(&input, "Interact") {
-                            _owner.emit_signal("dialogue_box_inactive", &[Variant::from_godot_string(
-                                &GodotString::from_str(""))]);
-                            self.current_char = 0;
-                            self.printing = false;
-                            self.timer = 0.0;
-                            _owner.set_visible(false);
-                            dialogue_text_label.set_bbcode("");
+                            self.times_pressed_interact += 1;
+                            godot_print!("Times interacted counter: {}", self.times_pressed_interact);
+                            godot_print!("DB status: {:?}", self.dialogue_box_status);
+                            if self.times_pressed_interact >= 1 {
+                                self.current_char = 0;
+                                self.printing = false;
+                                self.timer = 0.0;
+                                _owner.set_visible(false);
+                                dialogue_text_label.set_bbcode("");
+                                
+                                _owner.emit_signal("dialogue_box_inactive", &[Variant::from_godot_string(
+                                    &GodotString::from_str(""))]);
+                                self.times_pressed_interact = 0;
+                                self.dialogue_box_status = DialogueBoxStatus::Inactive
+                            }
                         }
                     } 
                 }

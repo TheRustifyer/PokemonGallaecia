@@ -4,7 +4,7 @@ use gdnative::prelude::*;
 use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D};
 
 use crate::game::*;
-use super::game_elements::signals::GodotSignal;
+use super::game_elements::{dialog_box::DialogueBoxStatus, signals::GodotSignal};
 use self::game_elements::signals::RegisterSignal;
 
 use crate::utils::consts::in_game_constant;
@@ -14,6 +14,7 @@ use crate::utils::consts::in_game_constant;
 #[derive(Debug)]
 pub struct PlayerCharacter {
     player_status: PlayerStatus,
+    dialogue_box_status: DialogueBoxStatus,
     // A Vector2, which is a Godot type, in this case representing the (x, y) coordinates on 2D space
     motion: Vector2,
     signals: HashMap<String, GodotSignal<'static>>,
@@ -49,6 +50,7 @@ impl PlayerCharacter {
     fn new(_owner: &KinematicBody2D) -> Self {
         Self {
             player_status: Default::default(),
+            dialogue_box_status: DialogueBoxStatus::Inactive,
             motion: Vector2::new(0.0, 0.0),
             signals: HashMap::new()
         }
@@ -91,29 +93,32 @@ impl PlayerCharacter {
                 self.motion.y = 0.0;
                 self.player_status = PlayerStatus::Idle
             }
-        }
 
-        let player_movement = owner.move_and_collide(
-            self.motion * _delta, false, false, false);
-        
-        if Input::is_action_pressed(&input, "Interact") {
-            if self.player_status != PlayerStatus::Interacting {
-                self.interact(owner, player_movement);
+            let player_movement = owner.move_and_collide(
+                self.motion * _delta, false, false, false);
+            
+            if Input::is_action_just_pressed(&input, "Interact") {
+                if self.player_status != PlayerStatus::Interacting {
+                    self.interact(owner, player_movement);
+                }
             }
         }
+
+        
     }
 
     #[export]
     fn handle_interaction(&mut self, _owner: &KinematicBody2D, info: String) {
         // godot_print!("INFO: {:?}", text);
         if info == "on_dialogue" {
-            godot_print!("Player on dialogue");
             self.player_status = PlayerStatus::Interacting;
             self.motion.x = 0.0;
             self.motion.y = 0.0;
+            self.dialogue_box_status = DialogueBoxStatus::Active
         } else {
             godot_print!("Player released");
             self.player_status = PlayerStatus::default();
+            self.dialogue_box_status = DialogueBoxStatus::Inactive
         }
     }
 
@@ -130,8 +135,8 @@ impl PlayerCharacter {
                  }.cast::<Node>().unwrap();
 
                 // Notifies the game that the player is interacting
-                if coll_body.has_node("Interact") {
-                    self.player_status = PlayerStatus::Interacting;
+                if coll_body.has_node("Interact") && self.dialogue_box_status == DialogueBoxStatus::Inactive{
+                    // self.player_status = PlayerStatus::Interacting;
                     _owner.emit_signal("player_interacting", &[]);
                 }
             },
