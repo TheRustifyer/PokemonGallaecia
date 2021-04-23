@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use gdnative::prelude::*;
-use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D, NinePatchRect, RichTextLabel};
+use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D};
 
 use crate::game::*;
 use super::game_elements::signals::GodotSignal;
@@ -13,6 +13,7 @@ use crate::utils::consts::in_game_constant;
 #[register_with(Self::register_signal)]
 #[derive(Debug)]
 pub struct PlayerCharacter {
+    player_status: PlayerStatus,
     // A Vector2, which is a Godot type, in this case representing the (x, y) coordinates on 2D space
     motion: Vector2,
     signals: HashMap<String, GodotSignal<'static>>,
@@ -47,6 +48,7 @@ impl PlayerCharacter {
     // The constructor
     fn new(_owner: &KinematicBody2D) -> Self {
         Self {
+            player_status: Default::default(),
             motion: Vector2::new(0.0, 0.0),
             signals: HashMap::new()
         }
@@ -59,46 +61,66 @@ impl PlayerCharacter {
 
         // All Y axis motions are affected first by the gravity
         // self.apply_gravity(&owner);
-
         // Calling the method who animates the sprite when KinematicBody2D is moving
         self.animate_character(&owner);
 
-        // Manage the player motion
-        if Input::is_action_pressed(&input, "Left") {
-            self.motion.x = in_game_constant::VELOCITY * -1.0;
-            self.motion.y = 0.0;    
-        } 
-        else if Input::is_action_pressed(&input, "Right") {
-            self.motion.x = in_game_constant::VELOCITY;
-            self.motion.y = 0.0;
-        } 
-        else if Input::is_action_pressed(&input, "Up") {
-            self.motion.y = in_game_constant::VELOCITY * - 1.0;
-            self.motion.x = 0.0;
-        } 
-        else if Input::is_action_pressed(&input, "Down") {
-            self.motion.y = in_game_constant::VELOCITY;
-            self.motion.x = 0.0;
-        }
-        else {
-            self.motion.x = 0.0;
-            self.motion.y = 0.0;
+        if self.player_status != PlayerStatus::Interacting {
+            // Manage the player motion
+            if Input::is_action_pressed(&input, "Left") {
+                self.motion.x = in_game_constant::VELOCITY * -1.0;
+                self.motion.y = 0.0;
+                self.player_status = PlayerStatus::Walking    
+            } 
+            else if Input::is_action_pressed(&input, "Right") {
+                self.motion.x = in_game_constant::VELOCITY;
+                self.motion.y = 0.0;
+                self.player_status = PlayerStatus::Walking 
+            } 
+            else if Input::is_action_pressed(&input, "Up") {
+                self.motion.y = in_game_constant::VELOCITY * - 1.0;
+                self.motion.x = 0.0;
+                self.player_status = PlayerStatus::Walking 
+            } 
+            else if Input::is_action_pressed(&input, "Down") {
+                self.motion.y = in_game_constant::VELOCITY;
+                self.motion.x = 0.0;
+                self.player_status = PlayerStatus::Walking 
+            }
+            else {
+                self.motion.x = 0.0;
+                self.motion.y = 0.0;
+                self.player_status = PlayerStatus::Idle
+            }
         }
 
         let player_movement = owner.move_and_collide(
             self.motion * _delta, false, false, false);
         
         if Input::is_action_pressed(&input, "Interact") {
-            self.interact(owner, player_movement);
+            if self.player_status != PlayerStatus::Interacting {
+                self.interact(owner, player_movement);
+            }
         }
     }
 
-    fn interact(&self, _owner: &KinematicBody2D, pl_mov: Option<Ref<KinematicCollision2D>>) {
-        
+    #[export]
+    fn handle_interaction(&mut self, _owner: &KinematicBody2D, info: String) {
+        // godot_print!("INFO: {:?}", text);
+        if info == "on_dialogue" {
+            godot_print!("Player on dialogue");
+            self.player_status = PlayerStatus::Interacting;
+            self.motion.x = 0.0;
+            self.motion.y = 0.0;
+        } else {
+            godot_print!("Player released");
+            self.player_status = PlayerStatus::default();
+        }
+    }
+
+    fn interact(&mut self, _owner: &KinematicBody2D, pl_mov: Option<Ref<KinematicCollision2D>>) {
         match pl_mov {
             Some(pl_mov) => { 
                 let collision: TRef<KinematicCollision2D, Shared> = unsafe { pl_mov.assume_safe() }; 
-                godot_print!("collision: {:?}",  &collision);
 
                 let coll_body: TRef<Node> = unsafe { 
                     collision
@@ -107,11 +129,9 @@ impl PlayerCharacter {
                     .assume_safe()
                  }.cast::<Node>().unwrap();
 
-                godot_print!("collision with: {:?}", coll_body);
-
-                godot_print!("Has node: {:?}, {:?}", coll_body.has_node("Interact"), coll_body.has_user_signal("print_to_dialogue_box"));
-                // First of all, notifies the game that the player is interacting
+                // Notifies the game that the player is interacting
                 if coll_body.has_node("Interact") {
+                    self.player_status = PlayerStatus::Interacting;
                     _owner.emit_signal("player_interacting", &[]);
                 }
             },
@@ -129,7 +149,7 @@ impl PlayerCharacter {
 #[derive(NativeClass)]
 #[inherit(AnimatedSprite)]
 pub struct PlayerAnimation {
-    current_player_motion: PlayerMotionStatus,
+    current_player_motion: PlayerStatus,
     current_player_direction: PlayerDirection,
     idle_player_direction: PlayerDirection
 }
@@ -155,29 +175,29 @@ impl PlayerAnimation {
 
         match _motion {
             x if x.x > 0.0 => 
-                { self.current_player_direction = PlayerDirection::Right; self.current_player_motion = PlayerMotionStatus::Walking },
+                { self.current_player_direction = PlayerDirection::Right; self.current_player_motion = PlayerStatus::Walking },
 
             x if x.x < 0.0 => 
-                { self.current_player_direction = PlayerDirection::Left; self.current_player_motion = PlayerMotionStatus::Walking }, 
+                { self.current_player_direction = PlayerDirection::Left; self.current_player_motion = PlayerStatus::Walking }, 
 
             x if x.y < 0.0 => 
-                { self.current_player_direction = PlayerDirection::Upwards; self.current_player_motion = PlayerMotionStatus::Walking },
+                { self.current_player_direction = PlayerDirection::Upwards; self.current_player_motion = PlayerStatus::Walking },
             
             x if x.y > 0.0 => 
-                { self.current_player_direction = PlayerDirection::Downwards; self.current_player_motion = PlayerMotionStatus::Walking },
+                { self.current_player_direction = PlayerDirection::Downwards; self.current_player_motion = PlayerStatus::Walking },
             
             _ => 
-                { self.current_player_motion = PlayerMotionStatus::Idle }
+                { self.current_player_motion = PlayerStatus::Idle }
                 
         }
 
 
-        if self.current_player_motion == PlayerMotionStatus::Idle {
+        if self.current_player_motion == PlayerStatus::Idle {
             match self.idle_player_direction {
-                PlayerDirection::Downwards => { character_animated_sprite.play("idle front", false); }//godot_print!("Idle front") }
-                PlayerDirection::Upwards => { character_animated_sprite.play("idle back", false); }//godot_print!("Idle back") }
-                PlayerDirection::Left => { character_animated_sprite.play("idle left", false); }//godot_print!("Idle left") }
-                PlayerDirection::Right => { character_animated_sprite.play("idle right", false); }//godot_print!("Idle right") }
+                PlayerDirection::Downwards => { character_animated_sprite.play("idle front", false); }
+                PlayerDirection::Upwards => { character_animated_sprite.play("idle back", false); }
+                PlayerDirection::Left => { character_animated_sprite.play("idle left", false); }
+                PlayerDirection::Right => { character_animated_sprite.play("idle right", false); }
                 // The starting position when the Player spawns on the screen
                 _ => character_animated_sprite.play("idle front", false)
             }; 
@@ -203,14 +223,15 @@ impl PlayerAnimation {
 }
 
 #[derive(PartialEq, Clone, Debug)]
-enum PlayerMotionStatus {
+enum PlayerStatus {
     Idle,
     Walking,
     // Running
+    Interacting
 }
 
-impl Default for PlayerMotionStatus {
-    fn default() -> Self { PlayerMotionStatus::Idle }
+impl Default for PlayerStatus {
+    fn default() -> Self { PlayerStatus::Idle }
 }
 
 #[derive(PartialEq, Clone, Debug)]

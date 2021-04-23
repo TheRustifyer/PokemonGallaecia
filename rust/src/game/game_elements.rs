@@ -58,6 +58,7 @@ pub mod signals {
 }
 
 pub mod dialog_box {
+    use super::signals::RegisterSignal;
 
     use gdnative::{api::RichTextLabel, prelude::*};
     use gdnative::api::NinePatchRect;
@@ -66,17 +67,28 @@ pub mod dialog_box {
     /// Dialogue Box it's build to manage all the text interactions in the game
     #[derive(NativeClass)]
     #[inherit(NinePatchRect)]
-    
+    #[register_with(Self::register_signal)]
     #[derive(Debug)]
     pub struct DialogueBox {
         printing: bool,
         timer: f64,
         text_to_print: String,
-
         current_char: i32,
-
         dialogue_text_label: Option<Ref<RichTextLabel>>,
+        player_ref: Option<Ref<Node>>,
+    }
 
+    impl RegisterSignal<Self> for DialogueBox {
+        fn register_signal(_builder: &ClassBuilder<Self>) -> () {
+            _builder.add_signal( Signal {
+                name: "dialogue_box_active",
+                args: &[],
+            });
+            _builder.add_signal( Signal {
+                name: "dialogue_box_inactive",
+                args: &[],
+            });
+        }
     }
 
     #[gdnative::methods]
@@ -89,17 +101,31 @@ pub mod dialog_box {
                 text_to_print: Default::default(),
                 current_char: 0,
                 dialogue_text_label: None,
+                player_ref: None,
             } 
         }
 
         #[export]
-        fn _ready(&mut self, owner: &NinePatchRect) {
+        fn _ready(&mut self, owner: TRef<NinePatchRect>) {
             owner.set_process(true);
+            
+            // Retrieves a reference Ref<T> to the text label
             self.dialogue_text_label = Some(unsafe { Node::get_tree(&owner).unwrap()
                 .assume_safe().root()
                 .unwrap().assume_safe()
                 .get_node("Game/Player/Camera2D/DialogueBox/DialogueTextLabel")
                 .unwrap().assume_safe().cast::<RichTextLabel>().unwrap().assume_shared() });
+
+            // Retrieves a Ref<T> of the player character that notifies if the DialogueBox is running
+            // This will manage if player can move again or it's reading the label
+            self.player_ref = Some(unsafe { Node::get_tree(&owner).unwrap()
+                .assume_safe().root()
+                .unwrap().assume_safe()
+                .get_node("Game/Player")
+                .unwrap() });
+
+            // Call the function that connect the signals of this struct with the player character
+            self.connect_to_player(owner);
         }
 
         #[export]
@@ -107,9 +133,11 @@ pub mod dialog_box {
             if self.printing {
                 self.timer += _delta;
                 if self.timer > DIALOGUE_SPEED {
-
+                    _owner.emit_signal("dialogue_box_active", &[Variant::from_godot_string(
+                        &GodotString::from_str("on_dialogue"))]);
                     self.timer = 0.0;
                     let dialogue_text_label = unsafe { self.dialogue_text_label.unwrap().assume_safe() };
+                    let _player_ref = unsafe { self.player_ref.unwrap().assume_safe() };
 
                     // Make visible the Pokémon Dialog Box
                     _owner.set_visible(true);
@@ -120,14 +148,31 @@ pub mod dialog_box {
                         // If there still chars remaining to print, move next
                         self.current_char += 1;
                     } else {
-                        self.current_char = 0;
-                        self.printing = false;
-                        self.timer = 0.0;
-                        _owner.set_visible(false);
-                        dialogue_text_label.set_bbcode("");
+                        
+                        let input: &Input = Input::godot_singleton();
+                        
+                        if Input::is_action_pressed(&input, "Interact") {
+                            _owner.emit_signal("dialogue_box_inactive", &[Variant::from_godot_string(
+                                &GodotString::from_str(""))]);
+                            self.current_char = 0;
+                            self.printing = false;
+                            self.timer = 0.0;
+                            _owner.set_visible(false);
+                            dialogue_text_label.set_bbcode("");
+                        }
                     } 
                 }
             }
+        }
+
+        #[export]
+        fn connect_to_player(&self, _owner: TRef<NinePatchRect>) {
+            let receiver = unsafe { self.player_ref.unwrap().assume_safe() };
+            _owner.connect("dialogue_box_active", receiver, "handle_interaction",
+             VariantArray::new_shared(), 0).unwrap();
+            _owner.connect("dialogue_box_inactive", receiver, "handle_interaction",
+             VariantArray::new_shared(), 0).unwrap();
+
         }
 
         #[export]
@@ -136,7 +181,6 @@ pub mod dialog_box {
             self.text_to_print = text.to_string();
         }
     }
-
 }
 
 
@@ -173,23 +217,13 @@ pub mod in_game_interactions {
 
         #[export]
         fn _ready(&self, _owner: TRef<Sprite>) {
-            // _owner.set_process(true);
             // Looking for interactions with the player
             self.connect_to_player(_owner);
             self.connect_signal_to_dialogue_box(&_owner)
         }
 
-        // #[export]
-        // fn _process(&mut self, _owner: TRef<Sprite>, _delta: f32) {   
-        //     if self.times_signal_emitted < 2 {
-        //         _owner.emit_signal("print_to_dialogue_box", &[Variant::from_godot_string(
-        //             &GodotString::from_str("Soy el camión de Pueblo de Teo!!"))]);
-        //             self.times_signal_emitted += 1
-        //     }    
-        // }
-
         #[export]
-        fn emit_struct_signal(&self, _owner: TRef<Sprite>) {
+        fn emit_object_signal(&self, _owner: TRef<Sprite>) {
             _owner.emit_signal("print_to_dialogue_box", &[Variant::from_godot_string(
                 &GodotString::from_str("Soy el camión de Pueblo de Teo!!"))]);
         }
@@ -203,7 +237,7 @@ pub mod in_game_interactions {
                 .unwrap().assume_safe() };
 
                 player_signal.connect("player_interacting", _owner, 
-                "emit_struct_signal", VariantArray::new_shared(), 0).unwrap();
+                "emit_object_signal", VariantArray::new_shared(), 0).unwrap();
         }
 
         #[export]
@@ -214,15 +248,14 @@ pub mod in_game_interactions {
                 .get_node("Game/Player/Camera2D/DialogueBox")
                 .unwrap().assume_safe() };
             
-            // if !receiver.is_connected("print_to_dialogue_box", receiver, "_print_dialogue") {
-                let my_signal_connected = _owner.connect("print_to_dialogue_box", 
-                receiver, "_print_dialogue", VariantArray::new_shared(), 0);
             
-                match my_signal_connected {
-                    Ok(()) => my_signal_connected.unwrap(),
-                    Err(e) => godot_error!("{}", e)
-                };   
-            // }
+            let my_signal_connected = _owner.connect("print_to_dialogue_box", 
+            receiver, "_print_dialogue", VariantArray::new_shared(), 0);
+        
+            match my_signal_connected {
+                Ok(()) => my_signal_connected.unwrap(),
+                Err(e) => godot_error!("{}", e)
+            };   
         }
 
     }
