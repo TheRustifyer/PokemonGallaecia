@@ -4,7 +4,7 @@ use gdnative::prelude::*;
 use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D};
 
 use crate::game::*;
-use super::game_elements::{dialog_box::DialogueBoxStatus, signals::GodotSignal};
+use super::game_elements::{character::CharacterMovement, dialog_box::DialogueBoxStatus, signals::GodotSignal};
 use self::game_elements::signals::RegisterSignal;
 
 use crate::utils::consts::in_game_constant;
@@ -15,15 +15,14 @@ use crate::utils::consts::in_game_constant;
 pub struct PlayerCharacter {
     player_status: PlayerStatus,
     dialogue_box_status: DialogueBoxStatus,
-    // A Vector2, which is a Godot type, in this case representing the (x, y) coordinates on 2D space
-    motion: Vector2,
+    motion: Vector2, // A Vector2, which is a Godot type, in this case, represents and tracks the (x, y) coordinates on 2D space
     signals: HashMap<String, GodotSignal<'static>>,
 }
 
 impl RegisterSignal<Self> for PlayerCharacter {
 
     fn register_signal(builder: &ClassBuilder<Self>) {
-        // The signal that indicates that the Player is moving
+        // Indicates that the Player is moving
         builder.add_signal( Signal {
             name: "animate",
             args: &[ SignalArgument {
@@ -42,11 +41,45 @@ impl RegisterSignal<Self> for PlayerCharacter {
     }
 }
 
+impl CharacterMovement<KinematicBody2D, Input>  for PlayerCharacter {
+    /// The fn that manages the player motion on the `Map`, and updates the `self.player_status: PlayerStatus`, 
+    /// which represents the current variant of the player different status and behaviours. 
+    fn move_character(&mut self, _owner: &O, input: &I) 
+        // where O: KinematicBody2D, I: Input
+    {
+        if Input::is_action_pressed(&input, "Left") {
+            self.motion.x = in_game_constant::VELOCITY * -1.0;
+            self.motion.y = 0.0;
+            self.player_status = PlayerStatus::Walking    
+        } 
+        else if Input::is_action_pressed(&input, "Right") {
+            self.motion.x = in_game_constant::VELOCITY;
+            self.motion.y = 0.0;
+            self.player_status = PlayerStatus::Walking 
+        } 
+        else if Input::is_action_pressed(&input, "Up") {
+            self.motion.y = in_game_constant::VELOCITY * - 1.0;
+            self.motion.x = 0.0;
+            self.player_status = PlayerStatus::Walking 
+        } 
+        else if Input::is_action_pressed(&input, "Down") {
+            self.motion.y = in_game_constant::VELOCITY;
+            self.motion.x = 0.0;
+            self.player_status = PlayerStatus::Walking 
+        }
+        else {
+            self.motion.x = 0.0;
+            self.motion.y = 0.0;
+            self.player_status = PlayerStatus::Idle
+        }
+    }
+}
+
 
 #[gdnative::methods]
 impl PlayerCharacter {  
 
-    // The constructor
+    /// The `PlayerCharacter` constructor
     fn new(_owner: &KinematicBody2D) -> Self {
         Self {
             player_status: Default::default(),
@@ -63,53 +96,37 @@ impl PlayerCharacter {
 
         // All Y axis motions are affected first by the gravity
         // self.apply_gravity(&owner);
-        // Calling the method who animates the sprite when KinematicBody2D is moving
+        
+        // Calling the method who animates the sprite when the KinematicBody2D is moving
         self.animate_character(&owner);
-
+        
         if self.player_status != PlayerStatus::Interacting {
-            // Manage the player motion
-            if Input::is_action_pressed(&input, "Left") {
-                self.motion.x = in_game_constant::VELOCITY * -1.0;
-                self.motion.y = 0.0;
-                self.player_status = PlayerStatus::Walking    
-            } 
-            else if Input::is_action_pressed(&input, "Right") {
-                self.motion.x = in_game_constant::VELOCITY;
-                self.motion.y = 0.0;
-                self.player_status = PlayerStatus::Walking 
-            } 
-            else if Input::is_action_pressed(&input, "Up") {
-                self.motion.y = in_game_constant::VELOCITY * - 1.0;
-                self.motion.x = 0.0;
-                self.player_status = PlayerStatus::Walking 
-            } 
-            else if Input::is_action_pressed(&input, "Down") {
-                self.motion.y = in_game_constant::VELOCITY;
-                self.motion.x = 0.0;
-                self.player_status = PlayerStatus::Walking 
-            }
-            else {
-                self.motion.x = 0.0;
-                self.motion.y = 0.0;
-                self.player_status = PlayerStatus::Idle
-            }
-
+            // Moving the player when an input is detected
+            self.move_character(&owner, &input);
+           
+            // Saving a Ref after moves the `Player`, in case of collision, player movement will store the data about that collision
             let player_movement = owner.move_and_collide(
                 self.motion * _delta, false, false, false);
             
+            // Check when the player press the `space bar` == "Interact" key binding. If the player isn't interacting with anything else
+            // calls the `interact method`.
             if Input::is_action_just_pressed(&input, "Interact") {
                 if self.player_status != PlayerStatus::Interacting {
                     self.interact(owner, player_movement);
                 }
             }
         }
-
-        
     }
 
+    /// Fn designed to act as an intermediary when some event blocks any action of the player.
+    ///
+    /// Ex:
+    /// The player talking with some other character is an interaction. While it's happening, the player
+    /// should not be moving or doing anything else that "reading the Dialogue Box" with the text that the interaction has.
+    ///
+    /// The info parameter just provides an String to help when evaluating what path of behaviour should go.
     #[export]
     fn handle_interaction(&mut self, _owner: &KinematicBody2D, info: String) {
-        // godot_print!("INFO: {:?}", text);
         if info == "on_dialogue" {
             self.player_status = PlayerStatus::Interacting;
             self.motion.x = 0.0;
@@ -122,28 +139,57 @@ impl PlayerCharacter {
         }
     }
 
-    fn interact(&mut self, _owner: &KinematicBody2D, pl_mov: Option<Ref<KinematicCollision2D>>) {
-        match pl_mov {
-            Some(pl_mov) => { 
-                let collision: TRef<KinematicCollision2D, Shared> = unsafe { pl_mov.assume_safe() }; 
+    /// The fn for the "Interaction" behaviour of the `Player Character`.
+    ///
+    /// Retrieves the Node which is colliding with our player character. 
+    ///
+    /// If there's Some() collision, checks if the object are allowed to interact with the player.
+    /// Sends a signal alerting that the player if the object has an "Interact" child.
+    fn interact(&mut self, owner: &KinematicBody2D, collision_data: Option<Ref<KinematicCollision2D>>) {
+        match collision_data {
+            Some(collision_data) => { 
+                let collision: TRef<KinematicCollision2D, Shared> = unsafe { collision_data.assume_safe() }; 
 
-                let coll_body: TRef<Node> = unsafe { 
-                    collision
-                    .collider()
-                    .unwrap()
-                    .assume_safe()
-                 }.cast::<Node>().unwrap();
+                let coll_body: TRef<Node> = self.get_collision_body(collision);
 
-                // Notifies the game that the player is interacting
-                if coll_body.has_node("Interact") && self.dialogue_box_status == DialogueBoxStatus::Inactive{
-                    // self.player_status = PlayerStatus::Interacting;
-                    _owner.emit_signal("player_interacting", &[]);
+                //  Notifies the game that the player is interacting if true
+                if self.is_valid_interaction(coll_body) {
+                    self.player_is_interacting(owner);
                 }
             },
             _ => ()
         }
     }
 
+    /// Send the "player interacting" custom signal, that alerts that the player is currently on `PlayerStatus::Interacting` state.
+    fn player_is_interacting(&self, owner: &KinematicBody2D) {
+        owner.emit_signal("player_interacting", &[]);
+    }
+
+    /// Given a body that is colliding with the `Player Character`, checks if has an "Interaction" Node,
+    /// that represents that the object holds data for the player, and the `PlayerStatus`, which has to currently be == `PlayerStatus::Interacting`
+    ///
+    /// If the required conditions are satisfied, returns true.
+    /// 
+    /// Remember that in Rust, `if` expressions without `else` evaluate to `()`
+    fn is_valid_interaction(&self, coll_body: TRef<Node>) -> bool {
+        if coll_body.has_node("Interact") && self.dialogue_box_status == DialogueBoxStatus::Inactive { 
+            return true; 
+        } else { return false; }
+    }
+
+    /// Returns a TRef<Node> of the body that is colliding with our player
+    fn get_collision_body(&self, collision: TRef<KinematicCollision2D, Shared>) -> TRef<Node> {
+        unsafe { collision
+            .collider()
+            .unwrap()
+            .assume_safe()
+          }.cast::<Node>().unwrap()
+    }
+
+    /// If the player character is moving, should be an animated representation.
+    ///
+    /// Emit the signal "animate" and send the current player motion data for the receivers 
     fn animate_character(&self, owner: &KinematicBody2D) {
         owner.emit_signal("animate", &[self.motion.to_variant()]);
     }

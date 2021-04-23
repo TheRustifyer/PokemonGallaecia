@@ -6,27 +6,21 @@
 /// and help another dev/devs that wants to join the project
 
 /// Most of the things coded in this game are used like wrappers over the `gdnative API`
-/// in a try of making the process of writting the game repetitive code less verbose
+/// in a try of making the process of writting the game less repetitive code and less verbose
 
-// pub mod character {
-//     use super::signals::Signal;
-//     use gdnative::prelude::ClassBuilder;
-//     /// Base Struct that represents a Kinematic Body as a Player Character.
-//     /// This "class" can represent the Player owned by the gamer, an enemy character, a person as character in game...
-//     pub struct Character {}
+// 
 
-//     impl Signal for Character {
-//         fn register_signal(_t: &ClassBuilder<Self>, signal: Signal) -> () {
-//             _t.add_signal(signal)
-//         }
-//     }
-// }
+/// The most basic abstraction of the game core, a character.
+/// Character must represent any Kinematic2D Body that it's suppossed to be a human representation.
+pub mod character {
+    pub trait CharacterMovement<O, I> {
+        fn move_character(&mut self, _owner: O, input: I);
+    }
+}
 
 
 pub mod signals {
     use gdnative::{api::viewport::Usage, prelude::*};
-
-    // type Character = <type>;
     #[derive(Debug)]
     pub struct GodotSignal<'l> {
         name: &'l str,
@@ -43,15 +37,6 @@ pub mod signals {
         
         /// Registers a signal on `Godot`directly from the Rust code.
         fn register_signal(_builder: &ClassBuilder<T>) -> ();
-
-        //// Set the name of the signals that you want to register
-        // fn get_signal_args(&self) -> (&str, &str) {
-        //     (&self.name, 
-        // }
-
-        // fn internal_signal_params() -> 
-
-        // /// S
     }
 
 
@@ -64,13 +49,21 @@ pub mod dialog_box {
     use gdnative::api::NinePatchRect;
 
     const DIALOGUE_SPEED: f64 = 0.05;
+    /// Enum that represents the posible states of the Dialogue Box.
+    ///
+    /// Active -> Dialogue Box is printing text and is visible on the screen
+    /// Inactive -> The dialogue box has his visible property setted to `hidden`, so isn't appearing on the screen.
+    ///
+    ///  That's what this two Variants represents.
     #[derive(PartialEq, Clone, Debug)]
     pub enum DialogueBoxStatus {
         Active,
         Inactive
     }
 
-    /// Dialogue Box it's build to manage all the text interactions in the game
+    /// Dialogue Box it's build to manage all the text interactions in the game through the classical text box of Pokémon.
+    ///
+    /// Showing text to the screen through his child (a RichTextLabel
     #[derive(NativeClass)]
     #[inherit(NinePatchRect)]
     #[register_with(Self::register_signal)]
