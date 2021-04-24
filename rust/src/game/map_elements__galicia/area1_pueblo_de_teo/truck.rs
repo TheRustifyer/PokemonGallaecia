@@ -1,6 +1,7 @@
 use gdnative::prelude::*;
 
 use crate::game::code_abstractions::signals::RegisterSignal;
+
 #[derive(NativeClass)]
 #[inherit(Sprite)]
 #[register_with(Self::register_signal)]

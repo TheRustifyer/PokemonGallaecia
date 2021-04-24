@@ -39,7 +39,7 @@ pub struct DialogueBox {
 }
 
 impl RegisterSignal<Self> for DialogueBox {
-    fn register_signal(_builder: &ClassBuilder<Self>) -> () {
+    fn register_signal(_builder: &ClassBuilder<Self>) {
         _builder.add_signal( Signal {
             name: "dialogue_box_active",
             args: &[],

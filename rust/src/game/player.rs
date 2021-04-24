@@ -12,12 +12,15 @@ use crate::game::code_abstractions::{
 
 use crate::utils::consts::in_game_constant;
 
+use super::menu::menu::MenuStatus;
+
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
 #[register_with(Self::register_signal)]
 #[derive(Debug)]
 pub struct PlayerCharacter {
     player_status: PlayerStatus,
+    menu_status: MenuStatus,
     dialogue_box_status: DialogueBoxStatus,
     motion: Vector2, // A Vector2, which is a Godot type, in this case, represents and tracks the (x, y) coordinates on 2D space
     signals: HashMap<String, GodotSignal<'static>>,
@@ -49,7 +52,6 @@ impl CharacterMovement<KinematicBody2D, Input>  for PlayerCharacter {
     /// The fn that manages the player motion on the `Map`, and updates the `self.player_status: PlayerStatus`, 
     /// which represents the current variant of the player different status and behaviours. 
     fn move_character(&mut self, _owner: &KinematicBody2D, input: &Input) 
-        // where O: KinematicBody2D, I: Input
     {
         if Input::is_action_pressed(&input, "Left") {
             self.motion.x = in_game_constant::VELOCITY * -1.0;
@@ -87,6 +89,7 @@ impl PlayerCharacter {
     fn new(_owner: &KinematicBody2D) -> Self {
         Self {
             player_status: Default::default(),
+            menu_status: MenuStatus::Closed,
             dialogue_box_status: DialogueBoxStatus::Inactive,
             motion: Vector2::new(0.0, 0.0),
             signals: HashMap::new()
@@ -119,8 +122,25 @@ impl PlayerCharacter {
                     self.interact(owner, player_movement);
                 }
             }
+
+            // if Input::is_action_just_pressed(&input, "Menu") {
+            //     if self.player_status != PlayerStatus::Interacting {
+            //         self.player_in_menu(owner);
+            //     } 
+            // }
         }
     }
+
+    /// Method for control the PlayerCharacter interaction with the menu
+    // #[export]
+    // fn menu_interaction(&mut self, _owner: &KinematicBody2D, menu_selection: &Input) {
+    //     // if signal_info
+    // }
+
+    /// Send the "player interacting" custom signal, that alerts that the player is currently on `PlayerStatus::Interacting` state.
+    // fn player_in_menu(&self, owner: &KinematicBody2D) {
+    //     owner.emit_signal("player_in_menu", &[]);
+    // }
 
     /// Method designed to act as an intermediary when some event blocks any action of the player.
     ///
@@ -128,19 +148,44 @@ impl PlayerCharacter {
     /// The player talking with some other character is an interaction. While it's happening, the player
     /// should not be moving or doing anything else that "reading the Dialogue Box" with the text that the interaction has.
     ///
-    /// The info parameter just provides an String to help when evaluating what path of behaviour should go.
+    /// The info parameter just provides an String that contains info from the signal that will be used to match
+    /// a certain behaviour with that provided String.
     #[export]
-    fn handle_interaction(&mut self, _owner: &KinematicBody2D, info: String) {
-        if info == "on_dialogue" {
-            self.player_status = PlayerStatus::Interacting;
-            self.motion.x = 0.0;
-            self.motion.y = 0.0;
-            self.dialogue_box_status = DialogueBoxStatus::Active
-        } else {
-            godot_print!("Player released");
-            self.player_status = PlayerStatus::default();
-            self.dialogue_box_status = DialogueBoxStatus::Inactive
+    fn handle_interaction(&mut self, _owner: &KinematicBody2D, signal_info: String) {
+        // Get a full `slice` of the parameters in order to match it with a `classical` &str
+        let signal_info = &signal_info[..];
+        
+        // Matching the signal extra data
+        match signal_info {
+            "on_dialogue" => {
+                self.player_status = PlayerStatus::Interacting;
+                self.motion.x = 0.0;
+                self.motion.y = 0.0;
+                self.dialogue_box_status = DialogueBoxStatus::Active
+            },
+            "menu_active" => {
+                self.player_status = PlayerStatus::Interacting;
+                self.motion.x = 0.0;
+                self.motion.y = 0.0;
+                self.menu_status = MenuStatus::Open
+            },
+            _ => {
+                self.player_status = PlayerStatus::default();
+                self.dialogue_box_status = DialogueBoxStatus::Inactive;
+                self.menu_status = MenuStatus::Closed
+            }
         }
+        
+        // if signal_info == "on_dialogue" {
+        //     self.player_status = PlayerStatus::Interacting;
+        //     self.motion.x = 0.0;
+        //     self.motion.y = 0.0;
+        //     self.dialogue_box_status = DialogueBoxStatus::Active
+        // } else {
+        //     godot_print!("Player released");
+        //     self.player_status = PlayerStatus::default();
+        //     self.dialogue_box_status = DialogueBoxStatus::Inactive
+        // }
     }
 
     /// The method for the "Interaction" behaviour of the `Player Character`.
@@ -164,6 +209,8 @@ impl PlayerCharacter {
             _ => ()
         }
     }
+
+
 
     /// Send the "player interacting" custom signal, that alerts that the player is currently on `PlayerStatus::Interacting` state.
     fn player_is_interacting(&self, owner: &KinematicBody2D) {
@@ -197,7 +244,6 @@ impl PlayerCharacter {
     fn animate_character(&self, owner: &KinematicBody2D) {
         owner.emit_signal("animate", &[self.motion.to_variant()]);
     }
-
 
 }
 

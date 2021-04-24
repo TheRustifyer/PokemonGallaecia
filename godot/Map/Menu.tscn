@@ -1,0 +1,154 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://godot/Fonts/Pokemon DPPt.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://gfx/Menu/menu_arrow.png" type="Texture" id=2]
+[ext_resource path="res://gfx/Menu/menu.png" type="Texture" id=3]
+[ext_resource path="res://godot/Map/Menu.gdns" type="Script" id=4]
+
+[sub_resource type="DynamicFont" id=1]
+size = 50
+outline_size = 7
+outline_color = Color( 0.117647, 0.592157, 0.607843, 1 )
+font_data = ExtResource( 1 )
+
+[node name="Menu" type="NinePatchRect"]
+margin_top = 1.0
+margin_right = 58.0
+margin_bottom = 97.0
+texture = ExtResource( 3 )
+patch_margin_left = 8
+patch_margin_top = 8
+patch_margin_right = 8
+patch_margin_bottom = 8
+script = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Arrow" type="Sprite" parent="."]
+self_modulate = Color( 0.603922, 0.392157, 0.392157, 1 )
+position = Vector2( 8.808, 12.289 )
+scale = Vector2( 0.375843, 0.32956 )
+texture = ExtResource( 2 )
+
+[node name="MenuOptions" type="Node2D" parent="."]
+
+[node name="Pokedex" type="Label" parent="MenuOptions"]
+margin_left = 16.0
+margin_top = 8.0
+margin_right = 149.0
+margin_bottom = 59.0
+rect_scale = Vector2( 0.2, 0.2 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.172549, 0.670588, 0.701961, 1 )
+custom_colors/font_outline_modulate = Color( 0, 0, 0, 1 )
+text = "Pokedex"
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": ""
+}
+
+[node name="Pokemon" type="Label" parent="MenuOptions"]
+margin_left = 16.25
+margin_top = 18.2
+margin_right = 149.25
+margin_bottom = 69.2
+rect_scale = Vector2( 0.2, 0.2 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.172549, 0.670588, 0.701961, 1 )
+custom_colors/font_outline_modulate = Color( 0, 0, 0, 1 )
+text = "Pokémon"
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": ""
+}
+
+[node name="Pokegear" type="Label" parent="MenuOptions"]
+margin_left = 15.5273
+margin_top = 28.4
+margin_right = 167.527
+margin_bottom = 79.4
+rect_scale = Vector2( 0.2, 0.2 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.172549, 0.670588, 0.701961, 1 )
+custom_colors/font_outline_modulate = Color( 0, 0, 0, 1 )
+text = "Pokegear"
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": ""
+}
+
+[node name="Mochila" type="Label" parent="MenuOptions"]
+margin_left = 16.25
+margin_top = 38.6
+margin_right = 149.25
+margin_bottom = 89.6
+rect_scale = Vector2( 0.2, 0.2 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.172549, 0.670588, 0.701961, 1 )
+custom_colors/font_outline_modulate = Color( 0, 0, 0, 1 )
+text = "Mochila"
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": ""
+}
+
+[node name="Player" type="Label" parent="MenuOptions"]
+margin_left = 16.25
+margin_top = 48.8
+margin_right = 168.25
+margin_bottom = 99.8
+rect_scale = Vector2( 0.2, 0.2 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.172549, 0.670588, 0.701961, 1 )
+custom_colors/font_outline_modulate = Color( 0, 0, 0, 1 )
+text = "Player"
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": ""
+}
+
+[node name="Opciones" type="Label" parent="MenuOptions"]
+margin_left = 15.5273
+margin_top = 59.0
+margin_right = 167.527
+margin_bottom = 110.0
+rect_scale = Vector2( 0.2, 0.2 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.172549, 0.670588, 0.701961, 1 )
+custom_colors/font_outline_modulate = Color( 0, 0, 0, 1 )
+text = "Opciones"
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": ""
+}
+
+[node name="Guardar" type="Label" parent="MenuOptions"]
+margin_left = 15.5273
+margin_top = 69.2
+margin_right = 167.527
+margin_bottom = 120.2
+rect_scale = Vector2( 0.2, 0.2 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.172549, 0.670588, 0.701961, 1 )
+custom_colors/font_outline_modulate = Color( 0, 0, 0, 1 )
+text = "Guardar"
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": ""
+}
+
+[node name="Salir" type="Label" parent="MenuOptions"]
+margin_left = 16.25
+margin_top = 79.4
+margin_right = 168.25
+margin_bottom = 130.4
+rect_scale = Vector2( 0.2, 0.2 )
+custom_fonts/font = SubResource( 1 )
+custom_colors/font_color = Color( 0.172549, 0.670588, 0.701961, 1 )
+custom_colors/font_outline_modulate = Color( 0, 0, 0, 1 )
+text = "Salir"
+__meta__ = {
+"_edit_use_anchors_": false,
+"_editor_description_": ""
+}
