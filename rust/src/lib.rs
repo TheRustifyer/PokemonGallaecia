@@ -7,9 +7,14 @@ pub mod utils;
 use game_client::login_screen::LoginScreen;
 
 use game::map::Map;
-use game::game_elements::dialog_box::DialogueBox;
-use game::game_elements::in_game_interactions::Truck;
 use game::player::{PlayerAnimation, PlayerCharacter};
+use game::dialogue_box::DialogueBox;
+
+use game::map_elements__galicia::{
+    area1_pueblo_de_teo,
+    // area1_ames
+};
+
 
 fn init(handle: InitHandle) {
     // Here we register the Rust Structs that will register as classes on GDScript
@@ -22,7 +27,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<Map>();
     handle.add_class::<DialogueBox>();
     
-    handle.add_class::<Truck>();
+    handle.add_class::<area1_pueblo_de_teo::truck::Truck>();
 }
 
 godot_init!(init);

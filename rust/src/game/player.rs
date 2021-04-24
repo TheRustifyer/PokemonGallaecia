@@ -3,11 +3,15 @@ use std::collections::HashMap;
 use gdnative::prelude::*;
 use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D};
 
-use crate::game::*;
-use super::game_elements::{character::CharacterMovement, dialog_box::DialogueBoxStatus, signals::GodotSignal};
-use self::game_elements::signals::RegisterSignal;
+use crate::game::dialogue_box::DialogueBoxStatus;
+use crate::game::code_abstractions::{
+    character::CharacterMovement,
+    signals::GodotSignal,
+    signals::RegisterSignal
+};
 
 use crate::utils::consts::in_game_constant;
+
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
 #[register_with(Self::register_signal)]
@@ -44,7 +48,7 @@ impl RegisterSignal<Self> for PlayerCharacter {
 impl CharacterMovement<KinematicBody2D, Input>  for PlayerCharacter {
     /// The fn that manages the player motion on the `Map`, and updates the `self.player_status: PlayerStatus`, 
     /// which represents the current variant of the player different status and behaviours. 
-    fn move_character(&mut self, _owner: &O, input: &I) 
+    fn move_character(&mut self, _owner: &KinematicBody2D, input: &Input) 
         // where O: KinematicBody2D, I: Input
     {
         if Input::is_action_pressed(&input, "Left") {
@@ -118,7 +122,7 @@ impl PlayerCharacter {
         }
     }
 
-    /// Fn designed to act as an intermediary when some event blocks any action of the player.
+    /// Method designed to act as an intermediary when some event blocks any action of the player.
     ///
     /// Ex:
     /// The player talking with some other character is an interaction. While it's happening, the player
@@ -139,7 +143,7 @@ impl PlayerCharacter {
         }
     }
 
-    /// The fn for the "Interaction" behaviour of the `Player Character`.
+    /// The method for the "Interaction" behaviour of the `Player Character`.
     ///
     /// Retrieves the Node which is colliding with our player character. 
     ///
