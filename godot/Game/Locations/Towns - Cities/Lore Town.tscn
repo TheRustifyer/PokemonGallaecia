@@ -9,7 +9,8 @@
 [ext_resource path="res://gfx/Tilemaps/Buildings/Businesses/Air Traffic Control Tower.png" type="Texture" id=7]
 [ext_resource path="res://gfx/Tilemaps/Buildings/Businesses/Pokemon Center.png" type="Texture" id=8]
 [ext_resource path="res://gfx/Tilemaps/Buildings/Businesses/Pokemon Center (large).png" type="Texture" id=9]
-[ext_resource path="res://godot/Map/ScriptsOfMapElements/PuebloDeTeo/Truck.gdns" type="Script" id=10]
+[ext_resource path="res://godot/Game/ScriptsOfMapElements/PuebloDeTeo/Truck.gdns" type="Script" id=10]
+
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 14, 12 )

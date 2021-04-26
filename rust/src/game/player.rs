@@ -122,12 +122,6 @@ impl PlayerCharacter {
                     self.interact(owner, player_movement);
                 }
             }
-
-            // if Input::is_action_just_pressed(&input, "Menu") {
-            //     if self.player_status != PlayerStatus::Interacting {
-            //         self.player_in_menu(owner);
-            //     } 
-            // }
         }
     }
 

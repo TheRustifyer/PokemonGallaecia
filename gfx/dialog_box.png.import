@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/dialog_box.png-9333ffdcb069d843d738d34a53445797.stex"
+path="res://.import/dialog_box.png-cb5a78c7d1823e99d5f3add4dd4ccfdb.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://godot/dialog_box.png"
-dest_files=[ "res://.import/dialog_box.png-9333ffdcb069d843d738d34a53445797.stex" ]
+source_file="res://gfx/dialog_box.png"
+dest_files=[ "res://.import/dialog_box.png-cb5a78c7d1823e99d5f3add4dd4ccfdb.stex" ]
 
 [params]
 

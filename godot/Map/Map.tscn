@@ -1,9 +1,0 @@
-[gd_scene load_steps=3 format=2]
-
-[ext_resource path="res://godot/Map/Locations/Towns - Cities/Lore Town.tscn" type="PackedScene" id=1]
-[ext_resource path="res://godot/Map/Map.gdns" type="Script" id=2]
-
-[node name="Map" type="Node2D"]
-script = ExtResource( 2 )
-
-[node name="Lore Town" parent="." instance=ExtResource( 1 )]

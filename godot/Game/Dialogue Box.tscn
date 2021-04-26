@@ -1,8 +1,9 @@
 [gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://godot/dialog_box.png" type="Texture" id=1]
+[ext_resource path="res://gfx/dialog_box.png" type="Texture" id=1]
 [ext_resource path="res://godot/Fonts/Pokemon DPPt.ttf" type="DynamicFontData" id=2]
-[ext_resource path="res://godot/Map/DialogueBox.gdns" type="Script" id=3]
+[ext_resource path="res://godot/Game/DialogueBox.gdns" type="Script" id=3]
+
 
 [sub_resource type="DynamicFont" id=1]
 size = 32

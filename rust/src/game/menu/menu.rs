@@ -4,6 +4,8 @@ use gdnative::api::NinePatchRect;
 use crate::game::code_abstractions::signals::RegisterSignal;
 use crate::game::code_abstractions::node_operations::NodeReferences;
 
+use crate::utils::utils;
+
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum MenuStatus {
@@ -113,6 +115,7 @@ impl Menu {
         // Gets an input singleton to point to the input events
         let input: &Input = Input::godot_singleton();
 
+        // This block of code matches a keyboard input event with the actions over the menu
         if Input::is_action_just_pressed(&input, "Menu") {
             if self.menu_status == MenuStatus::Closed {
                 owner.emit_signal("menu_opened", &[Variant::from_str("menu_active")]);
@@ -120,8 +123,7 @@ impl Menu {
             } else {
                 owner.emit_signal("menu_closed", &[Variant::from_str("")]);
                 self.close_menu(owner)
-            }
-            
+            }  
         } else if Input::is_action_just_pressed(&input, "Menu_Up") {
             match self.current_menu_option {
                 x if x == 0 => self.current_menu_option = self.menu_labels.len() - 1,
@@ -134,11 +136,16 @@ impl Menu {
                 _ => self.current_menu_option += 1
             }
             self.cursor_pointer_update(owner);
+        } else if Input::is_action_just_pressed(&input, "Interact") || Input::is_action_just_pressed(&input, "Enter") {
+            // TODO -> Handle the scene changes to the selected option of the menu 
+            godot_print!("Option nº {}, {:?} has been selected!",
+            self.current_menu_option + 1, self.menu_labels.get(self.current_menu_option));
+            self.menu_option_to_scene(owner, self.current_menu_option)
         }
-
-        // if Input::is_action_pressed(&input, "Exit") {
-        //     owner.emit_signal("menu_closed", &[]);
-        // }
+        else if Input::is_action_pressed(&input, "Exit") && self.menu_status == MenuStatus::Open{
+            owner.emit_signal("menu_closed", &[]);
+            self.close_menu(owner)
+        }
     }
 
     fn open_menu(&mut self, owner: &NinePatchRect) {
@@ -157,6 +164,8 @@ impl Menu {
         self.menu_labels = menu_options;
     }
 
+    /// Method that updates the menu arrow position on the screen, in order to use it as a pointer that acts as
+    /// graphical indicator or selector over the availiable menu options.
     fn cursor_pointer_update(&mut self, _owner: &NinePatchRect) {
         let cursor_pointer_sprite = unsafe { self.cursor_pointer.unwrap().assume_safe() 
             .cast::<Sprite>()
@@ -176,13 +185,25 @@ impl Menu {
     }
 
     #[export]
-    /// Takes care about connect the Menu signals to our PlayerCharacter
+    /// Takes care about connect the Menu custom signals to our PlayerCharacter
     fn connect_to_player(&self, _owner: TRef<NinePatchRect>) {
         let player_character = unsafe { self.player_node_ref.unwrap().assume_safe() };
         _owner.connect("menu_opened", player_character, "handle_interaction",
             VariantArray::new_shared(), 0).unwrap();
         _owner.connect("menu_closed", player_character, "handle_interaction",
             VariantArray::new_shared(), 0).unwrap();
+    }
+
+    /// Changes the scene to a designed one when a menu option is selected by the player
+    #[export]
+    fn menu_option_to_scene(&self, owner: &NinePatchRect, menu_option: i32) {
+        match menu_option + 1 {
+            1 => utils::change_scene(owner, "res://godot/Game/Pokedex.tscn".to_string()),
+            _ => godot_print!("Menu option implemented yet!")
+        }
+
+        // let new_node = { owner.get_node(path).}
+        // owner.get_scene_instance_load_placeholder()
     }
 
 }

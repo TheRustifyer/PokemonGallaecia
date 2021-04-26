@@ -10,6 +10,7 @@ use game::map::Map;
 use game::player::{PlayerAnimation, PlayerCharacter};
 use game::dialogue_box::DialogueBox;
 use game::menu::menu::Menu;
+use game::menu::pokedex::pokedex::Pokedex;
 
 use game::map_elements__galicia::{
     area1_pueblo_de_teo,
@@ -28,6 +29,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<Map>();
     handle.add_class::<Menu>();
     handle.add_class::<DialogueBox>();
+    handle.add_class::<Pokedex>();
     
     handle.add_class::<area1_pueblo_de_teo::truck::Truck>();
 }
