@@ -1,5 +1,5 @@
 use gdnative::prelude::*;
-use gdnative::api::{CanvasItem, NinePatchRect};
+use gdnative::api::{CanvasItem, NinePatchRect, PackedScene};
 
 // use crate::game::code_abstractions::signals::RegisterSignal;
 // use crate::game::code_abstractions::node_operations::NodeReferences;
@@ -37,17 +37,78 @@ impl Pokedex {
         }
 
         
-        // let pokedex_item_as_resource = unsafe { ResourceLoader::godot_singleton()
-        //     .load("res://godot/Game/PokedexItem.tscn", "", false)
-        //     .unwrap()
-        //     .assume_safe()
-        //     .cast_instance::<Node2D>()
-        // };
+        let pokedex_item_as_resource = ResourceLoader::godot_singleton()
+            .load("res://godot/Game/PokedexItem.tscn", "", false)
+            .unwrap();
 
-        // let pokedex_holder = unsafe { _owner.get_node("PokedexItems")
-        //     .unwrap()
-        //     .assume_safe()
-        // };
+
+        let pokedex_holder = unsafe { _owner.get_node("PokedexItems")
+            .unwrap()
+            .assume_safe()
+        };
+
+        let mut x = 300.0;
+        let mut y = 300.0;        
+        
+        for pokemon in pokemon_list.iter().enumerate() {
+
+            let pokecounter = pokemon.0 + 1;
+
+            let node = unsafe { 
+                pokedex_item_as_resource
+                .assume_safe()
+                .cast::<PackedScene>()
+                .unwrap()
+                .instance(0)
+                .unwrap()
+                .assume_safe()
+                .cast::<NinePatchRect>()
+                .unwrap()
+            };
+
+            node.set_global_position(
+                Vector2::new(x, y), 
+                false);
+
+            let pokemon_number_label = unsafe { 
+                node.get_node("PokemonNumber")
+                .unwrap()
+                .assume_safe()
+                .cast::<Label>()
+                .unwrap()
+            };
+
+            let pokemon_name_label = unsafe { 
+                node.get_node("PokemonName")
+                .unwrap()
+                .assume_safe()
+                .cast::<Label>()
+                .unwrap()
+            };
+
+            pokemon_number_label.set_text(pokecounter.to_string());
+            pokemon_name_label.set_text(pokemon.1.to_string());
+            // text_label.set_global_position(Vector2::new(x + 20.0, y + 20.0), false);
+            // text_label.set_anchor(3, 0.0, false, true);
+            // text_label.set_align(0);
+            pokemon_number_label.add_color_override("font_color", Color { r: 1.0, g: 0.5, b: 0.0, a: 1.0 });
+            pokemon_name_label.add_color_override("font_color", Color { r: 1.0, g: 0.5, b: 0.0, a: 1.0 });
+
+            pokedex_holder.add_child(node, true);
+
+            // Updates the NEXT NinePatchRect Pokedex entry Y position
+            y += 150.0;
+
+
+        }
+
+        godot_print!("Total childs appended: {:?}", pokedex_holder.get_child_count());
+        godot_print!("Childs: {:?}", pokedex_holder.get_children())
+
+    }
+}
+
+/*
 
         // let pokedex_items_node = unsafe { Node::get_tree(_owner).unwrap()
         //     .assume_safe().root()
@@ -55,36 +116,14 @@ impl Pokedex {
         //     .get_node("Game/Player/Camera2D/Pokedex/PokedexItems")
         //     .unwrap().assume_safe()
         //     };
-
-        let x = 300.0;
-        let y = 300.0;
-
-        
-        // let childs: Vec<i32> = Vec::new();
-
-        let poke_item = unsafe { _owner.get_node("PokedexItems")
+let poke_item = unsafe { _owner.get_node("PokedexItems")
                 .expect("No node PokedexItems").assume_safe() };
-        
-        for pokemon in pokemon_list.iter() {
-            // let pokedex_item = unsafe { 
-            //     pokedex_item_as_resource.assume_safe()
-            //  };
-
-            
-            let my_patch9 = NinePatchRect::new();
+let my_patch9 = NinePatchRect::new();
             let pokelabel = Label::new();
 
             my_patch9.add_child(pokelabel, true);
             
             _owner.set_global_position(Vector2::new(x, y), false) ;
             
-
             poke_item.add_child(my_patch9, true);
-
-        }
-
-        godot_print!("Total childs appended: {:?}", poke_item.get_child_count());
-        godot_print!("Childs: {:?}", poke_item.get_children())
-
-    }
-}
+*/

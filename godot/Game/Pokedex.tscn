@@ -10,7 +10,7 @@ __meta__ = {
 }
 
 [node name="Sprite" type="Sprite" parent="."]
-position = Vector2( 444, 246 )
+position = Vector2( 84, 84 )
 texture = ExtResource( 1 )
 
 [node name="PokedexItems" type="Node2D" parent="."]
