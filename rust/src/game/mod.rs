@@ -1,4 +1,6 @@
 pub mod player;
+pub mod pokemon;
+
 pub mod map;
 pub mod map_elements__galicia;
 pub mod menu;

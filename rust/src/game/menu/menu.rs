@@ -136,7 +136,8 @@ impl Menu {
                 _ => self.current_menu_option += 1
             }
             self.cursor_pointer_update(owner);
-        } else if Input::is_action_just_pressed(&input, "Interact") || Input::is_action_just_pressed(&input, "Enter") {
+        } else if Input::is_action_just_pressed(&input, "Interact") || Input::is_action_just_pressed(&input, "Enter") 
+            && self.menu_status == MenuStatus::Open {
             // TODO -> Handle the scene changes to the selected option of the menu 
             godot_print!("Option nº {}, {:?} has been selected!",
             self.current_menu_option + 1, self.menu_labels.get(self.current_menu_option));
@@ -207,3 +208,21 @@ impl Menu {
     }
 
 }
+
+/*
+
+Adds a child node. Nodes can have any number of children, but every child must 
+have a unique name. Child nodes are automatically deleted when the parent node is 
+deleted, so an entire scene can be removed by deleting its topmost node. 
+If legible_unique_name is true, the child node will have an human-readable 
+name based on the name of the node being instanced instead of its type. 
+Note: If the child node already has a parent, the function will fail. 
+Use [method remove_child](method remove_child) first to remove the node 
+from its current parent. For example:
+
+if child_node.get_parent():
+    child_node.get_parent().remove_child(child_node)
+add_child(child_node)
+Note: If you want a child to be persisted to a PackedScene, you must set [member owner](member owner) in addition to calling [method add_child](method add_child). This is typically relevant for
+
+*/
