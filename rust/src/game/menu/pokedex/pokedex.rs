@@ -52,6 +52,42 @@ impl Pokedex {
         // Currently just makes as much entries as availiable Pokémons are.
         self.init_pokedex();
 
+        // Enable processing
+        _owner.set_process(true);
+
+    }
+
+    #[export]
+    fn _process(&mut self, owner: &Control, _delta: f64) {
+        self.handle_pokedex_input_events(owner);
+    }
+
+    fn handle_pokedex_input_events(&mut self, _owner: &Control) {
+        // Gets an input singleton to point to the input events
+        let input: &Input = Input::godot_singleton();
+
+        // Set a variable that let us to directly access the PokédexHolderOfEntries Node methods
+        let pokedex_entry_node = unsafe {
+            self.pokedex_items_holder_node
+            .unwrap()
+            .assume_safe()
+            .cast::<Node2D>()
+            .unwrap() 
+        };
+
+        // Moves the PokédexEntries all along the screen, acting as an scrollable
+        if Input::is_action_just_pressed(&input, "ui_up") {
+            pokedex_entry_node.set_global_position(
+                pokedex_entry_node.global_position() + 
+                Vector2::new(0.0, 150.0)
+            )
+        }
+        else if Input::is_action_just_pressed(&input, "ui_down") {
+            pokedex_entry_node.set_global_position(
+                pokedex_entry_node.global_position() - 
+                Vector2::new(0.0, 150.0)
+            )
+        }
     }
 
     /// Method than when gets called, iterates all over a pre-designed list of all Pokémons, creating as much Pokédex entries as Pokémons are in the game
@@ -68,7 +104,7 @@ impl Pokedex {
     /// Method 
     ///
     /// Quite large and complicated? method that in the end just creates a new PokedexEntry.
-    fn create_new_pokedex_entry(&mut self, pokemon: &GodotString, pokecounter: usize) {
+    fn create_new_pokedex_entry(&mut self, pokemon: &PokedexEntry, _pokecounter: usize) {
         
         // This marvelous one is the responsable of instanciate a new NinePatchRect, that will contains labels
         // with the Pokédex data of every Pokémon availiable in the game, acting as a kind of graphical container.
@@ -111,8 +147,18 @@ impl Pokedex {
         };
 
         // Now that we got the references to those crazy Pokedata labels, we set it's text passing the entries data
-        pokemon_number_label.set_text(pokecounter.to_string());
-        pokemon_name_label.set_text(pokemon.to_string());
+        if pokemon.captured_by_player == true && pokemon.spotted_by_player == true {
+            pokemon_number_label.set_text("N.º".to_owned() + &pokemon.pokedex_entry_number.to_string() + "capt");
+            pokemon_name_label.set_text(&pokemon.name);
+        } else if !pokemon.captured_by_player && pokemon.spotted_by_player {
+            pokemon_number_label.set_text("N.º".to_owned() + &pokemon.pokedex_entry_number.to_string());
+            pokemon_name_label.set_text(&pokemon.name);
+        } else {
+            godot_print!("POKEMON: {:?}", pokemon);
+            pokemon_number_label.set_text("N.º".to_owned() + &pokemon.pokedex_entry_number.to_string());
+            pokemon_name_label.set_text("           ???       ");
+        }
+            
 
         // Well, well be fine be able to dynamically modify the color of the text depending of the properties of the Pokemon variety
         // and rarity, isn't it? ;)
@@ -124,25 +170,70 @@ impl Pokedex {
         unsafe { 
             self.pokedex_items_holder_node.unwrap().assume_safe().add_child(pokedex_item_box, true);
             // Debug info
-            godot_print!("Total childs appended: {:?}", &self.pokedex_items_holder_node.unwrap().assume_safe().get_child_count());
-            godot_print!("Childs: {:?}", &self.pokedex_items_holder_node.unwrap().assume_safe().get_children()) 
+            // godot_print!("Total childs appended: {:?}", &self.pokedex_items_holder_node.unwrap().assume_safe().get_child_count());
+            // godot_print!("Childs: {:?}", &self.pokedex_items_holder_node.unwrap().assume_safe().get_children()) 
         };
 
         // Don't forget to updates the Y coordinate that will be passed in of the future (on NEXT iteration 'till exhaust) instance of the NinePatchRect PokedexEntry 
         self.y_entry_position += 150.0;
     }
 
-    fn availiable_pokemon_list(&self) -> Vec<GodotString> {
+    // fn availiable_pokemon_list(&self) -> Vec<GodotString> {
         
-        // Now it's a hardcoded version of Pokémon instances with just &str's! Be patient my padawans... or trainers!! :)
+    //     // Now it's a hardcoded version of Pokémon instances with just &str's! Be patient my padawans... or trainers!! :)
         
-        let bulbasaur = GodotString::from_str("Bulbasaur");
-        let charmander = GodotString::from_str("Charmander");
-        let squirtle = GodotString::from_str("Squirtle");
-        let pikachu = GodotString::from_str("Pikachu");
-        let mewtwo = GodotString::from_str("Mewtwo");
+    //     let bulbasaur = GodotString::from_str("Bulbasaur");
+    //     let charmander = GodotString::from_str("Charmander");
+    //     let squirtle = GodotString::from_str("Squirtle");
+    //     let pikachu = GodotString::from_str("Pikachu");
+    //     let mewtwo = GodotString::from_str("Mewtwo");
 
-        let pokemon_vec = vec![bulbasaur, charmander, squirtle, pikachu, mewtwo];
+    //     let pokemon_vec = vec![bulbasaur, charmander, squirtle, pikachu, mewtwo];
+
+    //     return pokemon_vec
+
+    //     // Meh, may the Pokédex be with you.
+    // }
+  
+    fn availiable_pokemon_list(&self) -> Vec<PokedexEntry> {
+        
+        let bulbasaur = PokedexEntry::new(
+            001, 
+            "Bulbasaur".to_string(), 
+            "Planta".to_string(), 
+            "Veneno".to_string(), 
+            0.8,
+            1.5,
+            "Cacho de tipo planta".to_string(), 
+            true, 
+            true,
+        );
+
+        let charmander = PokedexEntry::new(
+            004, 
+            "Charmander".to_string(), 
+            "Fuego".to_string(), 
+            "".to_string(), 
+            0.8,
+            1.5,
+            "Escupo fuego".to_string(), 
+            true, 
+            false,
+        );
+
+        let squirtle = PokedexEntry::new(
+            007, 
+            "Squirtle".to_string(), 
+            "Agua".to_string(), 
+            "".to_string(), 
+            0.8,
+            1.5,
+            "Amo a calmarno".to_string(), 
+            false, 
+            false,
+        );
+
+        let pokemon_vec = vec![bulbasaur, charmander, squirtle];
 
         return pokemon_vec
 
@@ -155,6 +246,8 @@ impl Pokedex {
 pub struct PokedexEntry {
     pokedex_entry_number: i32,
     name: String,
+    type1: String,
+    type2: String,
     height: f64,
     weight: f64,
     description: String,
@@ -169,6 +262,8 @@ impl PokedexEntry {
     pub fn new(
         pokedex_entry_number: i32,
         name: String,
+        type1: String,
+        type2: String,
         height: f64,
         weight: f64,
         description: String,
@@ -179,12 +274,14 @@ impl PokedexEntry {
             Self {
                 pokedex_entry_number,
                 name,
+                type1,
+                type2,
                 height,
                 weight,
                 description,
                 // scream,
                 spotted_by_player,
-                captured_by_player
+                captured_by_player,
             }
         }
 }

@@ -136,9 +136,8 @@ impl Menu {
                 _ => self.current_menu_option += 1
             }
             self.cursor_pointer_update(owner);
-        } else if Input::is_action_just_pressed(&input, "Interact") || Input::is_action_just_pressed(&input, "Enter") 
-            && self.menu_status == MenuStatus::Open {
-            // TODO -> Handle the scene changes to the selected option of the menu 
+        } else if Input::is_action_just_pressed(&input, "Interact") && self.menu_status == MenuStatus::Open 
+                || Input::is_action_just_pressed(&input, "Enter") && self.menu_status == MenuStatus::Open {
             godot_print!("Option nº {}, {:?} has been selected!",
             self.current_menu_option + 1, self.menu_labels.get(self.current_menu_option));
             self.menu_option_to_scene(owner, self.current_menu_option)
