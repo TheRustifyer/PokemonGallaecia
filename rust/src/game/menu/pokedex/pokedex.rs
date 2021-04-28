@@ -1,6 +1,8 @@
 use gdnative::prelude::*;
 use gdnative::api::{NinePatchRect, PackedScene, Resource};
 
+use crate::game::pokemon;
+
 // use crate::game::pokemon::Pokemon;
 
 // use crate::game::code_abstractions::signals::RegisterSignal;
@@ -156,7 +158,7 @@ impl Pokedex {
         } else {
             godot_print!("POKEMON: {:?}", pokemon);
             pokemon_number_label.set_text("N.º".to_owned() + &pokemon.pokedex_entry_number.to_string());
-            pokemon_name_label.set_text("           ???       ");
+            pokemon_name_label.set_text("     ???       ");
         }
             
 
@@ -233,8 +235,32 @@ impl Pokedex {
             false,
         );
 
-        let pokemon_vec = vec![bulbasaur, charmander, squirtle];
+        let mut pokemon_vec = vec![];
 
+        for number in 1..=151 {
+            if number == 1 {
+                pokemon_vec.push(bulbasaur)
+            } else if number == 4 {
+                pokemon_vec.push(charmander)
+            } else if number == 7 {
+                pokemon_vec.push(squirtle)
+            } else {
+                let pokemon: PokedexEntry = PokedexEntry::new(
+                    number, 
+                    "".to_string(), 
+                    "".to_string(), 
+                    "".to_string(), 
+                    0.0,
+                    0.0,
+                    "".to_string(), 
+                    false, 
+                    false,
+                );
+                pokemon_vec.push(pokemon)
+            }
+            
+        }
+        // self.pokmeon
         return pokemon_vec
 
         // Meh, may the Pokédex be with you.
