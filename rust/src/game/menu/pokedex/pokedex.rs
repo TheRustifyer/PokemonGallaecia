@@ -99,7 +99,6 @@ impl Pokedex {
                     }
                 }
                 else if Input::is_action_pressed(&input, "ui_down") {
-                        godot_print!("Delta from AP: {}", &delta);
                     match self.current_pokedex_entry_selected {
                         x if x < 151 => { 
                             self.current_pokedex_entry_selected += 1;
@@ -124,7 +123,6 @@ impl Pokedex {
                     }
                 }
                 else if Input::is_action_just_pressed(&input, "ui_down") {
-                        godot_print!("Delta from AJP: {}", &delta);
                     match self.current_pokedex_entry_selected {
                         x if x < 151 => { 
                             self.current_pokedex_entry_selected += 1;
@@ -137,7 +135,6 @@ impl Pokedex {
                     }
                 }
             }
-            godot_print!("self.times_pressed: {}", &self.times_pressed);
         } else if Input::is_action_just_released(&input, "ui_up") || Input::is_action_just_released(&input, "ui_down") {
             self.times_pressed = 0.0;
         }
@@ -241,9 +238,6 @@ impl Pokedex {
         // PokédexEntry!
         unsafe { 
             self.pokedex_items_holder_node.unwrap().assume_safe().add_child(pokedex_item_box, true);
-            // Debug info
-            // godot_print!("Total childs appended: {:?}", &self.pokedex_items_holder_node.unwrap().assume_safe().get_child_count());
-            // godot_print!("Childs: {:?}", &self.pokedex_items_holder_node.unwrap().assume_safe().get_children()) 
         };
 
 

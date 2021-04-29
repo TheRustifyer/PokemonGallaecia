@@ -140,7 +140,13 @@ impl Menu {
                 || Input::is_action_just_pressed(&input, "Enter") && self.menu_status == MenuStatus::Open {
             godot_print!("Option nº {}, {:?} has been selected!",
             self.current_menu_option + 1, self.menu_labels.get(self.current_menu_option));
-            self.menu_option_to_scene(owner, self.current_menu_option)
+            // Method that handles the next scene given a choice on the menu
+            self.menu_option_to_scene(owner, self.current_menu_option);
+
+            let scene_tree_ref = 
+                unsafe { Node::get_tree(owner)
+                .unwrap().assume_safe() };
+            godot_print!("Current Scene: {:?}", SceneTree::current_scene(&scene_tree_ref));
         }
         else if Input::is_action_pressed(&input, "Exit") && self.menu_status == MenuStatus::Open{
             owner.emit_signal("menu_closed", &[]);
@@ -196,32 +202,11 @@ impl Menu {
 
     /// Changes the scene to a designed one when a menu option is selected by the player
     #[export]
-    fn menu_option_to_scene(&self, owner: &NinePatchRect, menu_option: i32) {
+    fn menu_option_to_scene(&mut self, owner: &NinePatchRect, menu_option: i32) {
         match menu_option + 1 {
             1 => utils::change_scene(owner, "res://godot/Game/Pokedex.tscn".to_string()),
             _ => godot_print!("Menu option implemented yet!")
         }
-
-        // let new_node = { owner.get_node(path).}
-        // owner.get_scene_instance_load_placeholder()
     }
 
 }
-
-/*
-
-Adds a child node. Nodes can have any number of children, but every child must 
-have a unique name. Child nodes are automatically deleted when the parent node is 
-deleted, so an entire scene can be removed by deleting its topmost node. 
-If legible_unique_name is true, the child node will have an human-readable 
-name based on the name of the node being instanced instead of its type. 
-Note: If the child node already has a parent, the function will fail. 
-Use [method remove_child](method remove_child) first to remove the node 
-from its current parent. For example:
-
-if child_node.get_parent():
-    child_node.get_parent().remove_child(child_node)
-add_child(child_node)
-Note: If you want a child to be persisted to a PackedScene, you must set [member owner](member owner) in addition to calling [method add_child](method add_child). This is typically relevant for
-
-*/

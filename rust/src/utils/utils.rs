@@ -35,7 +35,7 @@ pub fn change_scene(_owner: &Node, next_scene_path: String) -> () {
     
     let new_scene = SceneTree::change_scene(
         &scene_tree_ref, next_scene_path);
-    
+        
     match new_scene {
         Ok(()) => (),
         Err(err) => println!("{}", err)

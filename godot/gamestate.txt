@@ -1,0 +1,18 @@
+player_position: 400.8, 686.9
+
+{"name":"my_dictionary","version":"1.0.0","entities":[{"name":"entity_0","value":"value_0"},{"name":"entity_1","value":"value_1"}]}
+
+{
+    "name": "my_dictionary",
+    "version": "1.0.0",
+    "entities": [
+            {
+                    "name": "entity_0",
+                    "value": "value_0"
+            },
+            {
+                    "name": "entity_1",
+                    "value": "value_1"
+            }
+    ]
+}

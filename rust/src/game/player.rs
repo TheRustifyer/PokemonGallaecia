@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use gdnative::prelude::*;
+use gdnative::{api::{File, JSON}, prelude::*};
 use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D};
 
 use crate::game::dialogue_box::DialogueBoxStatus;
@@ -24,6 +24,8 @@ pub struct PlayerCharacter {
     dialogue_box_status: DialogueBoxStatus,
     motion: Vector2, // A Vector2, which is a Godot type, in this case, represents and tracks the (x, y) coordinates on 2D space
     signals: HashMap<String, GodotSignal<'static>>,
+    current_position: Vector2,
+    counter: i32,
 }
 
 impl RegisterSignal<Self> for PlayerCharacter {
@@ -92,8 +94,28 @@ impl PlayerCharacter {
             menu_status: MenuStatus::Closed,
             dialogue_box_status: DialogueBoxStatus::Inactive,
             motion: Vector2::new(0.0, 0.0),
-            signals: HashMap::new()
+            signals: HashMap::new(),
+            current_position: Vector2::new(300.0, 200.0),
+            counter: 0
         }
+    }
+
+    #[export]
+    fn _ready(&mut self, owner: &KinematicBody2D) {
+        let file = File::new();
+        let gamestate = file.open("res://godot/gamestate.txt", File::READ);
+        match gamestate {
+            Ok(()) => (),
+            Err(err) => godot_print!("Error. File not found!: {:?}", err)
+        }
+
+        let json = JSON::godot_singleton();
+        let my_data = json.print(file.get_as_text(), "", false);
+        let my_data2 = unsafe { json.parse(file.get_as_text()).unwrap().assume_safe()};
+        godot_print!("{}", file.get_as_text());
+        file.close();
+
+        owner.set_global_position(Vector2::new(70.0, 2000.0));
     }
     
     #[export]
@@ -115,6 +137,10 @@ impl PlayerCharacter {
             let player_movement = owner.move_and_collide(
                 self.motion * _delta, false, false, false);
             
+            self.current_position = owner.global_position();
+            self.counter += 1;
+            owner.set_global_position(self.current_position);
+
             // Check when the player press the `space bar` == "Interact" key binding. If the player isn't interacting with anything else
             // calls the `interact method`.
             if Input::is_action_just_pressed(&input, "Interact") {
@@ -124,17 +150,6 @@ impl PlayerCharacter {
             }
         }
     }
-
-    /// Method for control the PlayerCharacter interaction with the menu
-    // #[export]
-    // fn menu_interaction(&mut self, _owner: &KinematicBody2D, menu_selection: &Input) {
-    //     // if signal_info
-    // }
-
-    /// Send the "player interacting" custom signal, that alerts that the player is currently on `PlayerStatus::Interacting` state.
-    // fn player_in_menu(&self, owner: &KinematicBody2D) {
-    //     owner.emit_signal("player_in_menu", &[]);
-    // }
 
     /// Method designed to act as an intermediary when some event blocks any action of the player.
     ///
@@ -169,17 +184,6 @@ impl PlayerCharacter {
                 self.menu_status = MenuStatus::Closed
             }
         }
-        
-        // if signal_info == "on_dialogue" {
-        //     self.player_status = PlayerStatus::Interacting;
-        //     self.motion.x = 0.0;
-        //     self.motion.y = 0.0;
-        //     self.dialogue_box_status = DialogueBoxStatus::Active
-        // } else {
-        //     godot_print!("Player released");
-        //     self.player_status = PlayerStatus::default();
-        //     self.dialogue_box_status = DialogueBoxStatus::Inactive
-        // }
     }
 
     /// The method for the "Interaction" behaviour of the `Player Character`.
