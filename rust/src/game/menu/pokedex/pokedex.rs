@@ -1,7 +1,7 @@
 use gdnative::prelude::*;
 use gdnative::api::{NinePatchRect, PackedScene, Resource};
 
-use crate::game::pokemon;
+use crate::utils::utils;
 
 // use crate::game::pokemon::Pokemon;
 
@@ -24,6 +24,10 @@ pub struct Pokedex {
     x_entry_position: f64,
     y_entry_position: f64,
 
+    current_pokedex_entry_selected: i32,
+
+    times_pressed: f64,
+
 }
 
 #[gdnative::methods]
@@ -34,7 +38,9 @@ impl Pokedex {
             pokedex_items_holder_node: None,
             pokedex_item_scene_resource: None,
             x_entry_position: 300.0,
-            y_entry_position: 300.0,  
+            y_entry_position: 300.0, 
+            current_pokedex_entry_selected: 1, 
+            times_pressed: 0.0,
         }
     }
 
@@ -60,11 +66,11 @@ impl Pokedex {
     }
 
     #[export]
-    fn _process(&mut self, owner: &Control, _delta: f64) {
-        self.handle_pokedex_input_events(owner);
+    fn _process(&mut self, owner: &Control, delta: f64) {
+        self.handle_pokedex_input_events(owner, delta);
     }
 
-    fn handle_pokedex_input_events(&mut self, _owner: &Control) {
+    fn handle_pokedex_input_events(&mut self, owner: &Control, delta: f64) {
         // Gets an input singleton to point to the input events
         let input: &Input = Input::godot_singleton();
 
@@ -78,35 +84,90 @@ impl Pokedex {
         };
 
         // Moves the PokédexEntries all along the screen, acting as an scrollable
-        if Input::is_action_just_pressed(&input, "ui_up") {
-            pokedex_entry_node.set_global_position(
-                pokedex_entry_node.global_position() + 
-                Vector2::new(0.0, 150.0)
-            )
+        if Input::is_action_pressed(&input, "ui_up") || Input::is_action_pressed(&input, "ui_down") {
+            self.times_pressed += delta;
+            if self.times_pressed > 0.3 {
+                if Input::is_action_pressed(&input, "ui_up") {
+                    match self.current_pokedex_entry_selected {
+                        x if x <= 1 => (),
+                        _ => { self.current_pokedex_entry_selected -= 1;
+                                    pokedex_entry_node.set_global_position(
+                                        pokedex_entry_node.global_position() + 
+                                        Vector2::new(0.0, 150.0)
+                                    ) 
+                            }
+                    }
+                }
+                else if Input::is_action_pressed(&input, "ui_down") {
+                        godot_print!("Delta from AP: {}", &delta);
+                    match self.current_pokedex_entry_selected {
+                        x if x < 151 => { 
+                            self.current_pokedex_entry_selected += 1;
+                            pokedex_entry_node.set_global_position(
+                                pokedex_entry_node.global_position() - 
+                                Vector2::new(0.0, 150.0)
+                            )
+                        }
+                        _ => ()
+                    }
+                } 
+            } else {
+                if Input::is_action_just_pressed(&input, "ui_up") {
+                    match self.current_pokedex_entry_selected {
+                        x if x <= 1 => (),
+                        _ => { self.current_pokedex_entry_selected -= 1;
+                                    pokedex_entry_node.set_global_position(
+                                        pokedex_entry_node.global_position() + 
+                                        Vector2::new(0.0, 150.0)
+                                    ) 
+                            }
+                    }
+                }
+                else if Input::is_action_just_pressed(&input, "ui_down") {
+                        godot_print!("Delta from AJP: {}", &delta);
+                    match self.current_pokedex_entry_selected {
+                        x if x < 151 => { 
+                            self.current_pokedex_entry_selected += 1;
+                            pokedex_entry_node.set_global_position(
+                                pokedex_entry_node.global_position() - 
+                                Vector2::new(0.0, 150.0)
+                            )
+                        }
+                        _ => ()
+                    }
+                }
+            }
+            godot_print!("self.times_pressed: {}", &self.times_pressed);
+        } else if Input::is_action_just_released(&input, "ui_up") || Input::is_action_just_released(&input, "ui_down") {
+            self.times_pressed = 0.0;
         }
-        else if Input::is_action_just_pressed(&input, "ui_down") {
-            pokedex_entry_node.set_global_position(
-                pokedex_entry_node.global_position() - 
-                Vector2::new(0.0, 150.0)
-            )
+
+        
+        if Input::is_action_just_pressed(&input, "Exit") {
+            utils::change_scene(owner, "res://godot/Game/Game.tscn".to_string())
         }
     }
 
     /// Method than when gets called, iterates all over a pre-designed list of all Pokémons, creating as much Pokédex entries as Pokémons are in the game
     fn init_pokedex(&mut self) {
-        // For each Pokémon inside a future list that will be made of dynamically retrieved Pokémon's data...
-        for (pokecounter, pokemon) in self.availiable_pokemon_list().iter().enumerate() {
-            // Still not to much. An EZ way to tracks and dynamically creates the Pokédex index of a Pokémon
-            let pokecounter = pokecounter + 1;
 
-            self.create_new_pokedex_entry(pokemon, pokecounter);
+        // Fills the attribute (Vec<PokedexEntries>) that holds all the PokedexEntries availiables
+        self.availiable_pokemon_list();
+        // For each Pokémon inside that attribute Pokémon's data...
+        // let mut pkm;
+        for (pokecounter, pokemon) in self.pokedex_entries.iter().enumerate() {
+            // Still not to much. An EZ way to tracks and dynamically creates the Pokédex index of a Pokémon
+            // pkm = pokemon.clone();
+            self.create_new_pokedex_entry(&pokemon, pokecounter as i32);
+            // Don't forget to updates the Y coordinate that will be passed in to the future (on NEXT iteration 'till exhaust) instance of the NinePatchRect PokedexEntry 
+            self.y_entry_position += 150.0;
         }
     }
 
     /// Method 
     ///
     /// Quite large and complicated? method that in the end just creates a new PokedexEntry.
-    fn create_new_pokedex_entry(&mut self, pokemon: &PokedexEntry, _pokecounter: usize) {
+    fn create_new_pokedex_entry(&self, pokemon: &PokedexEntry, _pokecounter: i32) {
         
         // This marvelous one is the responsable of instanciate a new NinePatchRect, that will contains labels
         // with the Pokédex data of every Pokémon availiable in the game, acting as a kind of graphical container.
@@ -148,17 +209,26 @@ impl Pokedex {
             .unwrap()
         };
 
+        let pokeball_sprite = unsafe { 
+            pokedex_item_box.get_node("Captured")
+            .unwrap()
+            .assume_safe()
+            .cast::<Sprite>()
+            .unwrap()
+        };
+
         // Now that we got the references to those crazy Pokedata labels, we set it's text passing the entries data
         if pokemon.captured_by_player == true && pokemon.spotted_by_player == true {
-            pokemon_number_label.set_text("N.º".to_owned() + &pokemon.pokedex_entry_number.to_string() + "capt");
+            pokemon_number_label.set_text("N.º".to_owned() + &pokemon.pokedex_entry_number.to_string());
             pokemon_name_label.set_text(&pokemon.name);
         } else if !pokemon.captured_by_player && pokemon.spotted_by_player {
             pokemon_number_label.set_text("N.º".to_owned() + &pokemon.pokedex_entry_number.to_string());
             pokemon_name_label.set_text(&pokemon.name);
+            pokeball_sprite.set_visible(false);
         } else {
-            godot_print!("POKEMON: {:?}", pokemon);
             pokemon_number_label.set_text("N.º".to_owned() + &pokemon.pokedex_entry_number.to_string());
-            pokemon_name_label.set_text("     ???       ");
+            pokemon_name_label.set_text("?????");
+            pokeball_sprite.set_visible(false);
         }
             
 
@@ -176,28 +246,10 @@ impl Pokedex {
             // godot_print!("Childs: {:?}", &self.pokedex_items_holder_node.unwrap().assume_safe().get_children()) 
         };
 
-        // Don't forget to updates the Y coordinate that will be passed in of the future (on NEXT iteration 'till exhaust) instance of the NinePatchRect PokedexEntry 
-        self.y_entry_position += 150.0;
+
     }
 
-    // fn availiable_pokemon_list(&self) -> Vec<GodotString> {
-        
-    //     // Now it's a hardcoded version of Pokémon instances with just &str's! Be patient my padawans... or trainers!! :)
-        
-    //     let bulbasaur = GodotString::from_str("Bulbasaur");
-    //     let charmander = GodotString::from_str("Charmander");
-    //     let squirtle = GodotString::from_str("Squirtle");
-    //     let pikachu = GodotString::from_str("Pikachu");
-    //     let mewtwo = GodotString::from_str("Mewtwo");
-
-    //     let pokemon_vec = vec![bulbasaur, charmander, squirtle, pikachu, mewtwo];
-
-    //     return pokemon_vec
-
-    //     // Meh, may the Pokédex be with you.
-    // }
-  
-    fn availiable_pokemon_list(&self) -> Vec<PokedexEntry> {
+    fn availiable_pokemon_list(&mut self) {
         
         let bulbasaur = PokedexEntry::new(
             001, 
@@ -235,15 +287,15 @@ impl Pokedex {
             false,
         );
 
-        let mut pokemon_vec = vec![];
+        // let mut pokemon_vec = vec![];
 
         for number in 1..=151 {
             if number == 1 {
-                pokemon_vec.push(bulbasaur)
+                self.pokedex_entries.push(bulbasaur.clone())
             } else if number == 4 {
-                pokemon_vec.push(charmander)
+                self.pokedex_entries.push(charmander.clone())
             } else if number == 7 {
-                pokemon_vec.push(squirtle)
+                self.pokedex_entries.push(squirtle.clone())
             } else {
                 let pokemon: PokedexEntry = PokedexEntry::new(
                     number, 
@@ -256,19 +308,14 @@ impl Pokedex {
                     false, 
                     false,
                 );
-                pokemon_vec.push(pokemon)
-            }
-            
+                self.pokedex_entries.push(pokemon)
+            }  
         }
-        // self.pokmeon
-        return pokemon_vec
-
-        // Meh, may the Pokédex be with you.
     }
 }
 
 /// Struct that representes every Pokédex entry with the correlative Pokémon 
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub struct PokedexEntry {
     pokedex_entry_number: i32,
     name: String,

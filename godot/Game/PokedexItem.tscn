@@ -1,7 +1,8 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://gfx/dialog_box.png" type="Texture" id=1]
 [ext_resource path="res://godot/Fonts/Pokemon DPPt.ttf" type="DynamicFontData" id=2]
+[ext_resource path="res://gfx/Pokedex/pokeball.png" type="Texture" id=3]
 
 [sub_resource type="DynamicFont" id=1]
 size = 32
@@ -27,7 +28,7 @@ __meta__ = {
 margin_left = 30.0
 margin_top = 39.0
 margin_right = 100.0
-margin_bottom = 83.0
+margin_bottom = 87.0
 custom_fonts/font = SubResource( 1 )
 custom_colors/font_color = Color( 0, 0, 0, 1 )
 text = "001"
@@ -38,10 +39,10 @@ __meta__ = {
 }
 
 [node name="PokemonName" type="Label" parent="."]
-margin_left = 115.464
-margin_top = 37.3756
-margin_right = 379.464
-margin_bottom = 80.3756
+margin_left = 115.0
+margin_top = 40.0
+margin_right = 379.0
+margin_bottom = 89.0
 size_flags_horizontal = 0
 size_flags_vertical = 0
 custom_fonts/font = SubResource( 2 )
@@ -52,3 +53,8 @@ valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Captured" type="Sprite" parent="."]
+position = Vector2( 436.825, 63.0711 )
+scale = Vector2( 0.106285, 0.0875136 )
+texture = ExtResource( 3 )
