@@ -40,7 +40,9 @@ pub struct Menu {
 
     current_menu_option: i32,
     menu_labels: VariantArray,
-    cursor_pointer: Option<Ref<Node>>
+    cursor_pointer: Option<Ref<Node>>,
+
+    player_current_abs_position: (f32, f32)
 }
 
 impl RegisterSignal<Self> for Menu {
@@ -77,6 +79,7 @@ impl Menu {
             current_menu_option: 0,
             menu_labels: VariantArray::new().into_shared(),
             cursor_pointer: None,
+            player_current_abs_position: (0.0, 0.0)
         }
     }
 
@@ -119,7 +122,8 @@ impl Menu {
         if Input::is_action_just_pressed(&input, "Menu") {
             if self.menu_status == MenuStatus::Closed {
                 owner.emit_signal("menu_opened", &[Variant::from_str("menu_active")]);
-                self.open_menu(owner)
+                self.open_menu(owner);
+                self.player_current_abs_position = utils::get_player_absolute_position();
             } else {
                 owner.emit_signal("menu_closed", &[Variant::from_str("")]);
                 self.close_menu(owner)
@@ -203,6 +207,11 @@ impl Menu {
     /// Changes the scene to a designed one when a menu option is selected by the player
     #[export]
     fn menu_option_to_scene(&mut self, owner: &NinePatchRect, menu_option: i32) {
+
+        // Save the player position before lost the data
+        // let ps = utils::save_player_absolute_position(self.player_current_abs_position);
+        // godot_print!("{:?}", ps);
+
         match menu_option + 1 {
             1 => utils::change_scene(owner, "res://godot/Game/Pokedex.tscn".to_string()),
             _ => godot_print!("Menu option implemented yet!")

@@ -28,7 +28,7 @@ shape = SubResource( 2 )
 position = Vector2( 102.344, 64.1447 )
 scale = Vector2( 1, 1 )
 animation = "walk left"
-frame = 2
+frame = 1
 
 [node name="Camera2D" type="Camera2D" parent="."]
 position = Vector2( 107.983, 64.145 )

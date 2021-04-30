@@ -1,15 +1,16 @@
 use std::collections::HashMap;
 
-use gdnative::{api::{File, JSON}, prelude::*};
+use gdnative::prelude::*;
 use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D};
 
-use crate::game::dialogue_box::DialogueBoxStatus;
+use crate::{game::dialogue_box::DialogueBoxStatus};
 use crate::game::code_abstractions::{
     character::CharacterMovement,
     signals::GodotSignal,
     signals::RegisterSignal
 };
 
+use crate::utils::utils;
 use crate::utils::consts::in_game_constant;
 
 use super::menu::menu::MenuStatus;
@@ -95,29 +96,23 @@ impl PlayerCharacter {
             dialogue_box_status: DialogueBoxStatus::Inactive,
             motion: Vector2::new(0.0, 0.0),
             signals: HashMap::new(),
-            current_position: Vector2::new(300.0, 200.0),
+            current_position: Vector2::new(0.0, 0.0),
             counter: 0
         }
     }
 
     #[export]
     fn _ready(&mut self, owner: &KinematicBody2D) {
-        let file = File::new();
-        let gamestate = file.open("res://godot/gamestate.txt", File::READ);
-        match gamestate {
-            Ok(()) => (),
-            Err(err) => godot_print!("Error. File not found!: {:?}", err)
-        }
+        
+        // Retrieves the player absolute position from a JSON config file
+        self.current_position.x = utils::get_player_absolute_position().0;
+        self.current_position.y = utils::get_player_absolute_position().1;
 
-        let json = JSON::godot_singleton();
-        let my_data = json.print(file.get_as_text(), "", false);
-        let my_data2 = unsafe { json.parse(file.get_as_text()).unwrap().assume_safe()};
-        godot_print!("{}", file.get_as_text());
-        file.close();
-
-        owner.set_global_position(Vector2::new(70.0, 2000.0));
+        // Sets the retrieved position
+        owner.set_global_position(Vector2::new(self.current_position.x, self.current_position.y));
     }
     
+
     #[export]
     fn _physics_process(&mut self, owner: &KinematicBody2D, _delta: f32) {
         // First of all, we need a reference to our singleton(scene, node, value that exists through out the game) Input 
@@ -139,7 +134,7 @@ impl PlayerCharacter {
             
             self.current_position = owner.global_position();
             self.counter += 1;
-            owner.set_global_position(self.current_position);
+            // owner.set_global_position(self.current_position);
 
             // Check when the player press the `space bar` == "Interact" key binding. If the player isn't interacting with anything else
             // calls the `interact method`.
@@ -147,6 +142,10 @@ impl PlayerCharacter {
                 if self.player_status != PlayerStatus::Interacting {
                     self.interact(owner, player_movement);
                 }
+            }
+
+            if Input::is_action_just_pressed(&input, "Menu") {
+                utils::save_player_absolute_position((self.current_position.x, self.current_position.y));
             }
         }
     }
@@ -264,13 +263,20 @@ impl PlayerAnimation {
     }
 
     #[export]
+    fn _ready(&mut self, owner: &AnimatedSprite) {
+        self.idle_player_direction = utils::get_player_direction();
+        match self.idle_player_direction {
+            PlayerDirection::Downwards => { owner.play("idle front", false); }
+            PlayerDirection::Upwards => { owner.play("idle back", false); }
+            PlayerDirection::Left => { owner.play("idle left", false); }
+            PlayerDirection::Right => { owner.play("idle right", false); }
+        }; 
+    }
+
+    #[export]
     fn _on_player_animate(&mut self, _owner: &AnimatedSprite, _motion: Vector2) {
         
-        let character_animated_sprite = unsafe 
-        { _owner.get_node_as::<AnimatedSprite>(
-            "."
-            ) }
-            .unwrap();
+        let character_animated_sprite = unsafe { _owner.get_node_as::<AnimatedSprite>( ".") }.unwrap();
 
         match _motion {
             x if x.x > 0.0 => 
@@ -318,11 +324,17 @@ impl PlayerAnimation {
             self.idle_player_direction = PlayerDirection::Upwards;
 
         }
+
+        let input: &Input = Input::godot_singleton();
+        if Input::is_action_just_pressed(&input, "Menu") {
+            utils::save_player_direction(&self.current_player_direction);
+        }
+
     }
 }
 
 #[derive(PartialEq, Clone, Debug)]
-enum PlayerStatus {
+pub enum PlayerStatus {
     Idle,
     Walking,
     // Running
@@ -333,9 +345,9 @@ impl Default for PlayerStatus {
     fn default() -> Self { PlayerStatus::Idle }
 }
 
-#[derive(PartialEq, Clone, Debug)]
-enum PlayerDirection {
-    Idle, // De momento necesitamos esto
+#[derive(PartialEq, Clone, Debug, ToVariant)]
+pub enum PlayerDirection {
+    // Idle, // De momento necesitamos esto
     Upwards,
     Downwards,
     Left,
@@ -343,5 +355,5 @@ enum PlayerDirection {
 }
 
 impl Default for PlayerDirection {
-    fn default() -> Self { PlayerDirection::Idle }
+    fn default() -> Self { PlayerDirection::Downwards }
 }
