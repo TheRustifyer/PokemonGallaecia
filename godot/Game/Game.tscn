@@ -5,7 +5,9 @@
 [ext_resource path="res://godot/Player/PlayerCharacter.gdns" type="Script" id=3]
 [ext_resource path="res://godot/Game/Game.gdns" type="Script" id=4]
 
-[node name="Game" type="Node2D"]
+[node name="Game" type="Node2D" groups=[
+"save_game_data",
+]]
 position = Vector2( 0.0793457, -1.02731 )
 script = ExtResource( 4 )
 
