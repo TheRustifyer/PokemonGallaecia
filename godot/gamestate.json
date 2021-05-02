@@ -1,1 +1,8 @@
-{"name":"Player State","player_direction":"Downwards","player_position":{"x":630.026245,"y":213.254562},"version":"1.0.0"}
+{
+  "name": "",
+  "player_direction": "Left",
+  "player_position": {
+    "y": 383.00006103515625,
+    "x": 695.0
+  }
+}

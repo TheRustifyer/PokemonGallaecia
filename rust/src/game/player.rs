@@ -1,5 +1,8 @@
 use std::collections::HashMap;
 
+use serde::{Serialize, Deserialize};
+use serde::ser::Serializer;
+
 use gdnative::prelude::*;
 use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D};
 
@@ -14,6 +17,37 @@ use crate::utils::utils;
 use crate::utils::consts::in_game_constant;
 
 use super::menu::menu::MenuStatus;
+
+
+#[derive(Serialize, Deserialize, Debug)]
+/// This beautiful struct is the responsable of read the data coming from signals of all 
+/// different PLAYER "classes", processing that data and store it on an external resource
+/// where the data can persist
+pub struct PlayerData {
+    name: String, // All JSON attrs has a 'name' identifier depending on what kind of data are storing
+    player_direction: PlayerDirection,
+    player_position: HashMap<String, f64>,
+}
+
+impl PlayerData {
+
+    pub fn new() -> Self {
+        Self {
+            name: "".to_owned(),
+            player_direction: PlayerDirection::default(),
+            player_position: HashMap::new(),
+        }
+    }
+
+    pub fn set_player_direction(&mut self, player_current_direction: &PlayerDirection) {
+        self.player_direction = player_current_direction.to_owned();
+    }
+    pub fn set_player_position(&mut self, x: f64, y: f64) {
+        self.player_position.insert("x".to_owned(), x);
+        self.player_position.insert("y".to_owned(), y);
+    }
+}
+
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
@@ -30,7 +64,6 @@ pub struct PlayerCharacter {
 }
 
 impl RegisterSignal<Self> for PlayerCharacter {
-
     fn register_signal(builder: &ClassBuilder<Self>) {
         // Indicates that the Player is moving
         builder.add_signal( Signal {
@@ -47,6 +80,11 @@ impl RegisterSignal<Self> for PlayerCharacter {
         builder.add_signal( Signal {
             name: "player_interacting",
             args: &[],
+        });
+
+        builder.add_signal( Signal {
+            name: "player_position",
+            args: &[]
         });
     }
 }
@@ -110,6 +148,9 @@ impl PlayerCharacter {
 
         // Sets the retrieved position
         owner.set_global_position(Vector2::new(self.current_position.x, self.current_position.y));
+
+        // Connect the Player Character with the Struct that takes care about process, manage and persist PlayerCharacter data
+        self.connect_to_game_data(owner);
     }
     
 
@@ -145,7 +186,7 @@ impl PlayerCharacter {
             }
 
             if Input::is_action_just_pressed(&input, "Menu") {
-                utils::save_player_absolute_position((self.current_position.x, self.current_position.y));
+                owner.emit_signal("player_position", &[(self.current_position.x, self.current_position.y).to_variant()]);
             }
         }
     }
@@ -242,14 +283,33 @@ impl PlayerCharacter {
         owner.emit_signal("animate", &[self.motion.to_variant()]);
     }
 
+    /// Connects the PlayerCharacter signal that transmits the current global position
+    fn connect_to_game_data(&self, owner: &KinematicBody2D) {
+        let receiver = unsafe { owner.get_node("/root/Game").unwrap().assume_safe() };
+        owner.connect("player_position", receiver,
+         "_save_player_position", VariantArray::new_shared(), 0).unwrap();
+    }
+
 }
 
 #[derive(NativeClass)]
 #[inherit(AnimatedSprite)]
+#[register_with(Self::register_signal)]
+#[derive(Debug)]
 pub struct PlayerAnimation {
     current_player_motion: PlayerStatus,
     current_player_direction: PlayerDirection,
     idle_player_direction: PlayerDirection
+}
+
+impl RegisterSignal<Self> for PlayerAnimation {
+    fn register_signal(builder: &ClassBuilder<Self>) {
+        // Indicates that the Player is moving
+        builder.add_signal( Signal {
+            name: "player_direction",
+            args: &[],
+        });
+    }
 }
 
 #[gdnative::methods]
@@ -264,6 +324,7 @@ impl PlayerAnimation {
 
     #[export]
     fn _ready(&mut self, owner: &AnimatedSprite) {
+        owner.set_process(true);
         self.idle_player_direction = utils::get_player_direction();
         match self.idle_player_direction {
             PlayerDirection::Downwards => { owner.play("idle front", false); }
@@ -271,6 +332,17 @@ impl PlayerAnimation {
             PlayerDirection::Left => { owner.play("idle left", false); }
             PlayerDirection::Right => { owner.play("idle right", false); }
         }; 
+
+        // Connects with the Game class
+        self.connect_to_game_data(owner);
+    }
+
+    #[export]
+    fn _process(&self, owner: &AnimatedSprite, _delta: f64) {
+        let input: &Input = Input::godot_singleton();
+        if Input::is_action_just_pressed(&input, "Menu") {
+            owner.emit_signal("player_direction", &[self.idle_player_direction.to_variant()]);
+        }
     }
 
     #[export]
@@ -303,8 +375,6 @@ impl PlayerAnimation {
                 PlayerDirection::Upwards => { character_animated_sprite.play("idle back", false); }
                 PlayerDirection::Left => { character_animated_sprite.play("idle left", false); }
                 PlayerDirection::Right => { character_animated_sprite.play("idle right", false); }
-                // The starting position when the Player spawns on the screen
-                _ => character_animated_sprite.play("idle front", false)
             }; 
 
         } else if self.current_player_direction == PlayerDirection::Right {
@@ -322,14 +392,15 @@ impl PlayerAnimation {
         } else if PlayerDirection::Upwards == self.current_player_direction {
             character_animated_sprite.play("walk upwards", false);
             self.idle_player_direction = PlayerDirection::Upwards;
-
         }
 
-        let input: &Input = Input::godot_singleton();
-        if Input::is_action_just_pressed(&input, "Menu") {
-            utils::save_player_direction(&self.current_player_direction);
-        }
+    }
 
+    /// Connects the PlayerCharacter signal that transmits the PC position
+    fn connect_to_game_data(&self, owner: &AnimatedSprite) {
+        let receiver = unsafe { owner.get_node("/root/Game").unwrap().assume_safe() };
+        owner.connect("player_direction", receiver,
+            "_save_player_direction", VariantArray::new_shared(), 0).unwrap();
     }
 }
 
@@ -345,9 +416,8 @@ impl Default for PlayerStatus {
     fn default() -> Self { PlayerStatus::Idle }
 }
 
-#[derive(PartialEq, Clone, Debug, ToVariant)]
+#[derive(PartialEq, Clone, Debug, ToVariant, Deserialize)]
 pub enum PlayerDirection {
-    // Idle, // De momento necesitamos esto
     Upwards,
     Downwards,
     Left,
@@ -356,4 +426,18 @@ pub enum PlayerDirection {
 
 impl Default for PlayerDirection {
     fn default() -> Self { PlayerDirection::Downwards }
+}
+
+impl Serialize for PlayerDirection {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match *self {
+            PlayerDirection::Upwards => serializer.serialize_unit_variant("PlayerDirection", 0, "Upwards"),
+            PlayerDirection::Downwards => serializer.serialize_unit_variant("PlayerDirection", 1, "Downwards"),
+            PlayerDirection::Left => serializer.serialize_unit_variant("PlayerDirection", 2, "Left"),
+            PlayerDirection::Right => serializer.serialize_unit_variant("PlayerDirection", 3, "Right"),
+        }
+    }
 }

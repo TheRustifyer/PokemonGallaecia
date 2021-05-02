@@ -22,9 +22,9 @@ impl Pokemon {
     ) -> Self { 
             Self { 
                 pokedex_number, 
+                name,
                 type1,
                 type2,
-                name, 
                 height, 
                 tall, 
                 // description
