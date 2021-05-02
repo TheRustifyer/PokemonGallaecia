@@ -1,8 +1,10 @@
 {
-  "name": "",
-  "player_direction": "Left",
-  "player_position": {
-    "y": 383.00006103515625,
-    "x": 695.0
+  "player_data": {
+    "name": "",
+    "player_direction": "Downwards",
+    "player_position": {
+      "y": 756.3101196289062,
+      "x": 985.0
+    }
   }
 }

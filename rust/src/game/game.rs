@@ -1,4 +1,9 @@
 use gdnative::prelude::*;
+use gdnative::api::{File, JSON, Node};
+
+use serde_json::{Error, Map, Number, Value, json};
+
+use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
@@ -10,9 +15,11 @@ use crate::game::code_abstractions::signals::RegisterSignal;
 
 #[derive(NativeClass)]
 #[inherit(Node2D)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Game {
-    player_data: PlayerData
+    player_data: PlayerData,
     // game_data: HashMap<String, >
+    // game_data: String,
 }
 
 impl RegisterSignal<Self> for Game {
@@ -29,13 +36,14 @@ impl Game {
     
     fn new(_owner: &Node2D) -> Self {
         Self {
-            player_data: PlayerData::new()
+            player_data: PlayerData::new(),
+            // game_data: "".to_owned()
         }
     }
 
     #[export]
-    fn _ready(&self, _owner: &Node2D) {
-        utils::retrieve_game_data()
+    fn _ready(&mut self, _owner: &Node2D) {
+        // utils::retrieve_game_data() // Currently not working as desired
     }
 
     #[export]
@@ -57,7 +65,7 @@ impl Game {
             _ => ()
         }
         // godot_print!("Data of Game's Player Direction {:?}", &self.player_data);
-        utils::save_game_data(&self.player_data);
+        utils::save_game_data(self);
     }
 
 

@@ -54,14 +54,14 @@ pub fn get_player_absolute_position() -> (f32, f32) {
 
     let my_data = json.parse(file.get_as_text()).expect("SI, error parseando el JSON");
     let my_json = unsafe { &my_data.assume_safe().result().to_dictionary() }; 
-    let player_position = my_json.get("player_position").to_dictionary();
+    let player_position = my_json.get("player_data").to_dictionary()
+        .get("player_position").to_dictionary();
 
     let player_x = player_position.get("x").to_f64() as f32;
     let player_y = player_position.get("y").to_f64() as f32;
 
     //*! REMEBER TO CLOSE THE OPENED FILE HERE
     file.close();
-
     (player_x, player_y)
 }
 
@@ -71,7 +71,7 @@ pub fn get_player_direction() -> PlayerDirection {
     let my_data = json.parse(file.get_as_text()).expect("SI, error parseando el JSON");
     let my_json = unsafe { &my_data.assume_safe().result().to_dictionary() }; 
     
-    let player_direction = my_json.get("player_direction").to_string();
+    let player_direction = my_json.get("player_data").to_dictionary().get("player_direction").to_string();
 
     //*! REMEBER TO CLOSE THE OPENED FILE HERE
     file.close();
@@ -144,6 +144,7 @@ pub fn get_player_direction() -> PlayerDirection {
 // }
 
 use crate::game::player::PlayerData;
+use crate::game::game::Game;
 
 pub fn retrieve_game_data() {
     let (file, json) = open_json_file(GodotString::from_str("gamestate"), File::READ);
@@ -156,7 +157,7 @@ pub fn retrieve_game_data() {
 }
 
 
-pub fn save_game_data(player_data: &PlayerData) {
+pub fn save_game_data(player_data: &Game) {
     let (file, _) = open_json_file(GodotString::from_str("gamestate"), File::READ_WRITE);
 
     let j = serde_json::to_string_pretty(&player_data).unwrap();
