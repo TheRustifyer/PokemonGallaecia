@@ -241,7 +241,7 @@ impl Pokedex {
         }
             
 
-        // Well, well be fine be able to dynamically modify the color of the text depending of the properties of the Pokemon variety
+        // Well, will be fine to be able to dynamically modify the color of the text depending of the properties of the Pokemon variety
         // and rarity, isn't it? ;)
         pokemon_number_label.add_color_override("font_color", Color { r: 1.0, g: 0.5, b: 0.0, a: 1.0 });
         pokemon_name_label.add_color_override("font_color", Color { r: 1.0, g: 0.5, b: 0.0, a: 1.0 });

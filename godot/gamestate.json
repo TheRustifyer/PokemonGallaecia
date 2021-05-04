@@ -1,10 +1,10 @@
 {
   "player_data": {
     "name": "",
-    "player_direction": "Downwards",
+    "player_direction": "Right",
     "player_position": {
-      "y": 227.91680908203125,
-      "x": 258.393310546875
+      "x": 149.0372772216797,
+      "y": 480.7333984375
     }
   },
   "received_signals": 2,

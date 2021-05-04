@@ -10,7 +10,6 @@ pub enum Status {
     Finished
 }
 
-
 #[derive(NativeClass)]
 #[inherit(Node2D)]
 #[derive(Debug, Serialize, Deserialize)]

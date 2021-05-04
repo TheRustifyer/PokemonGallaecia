@@ -1,7 +1,7 @@
 pub mod in_game_constant {
     use gdnative::prelude::*;
 
-    pub const VELOCITY: f32 = 300.0;
+    pub const VELOCITY: f32 = 100.0;
     // pub const GRAVITY: f32 = 300.0;
     pub const JUMP_SPEED: f32 = 3000.0;
     pub const UP: Vector2 = Vector2::new(0.0, -1.0);
