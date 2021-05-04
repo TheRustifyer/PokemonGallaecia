@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://godot/Game/TileMaps/grass_tileset.tres" type="TileSet" id=1]
+
+[node name="Floor" type="Node2D"]
+
+[node name="Grass" type="TileMap" parent="."]
+tile_set = ExtResource( 1 )
+format = 1

@@ -3,8 +3,10 @@
     "name": "",
     "player_direction": "Downwards",
     "player_position": {
-      "y": 357.9255065917969,
-      "x": 95.1922607421875
+      "y": 227.91680908203125,
+      "x": 258.393310546875
     }
-  }
+  },
+  "received_signals": 2,
+  "total_registered_signals": 2
 }

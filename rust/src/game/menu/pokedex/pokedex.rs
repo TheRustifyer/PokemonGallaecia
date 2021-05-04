@@ -27,7 +27,6 @@ pub struct Pokedex {
     current_pokedex_entry_selected: i32,
 
     times_pressed: f64,
-
 }
 
 #[gdnative::methods]
@@ -83,55 +82,68 @@ impl Pokedex {
             .unwrap() 
         };
 
+        // Gets the selector sprite
+        let selector_sprite = unsafe {
+            owner.get_node_as::<NinePatchRect>("Selector")
+            .unwrap()
+        };
+
         // Moves the PokédexEntries all along the screen, acting as an scrollable
         if Input::is_action_pressed(&input, "ui_up") || Input::is_action_pressed(&input, "ui_down") {
             self.times_pressed += delta;
+            godot_print!("SEl. gl. : {:?}", self.current_pokedex_entry_selected);
             if self.times_pressed > 0.3 {
                 if Input::is_action_pressed(&input, "ui_up") {
-                    match self.current_pokedex_entry_selected {
-                        x if x <= 1 => (),
-                        _ => { self.current_pokedex_entry_selected -= 1;
-                                    pokedex_entry_node.set_global_position(
-                                        pokedex_entry_node.global_position() + 
-                                        Vector2::new(0.0, 150.0)
-                                    ) 
-                            }
+                    if self.current_pokedex_entry_selected > 1 && self.current_pokedex_entry_selected <= 148 {
+                        self.current_pokedex_entry_selected -= 1;
+                        pokedex_entry_node.set_global_position(
+                            pokedex_entry_node.global_position() + 
+                            Vector2::new(0.0, 150.0))
+                    } else if self.current_pokedex_entry_selected >= 149 && self.current_pokedex_entry_selected <= 151 {
+                        self.current_pokedex_entry_selected -= 1;
+                        selector_sprite.set_global_position(
+                            selector_sprite.global_position() -
+                            Vector2::new(0.0, 150.0), false)
                     }
                 }
                 else if Input::is_action_pressed(&input, "ui_down") {
-                    match self.current_pokedex_entry_selected {
-                        x if x < 151 => { 
-                            self.current_pokedex_entry_selected += 1;
-                            pokedex_entry_node.set_global_position(
-                                pokedex_entry_node.global_position() - 
-                                Vector2::new(0.0, 150.0)
-                            )
-                        }
-                        _ => ()
+                    if self.current_pokedex_entry_selected >= 1 && self.current_pokedex_entry_selected < 148 {
+                        self.current_pokedex_entry_selected += 1;
+                        pokedex_entry_node.set_global_position(
+                            pokedex_entry_node.global_position() - 
+                            Vector2::new(0.0, 150.0))
+                    } else if self.current_pokedex_entry_selected >= 148 && self.current_pokedex_entry_selected < 151 {
+                        self.current_pokedex_entry_selected += 1;
+                        selector_sprite.set_global_position(
+                            selector_sprite.global_position() +
+                            Vector2::new(0.0, 150.0), false)
                     }
                 } 
             } else {
                 if Input::is_action_just_pressed(&input, "ui_up") {
-                    match self.current_pokedex_entry_selected {
-                        x if x <= 1 => (),
-                        _ => { self.current_pokedex_entry_selected -= 1;
-                                    pokedex_entry_node.set_global_position(
-                                        pokedex_entry_node.global_position() + 
-                                        Vector2::new(0.0, 150.0)
-                                    ) 
-                            }
+                    if self.current_pokedex_entry_selected > 1 && self.current_pokedex_entry_selected <= 148 {
+                        self.current_pokedex_entry_selected -= 1;
+                        pokedex_entry_node.set_global_position(
+                            pokedex_entry_node.global_position() + 
+                            Vector2::new(0.0, 150.0))
+                    } else if self.current_pokedex_entry_selected >= 149 && self.current_pokedex_entry_selected <= 151 {
+                        self.current_pokedex_entry_selected -= 1;
+                        selector_sprite.set_global_position(
+                            selector_sprite.global_position() -
+                            Vector2::new(0.0, 150.0), false)
                     }
                 }
                 else if Input::is_action_just_pressed(&input, "ui_down") {
-                    match self.current_pokedex_entry_selected {
-                        x if x < 151 => { 
-                            self.current_pokedex_entry_selected += 1;
-                            pokedex_entry_node.set_global_position(
-                                pokedex_entry_node.global_position() - 
-                                Vector2::new(0.0, 150.0)
-                            )
-                        }
-                        _ => ()
+                    if self.current_pokedex_entry_selected >= 1 && self.current_pokedex_entry_selected < 148 {
+                        self.current_pokedex_entry_selected += 1;
+                        pokedex_entry_node.set_global_position(
+                            pokedex_entry_node.global_position() - 
+                            Vector2::new(0.0, 150.0))
+                    } else if self.current_pokedex_entry_selected >= 148 && self.current_pokedex_entry_selected < 151 {
+                        self.current_pokedex_entry_selected += 1;
+                        selector_sprite.set_global_position(
+                            selector_sprite.global_position() +
+                            Vector2::new(0.0, 150.0), false)
                     }
                 }
             }
@@ -139,7 +151,7 @@ impl Pokedex {
             self.times_pressed = 0.0;
         }
 
-        
+        // Exits the Pokédex scene and goes back to the Game
         if Input::is_action_just_pressed(&input, "Exit") {
             utils::change_scene(owner, "res://godot/Game/Game.tscn".to_string())
         }

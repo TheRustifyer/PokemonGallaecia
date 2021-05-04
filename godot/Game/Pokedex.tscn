@@ -60,7 +60,7 @@ __meta__ = {
 
 [node name="PokedexItems" type="Node2D" parent="."]
 
-[node name="NinePatchRect" type="NinePatchRect" parent="."]
+[node name="Selector" type="NinePatchRect" parent="."]
 margin_left = 300.0
 margin_top = 300.0
 margin_right = 790.0
@@ -74,10 +74,10 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Sprite" type="AnimatedSprite" parent="."]
+[node name="Pokédex" type="AnimatedSprite" parent="."]
 position = Vector2( 1182.27, 553.243 )
 scale = Vector2( 1.56547, 1.33626 )
 frames = SubResource( 9 )
 animation = "New Anim"
-frame = 4
+frame = 3
 playing = true

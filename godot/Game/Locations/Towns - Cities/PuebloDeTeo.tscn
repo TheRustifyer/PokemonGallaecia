@@ -1,0 +1,40 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://godot/TileSet/Buildings.tres" type="TileSet" id=2]
+[ext_resource path="res://gfx/Tilemaps/Vehicles/Truck (cargo).png" type="Texture" id=3]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Businesses/Air Traffic Control Tower.png" type="Texture" id=4]
+[ext_resource path="res://godot/Game/ScriptsOfMapElements/PuebloDeTeo/Truck.gdns" type="Script" id=10]
+
+[sub_resource type="RectangleShape2D" id=1]
+extents = Vector2( 14, 10.25 )
+
+[node name="PuebloDeTeo" type="Node2D"]
+
+[node name="TileMap" type="TileMap" parent="."]
+tile_set = ExtResource( 2 )
+format = 1
+tile_data = PoolIntArray( 196621, 13, 0 )
+
+[node name="Truck" type="Sprite" parent="."]
+position = Vector2( 216, 224 )
+scale = Vector2( 2, 2 )
+texture = ExtResource( 3 )
+script = ExtResource( 10 )
+__meta__ = {
+"_editor_description_": "Esto es nada más para ver que hay aquí!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+}
+
+[node name="StaticBody2D" type="StaticBody2D" parent="Truck"]
+position = Vector2( 4, 4 )
+scale = Vector2( 2, 2 )
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Truck/StaticBody2D"]
+position = Vector2( -1.25, -0.25 )
+shape = SubResource( 1 )
+
+[node name="Interact" type="Node2D" parent="Truck/StaticBody2D"]
+
+[node name="Air Traffic Control Tower" type="Sprite" parent="."]
+position = Vector2( 104.5, 281 )
+scale = Vector2( 1.72917, 1.5 )
+texture = ExtResource( 4 )
