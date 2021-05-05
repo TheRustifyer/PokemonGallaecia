@@ -1,4 +1,5 @@
 use gdnative::prelude::*;
+use gdnative::api::Area2D;
 
 use serde::{Deserialize, Serialize};
 
@@ -47,7 +48,7 @@ impl Game {
                     "save_game_data", "save_game_data", &[]
                 ) 
             };
-            godot_print!("Received signasl: {:?}", self.received_signals);
+            godot_print!("Received signals: {:?}", self.received_signals);
         }
         if self.received_signals == self.total_registered_signals {
             utils::save_game_data(self);
@@ -74,5 +75,14 @@ impl Game {
             _ => ()
         }
         self.received_signals += 1;
+    }
+
+
+    #[export]
+    fn save_game(&mut self, _owner: &Node2D) {
+    godot_print!("Save game llamado desde Scene Switcher");
+        utils::save_game_data(self);
+        // self.received_signals = 0;
+        // utils::change_scene(owner, self.scene_to_switch.to_owned())
     }
 }

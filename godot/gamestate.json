@@ -1,12 +1,9 @@
 {
   "player_data": {
     "name": "",
-    "player_direction": "Right",
-    "player_position": {
-      "x": 149.0372772216797,
-      "y": 480.7333984375
-    }
+    "player_direction": "Downwards",
+    "player_position": {}
   },
-  "received_signals": 2,
+  "received_signals": 0,
   "total_registered_signals": 2
 }
