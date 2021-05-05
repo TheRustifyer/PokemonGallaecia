@@ -398,7 +398,6 @@ impl PlayerAnimation {
 
     #[export]
     fn save_game_data(&self, owner: &AnimatedSprite) {
-        godot_print!("SAVE GAME DATA got called! :)");
         owner.emit_signal("player_direction", &[self.idle_player_direction.to_variant()]);
     }
 }

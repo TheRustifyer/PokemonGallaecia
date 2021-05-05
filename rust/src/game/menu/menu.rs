@@ -207,11 +207,6 @@ impl Menu {
     /// Changes the scene to a designed one when a menu option is selected by the player
     #[export]
     fn menu_option_to_scene(&mut self, owner: &NinePatchRect, menu_option: i32) {
-
-        // Save the player position before lost the data
-        // let ps = utils::save_player_absolute_position(self.player_current_abs_position);
-        // godot_print!("{:?}", ps);
-
         match menu_option + 1 {
             1 => utils::change_scene(owner, "res://godot/Game/Pokedex.tscn".to_string()),
             _ => godot_print!("Menu option implemented yet!")

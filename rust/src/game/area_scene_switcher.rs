@@ -3,6 +3,12 @@ use gdnative::api::Area2D;
 
 use crate::utils::utils;
 use crate::game::code_abstractions::signals::RegisterSignal;
+#[derive(Debug)]
+pub enum WhereIsPlayer {
+    Inside,
+    Outside,
+    Untracked
+}
 
 #[derive(NativeClass)]
 #[inherit(Area2D)]
@@ -15,6 +21,8 @@ pub struct AreaSceneSwitcher {
     scene_to_switch: String,
     parent_name: String,
     owner_node: String,
+    
+    player_in_out: WhereIsPlayer,
 }
 
 impl RegisterSignal<Self> for AreaSceneSwitcher {
@@ -34,6 +42,7 @@ impl AreaSceneSwitcher {
             scene_to_switch: String::from(""),
             parent_name: String::from(""),
             owner_node: String::from(""),
+            player_in_out: WhereIsPlayer::Untracked,
         }
     }
 
@@ -63,16 +72,14 @@ impl AreaSceneSwitcher {
 
     #[export]
     fn _on_area2d_body_entered(&self, owner: &Area2D, _body: Variant) {
-        owner.emit_signal("scene_change", &[]);
-        utils::change_scene(owner, self.scene_to_switch.to_owned())
+        owner.emit_signal("scene_change", &[self.scene_to_switch.to_owned().to_variant()]);
     }
 
     #[export]
     /// Connects the game data signal with the Game Node
     fn connect_signal_to_node(&self, owner: &Area2D) {
         let game = unsafe { owner.get_node("/root/Game").unwrap().assume_safe() };
-        owner.connect("scene_change", game, "save_game",
+        owner.connect("scene_change", game, "from_world_to_interior",
             VariantArray::new_shared(), 0).unwrap();
     }
-
 }
