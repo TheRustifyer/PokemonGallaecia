@@ -3,10 +3,11 @@
     "name": "",
     "player_direction": "Left",
     "player_position": {
-      "y": 451.40069580078125,
-      "x": 127.32958221435547
+      "y": 377.5556945800781,
+      "x": 65.85585021972656
     }
   },
   "received_signals": 2,
-  "total_registered_signals": 2
+  "total_registered_signals": 2,
+  "current_scene_path": "res://godot/Game/WorldElements/PuebloDeTeo/Scenes/InteriorPokemonCenterPuebloDeTeo.tscn"
 }

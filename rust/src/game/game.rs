@@ -20,6 +20,17 @@ pub struct Game {
     received_signals: i32,
     total_registered_signals: i32,
     // game_data: HashMap<String, _>
+
+    // CurrentScenePath
+    current_scene_path: String,
+
+    //References to Nodes that will be dropped and added as childs during the game
+    #[serde(skip)]
+    game_node: Option<Ref<Node>>,
+    #[serde(skip)]
+    world_map_node: Option<Ref<Node>>,
+    #[serde(skip)]
+    current_scene: Option<Ref<Node>>,
 }
 
 #[gdnative::methods]
@@ -29,7 +40,11 @@ impl Game {
         Self {
             player_data: PlayerData::new(),
             received_signals: 0,
-            total_registered_signals: 2
+            total_registered_signals: 2,
+            current_scene_path: "res://godot/Game/Map.tscn".to_string(),
+            game_node: None,
+            world_map_node: None,
+            current_scene: None,
         }
     }
 
@@ -37,7 +52,15 @@ impl Game {
     fn _ready(&mut self, owner: &Node2D) {
         owner.set_process(true);
         owner.add_to_group("save_game_data", false);
-        godot_print!("GAME DATA: {:?}", utils::retrieve_game_data())
+
+        // Gets references to the core nodes of the game
+        self.game_node = owner.get_node(".");
+        self.world_map_node = owner.get_node("Map");
+
+        // Loads the correct scene from where the player was the last time that saved the game
+        let game_data: Game = utils::retrieve_game_data();
+        godot_print!("GAME DATA: {:?}", utils::retrieve_game_data());
+        self.load_initial_scene(owner, game_data.current_scene_path);
     }
 
     #[export]
@@ -91,14 +114,55 @@ impl Game {
         self.received_signals = 0;
     }
 
+    fn load_initial_scene(&mut self, owner: &Node2D, path: String) {
+        if !path.ends_with("Map.tscn") {
+            owner.remove_child(self.world_map_node.unwrap());
+
+            // In order to go to a new scene, we must first load it as a resource
+            let new_scene = ResourceLoader::godot_singleton()
+            .load(path.to_string(), "", false).unwrap();
+
+            // Convert the scene resource to a Node
+            self.current_scene = unsafe { 
+                new_scene.assume_safe().cast::<PackedScene>().unwrap().instance(0) };
+            owner.add_child(self.current_scene.unwrap(), true);
+            owner.move_child(self.current_scene.unwrap(), 0)
+        }
+    }
+
     #[export]
     /// This method it's the receiver of the signal that notifies that the game detected the player on an area designed to switch him
-    /// from the outside world to a building interior
-    fn from_world_to_interior(&mut self, owner: &Node2D, path: Variant) {
-        // Get a reference to the Node that will be dropper out of the Scene Tree, that it's the WorldMap
-        let world_map = unsafe { owner.get_node("Map").unwrap() };
-        // Now let's gonna remove the Map from the SceneTree
-        owner.remove_child(world_map);
-        godot_print!("Trying to change the scene, bro!")
+    /// from the outside world to a building interior, and VICEVERSA
+    fn change_map(&mut self, owner: &Node2D, path: Variant) {
+        
+        // Stores a path to a scene provided by a signal triggered for a collision between an area and a playe
+        self.current_scene_path  = path.to_string();
+
+        // Going from outdoors to indoors...
+        if self.current_scene_path.ends_with("Map.tscn") {
+            owner.remove_child(self.current_scene.unwrap());
+            owner.add_child(self.world_map_node.unwrap(), true);
+            owner.move_child(self.world_map_node.unwrap(), 0)
+        // Changing to an inside scene...
+        } else {
+            // Now let's gonna remove the Map from the SceneTree
+            owner.remove_child(self.world_map_node.unwrap());
+
+            // In order to go to a new scene, we must first load it as a resource
+            let new_scene = ResourceLoader::godot_singleton()
+            .load(path.to_string(), "", false).unwrap();
+
+            // Convert the scene resource to a Node
+            self.current_scene = unsafe { 
+                new_scene.assume_safe().cast::<PackedScene>().unwrap().instance(0) };
+
+            // Finally we insert our new Node, setting Game as it's parent
+            owner.add_child(self.current_scene.unwrap(), false);
+            unsafe { self.current_scene.unwrap().assume_safe().set_owner(self.game_node.unwrap()) };
+            
+            // To render the Nodes for it's correct superposition one over another, let's move the 
+            // new inserted child to the position that fits the "surface" drawing role.
+            owner.move_child(self.current_scene.unwrap(), 0)
+        }
     }
 }

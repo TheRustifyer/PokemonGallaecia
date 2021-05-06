@@ -51,7 +51,7 @@ impl AreaSceneSwitcher {
         //
         owner.add_to_group("save_game_data", false);
         //
-        self.connect_signal_to_node(owner);
+        self.connect_signal_to_root_node(owner);
 
         //Name of the parent object that this Area2D is attached
         self.parent_name = unsafe { owner.get_parent().unwrap().assume_safe().name().to_string() };
@@ -62,12 +62,17 @@ impl AreaSceneSwitcher {
         // Sets the attribute that stores the final full path to the new scene based on what area the player have entered!
         self.set_path_to_scene_to_switch();
 
-        godot_print!("Path: {:?}", &self.scene_to_switch);
+        godot_print!("Path: {:?}", &self.owner_node);
     }
 
     fn set_path_to_scene_to_switch(&mut self) {
-        self.scene_to_switch = "res://godot/Game/WorldElements/".to_string() + 
-            &self.owner_node + &"/Scenes/".to_string() + &"/Interior".to_string() + &self.parent_name + &".tscn".to_string();
+        if self.parent_name == "Exit" {
+            self.scene_to_switch = "res://godot/Game/Map.tscn".to_string();
+        } else {
+            self.scene_to_switch = "res://godot/Game/WorldElements/".to_string() + 
+                &self.owner_node + &"/Scenes".to_string() + &"/Interior".to_string() + 
+                &self.parent_name + &".tscn".to_string();
+        } 
     }
 
     #[export]
@@ -77,9 +82,9 @@ impl AreaSceneSwitcher {
 
     #[export]
     /// Connects the game data signal with the Game Node
-    fn connect_signal_to_node(&self, owner: &Area2D) {
+    fn connect_signal_to_root_node(&self, owner: &Area2D) {
         let game = unsafe { owner.get_node("/root/Game").unwrap().assume_safe() };
-        owner.connect("scene_change", game, "from_world_to_interior",
+        owner.connect("scene_change", game, "change_map",
             VariantArray::new_shared(), 0).unwrap();
     }
 }
