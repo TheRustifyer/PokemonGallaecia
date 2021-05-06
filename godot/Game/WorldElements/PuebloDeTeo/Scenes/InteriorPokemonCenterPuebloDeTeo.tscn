@@ -19,7 +19,7 @@ texture = ExtResource( 1 )
 position = Vector2( 202.359, 480.496 )
 
 [node name="CollisionShape2D" parent="Exit/Area2D" index="0"]
-position = Vector2( -1.27899, -9.69841 )
+position = Vector2( -1.42764, -8.17134 )
 shape = SubResource( 1 )
 
 [editable path="Exit/Area2D"]

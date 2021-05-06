@@ -58,7 +58,7 @@ impl Truck {
         let receiver = unsafe { Node::get_tree(_owner).unwrap()
             .assume_safe().root()
             .unwrap().assume_safe()
-            .get_node("Game/Player/Camera2D/DialogueBox")
+            .get_node("Game/Player/Camera2D/CanvasLayer/DialogueBox")
             .unwrap().assume_safe() };
         
         

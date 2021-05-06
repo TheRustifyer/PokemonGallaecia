@@ -103,7 +103,7 @@ impl Menu {
         self.connect_to_player(owner);
 
         // Sets a reference to the cursor sprite
-        self.cursor_pointer = self.get_node_reference_from_root(&owner,"Game/Player/Camera2D/Menu/Arrow");
+        self.cursor_pointer = self.get_node_reference_from_root(&owner,"Game/Player/Camera2D/CanvasLayer/Menu/Arrow");
 
         self.cursor_pointer_update(&owner);
     }

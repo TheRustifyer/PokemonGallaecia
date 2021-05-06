@@ -1,5 +1,4 @@
-use gdnative::prelude::*;
-use gdnative::api::Area2D;
+use gdnative::{api::{HTTPClient, JSON, JSONParseResult, http_request::{HTTPRequest, HttpRequestResult}}, prelude::*};
 
 use serde::{Deserialize, Serialize};
 
@@ -61,6 +60,9 @@ impl Game {
         let game_data: Game = utils::retrieve_game_data();
         godot_print!("GAME DATA: {:?}", utils::retrieve_game_data());
         self.load_initial_scene(owner, game_data.current_scene_path);
+
+        // Sets the initial TIME and DATA and WEATHER information
+        self.get_time_data(owner);
     }
 
     #[export]
@@ -114,6 +116,49 @@ impl Game {
         self.received_signals = 0;
     }
 
+    ///
+    fn get_time_data(&self, owner: &Node2D) {
+        let http_request: Ref<HTTPRequest, Unique> = HTTPRequest::new();
+        let http_request_as_node = unsafe { http_request.assume_safe_unchecked().assume_shared().assume_safe() };
+        
+        owner.add_child(http_request_as_node, true);
+        
+        http_request_as_node.connect("request_completed", self.game_node.unwrap(), "_http_request_completed",
+        VariantArray::new_shared(), 0).unwrap();
+
+        let response = http_request.request("http://worldclockapi.com/api/json/utc/now", TypedArray::new(),
+         true, HTTPClient::METHOD_GET, "");
+
+        match response {
+            Ok(response) => response,
+            Err(err) => godot_print!("Err => {:?}", err)
+        }
+
+        godot_print!("Response esta si: {:?}", response);
+
+    }
+
+    #[export]
+    fn _http_request_completed(&self, owner: &Node2D, result: Variant, response_code: i64, headers: Variant, body: ByteArray) {
+        godot_print!("Response esta si: {:?}", &result);
+        godot_print!("Response esta si: {:?}", &response_code);
+
+        let json = JSON::godot_singleton();
+        let mut vector = Vec::new();
+
+        for number in 0..body.len() {
+            let current_byte = body.get(number);
+            vector.push(current_byte)
+        }
+
+        let final_vec = std::str::from_utf8(&vector).unwrap();
+        let final_response = unsafe { json.parse(final_vec)
+            .unwrap().assume_safe().result() };
+        
+        godot_print!("FINAL: {:?}", &final_response);
+    }
+
+    /// Method for load the correct scene, based on last saved player Scene
     fn load_initial_scene(&mut self, owner: &Node2D, path: String) {
         if !path.ends_with("Map.tscn") {
             owner.remove_child(self.world_map_node.unwrap());

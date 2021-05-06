@@ -24,6 +24,15 @@ config/name="PokemonGallaecia"
 run/main_scene="res://godot/Game/Game.tscn"
 config/icon="res://godot/icon.png"
 
+[display]
+
+window/size/width=1920
+window/size/height=1080
+window/size/resizable=false
+window/size/always_on_top=true
+window/stretch/mode="2d"
+window/stretch/aspect="expand"
+
 [input]
 
 Left={

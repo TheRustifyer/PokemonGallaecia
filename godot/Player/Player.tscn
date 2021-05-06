@@ -15,7 +15,7 @@ radius = 15.2072
 height = 2.88495
 
 [node name="Player" type="KinematicBody2D"]
-position = Vector2( 402, 233 )
+position = Vector2( 125, 75 )
 scale = Vector2( 0.5, 0.5 )
 script = SubResource( 1 )
 
@@ -34,19 +34,23 @@ position = Vector2( 107.983, 64.145 )
 current = true
 zoom = Vector2( 0.35, 0.35 )
 
-[node name="DialogueBox" parent="Camera2D" instance=ExtResource( 4 )]
-visible = false
-anchor_right = 1.0
-anchor_bottom = 1.0
-margin_left = -351.502
-margin_top = 103.593
-margin_right = 355.498
-margin_bottom = 203.593
+[node name="CanvasLayer" type="CanvasLayer" parent="Camera2D"]
 
-[node name="Menu" parent="Camera2D" instance=ExtResource( 2 )]
-margin_left = 239.0
-margin_top = -208.281
-margin_right = 298.0
-margin_bottom = -111.281
-rect_scale = Vector2( 2, 2 )
+[node name="Menu" parent="Camera2D/CanvasLayer" instance=ExtResource( 2 )]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -401.207
+margin_top = 99.7163
+margin_right = -343.207
+margin_bottom = 195.716
+rect_scale = Vector2( 5.46518, 4.0823 )
+
+[node name="DialogueBox" parent="Camera2D/CanvasLayer" instance=ExtResource( 4 )]
+visible = false
+anchor_left = 0.226042
+anchor_top = 0.857407
+anchor_right = 0.773958
+anchor_bottom = 0.967593
+margin_right = 0.0
+margin_bottom = 0.0
 [connection signal="animate" from="." to="PlayerAnimation" method="_on_player_animate"]
