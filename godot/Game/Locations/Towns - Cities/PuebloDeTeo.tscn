@@ -65,6 +65,16 @@ energy = 3.58
 shadow_enabled = true
 shadow_color = Color( 0.513726, 0.0823529, 0.0823529, 0 )
 
+[node name="Light2D2" type="Light2D" parent="Buildings/Apartment Building (large)"]
+position = Vector2( -495.719, 114.662 )
+rotation = 1.59681
+scale = Vector2( 0.144338, 0.192191 )
+texture = ExtResource( 11 )
+texture_scale = 2.93
+color = Color( 0.0705882, 0.419608, 0.65098, 1 )
+shadow_enabled = true
+shadow_color = Color( 0.513726, 0.0823529, 0.0823529, 0 )
+
 [node name="PokemonCenterPuebloDeTeo" type="Sprite" parent="Buildings"]
 position = Vector2( 209.593, 420.711 )
 texture = ExtResource( 5 )

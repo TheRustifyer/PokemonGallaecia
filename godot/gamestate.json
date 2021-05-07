@@ -1,13 +1,19 @@
 {
   "player_data": {
     "name": "",
-    "player_direction": "Upwards",
+    "player_direction": "Left",
     "player_position": {
-      "x": 171.19374084472656,
-      "y": 252.85069274902344
+      "y": 402.1766357421875,
+      "x": 76.16065979003906
     }
   },
   "received_signals": 2,
   "total_registered_signals": 2,
-  "current_scene_path": "res://godot/Game/Map.tscn"
+  "current_scene_path": "res://godot/Game/Map.tscn",
+  "game_external_data": {
+    "real_time_when_game_starts": "",
+    "current_wheather": "",
+    "todays_sunrise_time": "",
+    "todays_sunset_time": ""
+  }
 }

@@ -375,7 +375,7 @@ impl PlayerAnimation {
             character_animated_sprite.play("walk right", false);
             self.idle_player_direction = PlayerDirection::Right;
 
-        } else if PlayerDirection::Left == self.current_player_direction {
+        } else if PlayerDirection::Left == self.current_player_direction {  
             character_animated_sprite.play("walk left", false);
             self.idle_player_direction = PlayerDirection::Left;
 
