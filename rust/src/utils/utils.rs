@@ -6,6 +6,41 @@ use crate::game::game::Game;
 use crate::game_client::gamer::Gamer;
 use crate::game::player::PlayerDirection;
 
+use chrono::Utc;
+use chrono::prelude::DateTime;
+use std::time::{SystemTime, UNIX_EPOCH, Duration};
+
+/// Used to match week days integer values with Variants
+#[derive(PartialEq, Clone, Debug, ToVariant)]
+pub enum DaysOfTheWeek {
+    Lunes,
+    Martes,
+    Miercoles,
+    Jueves,
+    Viernes,
+    Sabado,
+    Domingo,
+    SinDatos
+}
+
+impl Default for DaysOfTheWeek {
+    fn default() -> Self { DaysOfTheWeek::SinDatos }
+}
+
+/// Parses an integer an return a Day Of The Week
+pub fn integer_to_day_of_the_week(day_as_int: i32) -> String {
+    match day_as_int {
+        1 => "Lunes".to_string(),
+        2 => "Martes".to_string(),
+        3 => "Miércoles".to_string(),
+        4 => "Jueves".to_string(),
+        5 => "Viernes".to_string(),
+        6 => "Sábado".to_string(),
+        7 => "Domingo".to_string(),
+        _ => DaysOfTheWeek::default().to_variant().to_string(),
+    }
+}
+
 /// For debug purposes, it's an easy way to check on stdout the provided credentials
 pub fn print_login_credentials(credentials_tup: (&String, &String)) {
     godot_print!("Username: {:?}", credentials_tup.0);
@@ -116,4 +151,14 @@ pub fn open_json_file(file_name: GodotString, mode: i64) -> (Ref<File, Unique>, 
     }
 
     (file, json)
+}
+
+/// Converts a given UNIX timestamp to human-readable Date Format
+fn convert_from_unix_timestamp(unix_time: i32){
+    // Creates a new SystemTime from the specified number of whole seconds
+    let d = UNIX_EPOCH + Duration::from_secs(unix_time as u64);
+    // Create DateTime from SystemTime
+    let datetime = DateTime::<Utc>::from(d);
+    // Formats the combined date and time with the specified format string.
+    let timestamp_str = datetime.format("%d-%m-%Y %H:%M:%S").to_string();
 }

@@ -12,6 +12,8 @@
   "current_scene_path": "res://godot/Game/Map.tscn",
   "game_external_data": {
     "real_time_when_game_starts": "",
+    "todays_date": "",
+    "todays_day_of_the_week": "",
     "current_wheather": "",
     "todays_sunrise_time": "",
     "todays_sunset_time": ""

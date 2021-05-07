@@ -1,14 +1,12 @@
-use gdnative::{api::{HTTPClient, JSON, JSONParseResult, http_request::{HTTPRequest, HttpRequestResult}}, prelude::*};
+use gdnative::prelude::*;
+use gdnative::api::{HTTPClient, HTTPRequest};
 
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{utils, networking};
+use crate::utils::{networking, utils};
 use crate::game::player::{PlayerData, PlayerDirection};
 
-extern crate chrono;
 use chrono::prelude::DateTime;
-use chrono::Utc;
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
 
 pub enum Status {
     Unfinished,
@@ -18,6 +16,8 @@ pub enum Status {
 pub struct GameExternalData {
     // Game real time when the game starts
     real_time_when_game_starts: String,
+    todays_date: String,
+    todays_day_of_the_week: String,
     current_wheather: String,
     todays_sunrise_time: String,
     todays_sunset_time: String,
@@ -27,6 +27,8 @@ impl GameExternalData {
     fn new() -> Self {
         Self {
             real_time_when_game_starts: "".to_string(),
+            todays_date: "".to_string(),
+            todays_day_of_the_week: "".to_string(),
             current_wheather: "".to_string(),
             todays_sunrise_time: "".to_string(),
             todays_sunset_time: "".to_string(),
@@ -65,9 +67,12 @@ impl Game {
     fn new(_owner: &Node2D) -> Self {
         Self {
             player_data: PlayerData::new(),
+            // Counters that sync arriving times of different signals
             received_signals: 0,
             total_registered_signals: 2,
+            // Default path of the game
             current_scene_path: "res://godot/Game/Map.tscn".to_string(),
+            // Core nodes to track
             game_node: None,
             world_map_node: None,
             current_scene: None,
@@ -87,25 +92,12 @@ impl Game {
 
         // Loads the correct scene from where the player was the last time that saved the game
         let game_data: Game = utils::retrieve_game_data();
-        godot_print!("GAME DATA: {:?}", utils::retrieve_game_data());
+        godot_print!("GAME DATA: {:#?}", utils::retrieve_game_data());
         self.load_initial_scene(owner, game_data.current_scene_path);
 
         // Sets the initial TIME and DATA and WEATHER information
         self.get_time_data(owner);
 
-        // Current date-time
-        self.convert_from_unix_timestamp();
-    }
-
-    fn convert_from_unix_timestamp(&self){
-        // Creates a new SystemTime from the specified number of whole seconds
-        let d = UNIX_EPOCH + Duration::from_secs(1620384858 + 7200);
-        // Create DateTime from SystemTime
-        let datetime = DateTime::<Utc>::from(d);
-        // Formats the combined date and time with the specified format string.
-        let timestamp_str = datetime.format("%d-%m-%Y %H:%M:%S").to_string();
-        godot_print!{"SUNRISE: {:?}",timestamp_str};
-        godot_print!{"SUNRISE: {:?}",datetime};
     }
 
     #[export]
@@ -119,6 +111,17 @@ impl Game {
         // 2º -> When all signals are safetly stored in the class attributes, just call the data persistence method
         if self.received_signals == self.total_registered_signals {
             self.save_game();
+        }
+
+        // Debug purposes
+        godot_print!("PROCESS -> DATE: {:?}, TIME: {:?}, DAY of the WEEK: {:?} ",
+            self.game_external_data.todays_date,
+            self.game_external_data.real_time_when_game_starts,
+            self.game_external_data.todays_day_of_the_week
+        );
+
+        if self.game_external_data.todays_date == "" {
+            self.get_time_data(owner)
         }
     }   
 
@@ -159,58 +162,58 @@ impl Game {
         self.received_signals = 0;
     }
 
-        /// Method for load the correct scene, based on last saved player Scene
-        fn load_initial_scene(&mut self, owner: &Node2D, path: String) {
-            if !path.ends_with("Map.tscn") {
-                owner.remove_child(self.world_map_node.unwrap());
-    
-                // In order to go to a new scene, we must first load it as a resource
-                let new_scene = ResourceLoader::godot_singleton()
-                    .load(path.to_string(), "", false).unwrap();
-    
-                // Convert the scene resource to a Node
-                self.current_scene = unsafe { 
-                    new_scene.assume_safe().cast::<PackedScene>().unwrap().instance(0) };
-                owner.add_child(self.current_scene.unwrap(), true);
-                owner.move_child(self.current_scene.unwrap(), 0)
-            }
-        }
-    
-        #[export]
-        /// This method it's the receiver of the signal that notifies that the game detected the player on an area designed to switch him
-        /// from the outside world to a building interior, and VICEVERSA
-        fn change_map(&mut self, owner: &Node2D, path: Variant) {
-            
-            // Stores a path to a scene provided by a signal triggered for a collision between an area and a playe
-            self.current_scene_path  = path.to_string();
-    
-            // Going from outdoors to indoors...
-            if self.current_scene_path.ends_with("Map.tscn") {
-                owner.remove_child(self.current_scene.unwrap());
-                owner.add_child(self.world_map_node.unwrap(), true);
-                owner.move_child(self.world_map_node.unwrap(), 0)
-            // Changing to an inside scene...
-            } else {
-                // Now let's gonna remove the Map from the SceneTree
-                owner.remove_child(self.world_map_node.unwrap());
-    
-                // In order to go to a new scene, we must first load it as a resource
-                let new_scene = ResourceLoader::godot_singleton()
+    /// Method for load the correct scene, based on last saved player Scene
+    fn load_initial_scene(&mut self, owner: &Node2D, path: String) {
+        if !path.ends_with("Map.tscn") {
+            owner.remove_child(self.world_map_node.unwrap());
+
+            // In order to go to a new scene, we must first load it as a resource
+            let new_scene = ResourceLoader::godot_singleton()
                 .load(path.to_string(), "", false).unwrap();
-    
-                // Convert the scene resource to a Node
-                self.current_scene = unsafe { 
-                    new_scene.assume_safe().cast::<PackedScene>().unwrap().instance(0) };
-    
-                // Finally we insert our new Node, setting Game as it's parent
-                owner.add_child(self.current_scene.unwrap(), false);
-                unsafe { self.current_scene.unwrap().assume_safe().set_owner(self.game_node.unwrap()) };
-                
-                // To render the Nodes for it's correct superposition one over another, let's move the 
-                // new inserted child to the position that fits the "surface" drawing role.
-                owner.move_child(self.current_scene.unwrap(), 0)
-            }
+
+            // Convert the scene resource to a Node
+            self.current_scene = unsafe { 
+                new_scene.assume_safe().cast::<PackedScene>().unwrap().instance(0) };
+            owner.add_child(self.current_scene.unwrap(), true);
+            owner.move_child(self.current_scene.unwrap(), 0)
         }
+    }
+
+    #[export]
+    /// This method it's the receiver of the signal that notifies that the game detected the player on an area designed to switch him
+    /// from the outside world to a building interior, and VICEVERSA
+    fn change_map(&mut self, owner: &Node2D, path: Variant) {
+        
+        // Stores a path to a scene provided by a signal triggered for a collision between an area and a playe
+        self.current_scene_path  = path.to_string();
+
+        // Going from outdoors to indoors...
+        if self.current_scene_path.ends_with("Map.tscn") {
+            owner.remove_child(self.current_scene.unwrap());
+            owner.add_child(self.world_map_node.unwrap(), true);
+            owner.move_child(self.world_map_node.unwrap(), 0)
+        // Changing to an inside scene...
+        } else {
+            // Now let's gonna remove the Map from the SceneTree
+            owner.remove_child(self.world_map_node.unwrap());
+
+            // In order to go to a new scene, we must first load it as a resource
+            let new_scene = ResourceLoader::godot_singleton()
+            .load(path.to_string(), "", false).unwrap();
+
+            // Convert the scene resource to a Node
+            self.current_scene = unsafe { 
+                new_scene.assume_safe().cast::<PackedScene>().unwrap().instance(0) };
+
+            // Finally we insert our new Node, setting Game as it's parent
+            owner.add_child(self.current_scene.unwrap(), false);
+            unsafe { self.current_scene.unwrap().assume_safe().set_owner(self.game_node.unwrap()) };
+            
+            // To render the Nodes for it's correct superposition one over another, let's move the 
+            // new inserted child to the position that fits the "surface" drawing role.
+            owner.move_child(self.current_scene.unwrap(), 0)
+        }
+    }
 
 
     // <--------------------------- HTTP GAME ZONE --------------------------------------->    
@@ -231,9 +234,9 @@ impl Game {
             true, HTTPClient::METHOD_GET, "")
     }
 
-    /// Retrieves the current real world in this Santiago de Compostela TimeZone
+    /// Retrieves the current real world in Santiago de Compostela TimeZone
     fn get_time_data(&self, owner: &Node2D) {
-        match self.new_http_node(owner, "https://worldtimeapi.org/api/timezone/Europe/Madrid", "_get_real_time_response")
+        match self.new_http_node(owner, "https://worldtimeapi.org/api/timezone/Europe/Madrid", "_get_real_time_data_response")
         {
             Ok(response) => response,
             Err(err) => godot_print!("Err => {:?}", err)
@@ -242,10 +245,22 @@ impl Game {
 
     // <-------------------- HTTP METHODS where signals send the data with the requested RESPONSES ------------------------->
     #[export]
-    fn _get_real_time_response(&mut self, _owner: &Node2D, _result: Variant, _response_code: i64, _headers: Variant, body: ByteArray) {
+    fn _get_real_time_data_response(&mut self, _owner: &Node2D, _result: Variant, _response_code: i64, _headers: Variant, body: ByteArray) {
+        // Reads the incoming HTTP response as a String
         let response = networking::http_body_to_string(body);
+        
+        // Sets the current time at the moment that this method gets triggered
+        let time = DateTime::parse_from_str(
+            &response.get("datetime").to_string()[..],"%+").unwrap().format("%H:%M:%S").to_string();
+        self.game_external_data.real_time_when_game_starts = time.to_owned();
 
-        godot_print!("Get time data {:?}",  &response.get("datetime"))
+        // Sets the current date of today
+        let date = DateTime::parse_from_str(
+            &response.get("datetime").to_string()[..],"%+").unwrap().format("%e %B %Y").to_string();
+        self.game_external_data.todays_date = date.to_owned();
+        
+        // Sets the day of the week, parsing an String with a integer, to an integer value and gets back a "Day of the week" human-readable.
+        let day_of_the_week =  response.get("day_of_week").to_string().parse::<i32>().unwrap();
+        self.game_external_data.todays_day_of_the_week = utils::integer_to_day_of_the_week(day_of_the_week);
     }
-
-}
+ }
