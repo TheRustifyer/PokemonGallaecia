@@ -1,7 +1,7 @@
 use gdnative::prelude::*;
 use gdnative::api::{HTTPClient, HTTPRequest, JSON};
 
-// struct Net<T>(T); // Generic type `SGen`.
+// struct Net<T>(T);
 
 // /// Performs and HTTP request over the network given an URI, inserting a new HTTP Godot node on the tree
 // /// and creating and asingning a signal to a request, sending the response to the connected method by the designed signal.

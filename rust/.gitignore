@@ -3,3 +3,5 @@ Cargo.lock
 __pycache__/
 .import/
 /import
+
+secret.rs

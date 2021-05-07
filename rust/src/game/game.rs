@@ -3,7 +3,7 @@ use gdnative::api::{HTTPClient, HTTPRequest};
 
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{networking, utils};
+use crate::utils::{self, networking, secret, utils};
 use crate::game::player::{PlayerData, PlayerDirection};
 
 use chrono::prelude::DateTime;
@@ -234,9 +234,21 @@ impl Game {
             true, HTTPClient::METHOD_GET, "")
     }
 
-    /// Retrieves the current real world in Santiago de Compostela TimeZone
+    /// Retrieves the current real world time in Madrid GTM
     fn get_time_data(&self, owner: &Node2D) {
         match self.new_http_node(owner, "https://worldtimeapi.org/api/timezone/Europe/Madrid", "_get_real_time_data_response")
+        {
+            Ok(response) => response,
+            Err(err) => godot_print!("Err => {:?}", err)
+        }
+    }
+
+    /// Retrieves the weather data from OpenWeather, bring us sunrise and sunset hours, temperature, raind/wind conditions....
+    fn get_weather_data(&self, owner: &Node2D) {
+        let openweather_url = 
+            "https://api.openweathermap.org/data/2.5/weather?q=santiago%20de%20compostela,es&lang=es&appid=".to_owned() +    
+            utils::secret::OPENWEATHER_APPID;
+        match self.new_http_node(owner, &openweather_url[..], "_get_weather_data_response")
         {
             Ok(response) => response,
             Err(err) => godot_print!("Err => {:?}", err)
@@ -263,4 +275,10 @@ impl Game {
         let day_of_the_week =  response.get("day_of_week").to_string().parse::<i32>().unwrap();
         self.game_external_data.todays_day_of_the_week = utils::integer_to_day_of_the_week(day_of_the_week);
     }
+
+    #[export]
+    fn _get_weather_data_response(&mut self, _owner: &Node2D, _result: Variant, _response_code: i64, _headers: Variant, body: ByteArray) {
+    }
+
+
  }
