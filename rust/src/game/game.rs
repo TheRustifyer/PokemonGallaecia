@@ -138,17 +138,6 @@ impl Game {
             self.save_game();
         }
 
-        // // Debug purposes
-        // godot_print!("PROCESS -> DATE: {:?}, TIME: {:?}, DAY of the WEEK: {:?}, SUNRISE: {:?}, 
-        //     SUNSET: {:?}, CURRENT_WEATHER: {:?}", 
-        //     self.game_external_data.todays_date,
-        //     self.game_external_data.real_time_when_game_starts,
-        //     self.game_external_data.todays_day_of_the_week,
-        //     self.game_external_data.todays_sunrise_time,
-        //     self.game_external_data.todays_sunset_time,
-        //     self.game_external_data.current_weather,
-        // );
-
         if self.game_external_data.todays_date == "" {
             self.get_time_data(owner);
             self.get_sunrise_sunset_data(owner);
