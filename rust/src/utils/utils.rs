@@ -6,9 +6,9 @@ use crate::game::game::Game;
 use crate::game_client::gamer::Gamer;
 use crate::game::player::PlayerDirection;
 
-use chrono::Utc;
-use chrono::prelude::DateTime;
-use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use chrono::{Duration as Dur, NaiveTime, Offset, Utc};
+use chrono::prelude::{DateTime, Local};
+use std::{str::FromStr, time::{SystemTime, UNIX_EPOCH, Duration}};
 
 /// Used to match week days integer values with Variants
 #[derive(PartialEq, Clone, Debug, ToVariant)]
@@ -154,11 +154,36 @@ pub fn open_json_file(file_name: GodotString, mode: i64) -> (Ref<File, Unique>, 
 }
 
 /// Converts a given UNIX timestamp to human-readable Date Format
-fn convert_from_unix_timestamp(unix_time: i32){
+pub fn convert_from_unix_timestamp(unix_time: i32) -> String {
     // Creates a new SystemTime from the specified number of whole seconds
     let d = UNIX_EPOCH + Duration::from_secs(unix_time as u64);
     // Create DateTime from SystemTime
     let datetime = DateTime::<Utc>::from(d);
     // Formats the combined date and time with the specified format string.
-    let timestamp_str = datetime.format("%d-%m-%Y %H:%M:%S").to_string();
+    datetime.format("%H:%M:%S").to_string()
+}
+
+/// Capitalize the first char of a given string
+pub fn uppercase_first_letter(s: &str) -> String {
+    let mut c = s.chars();
+    match c.next() {
+        None => String::new(),
+        Some(f) => f.to_uppercase().collect::<String>() + c.as_str(),
+    }
+}
+
+pub fn get_current_time() -> NaiveTime {
+    Local::now().time().overflowing_add_signed(Dur::hours(1)).0
+}
+
+pub fn time_comparator(time1: NaiveTime, time2: &String) -> bool {
+    let timeconv = &time2[..];
+    godot_print!("TImeconv: {:?}", timeconv);
+    let time_time2 = NaiveTime::parse_from_str(timeconv, "%H:%M:%S").unwrap();
+    
+    if time1 > time_time2 {
+        true
+    } else {
+        false
+    }
 }

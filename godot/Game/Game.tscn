@@ -14,12 +14,11 @@ script = ExtResource( 4 )
 [node name="Map" parent="." instance=ExtResource( 2 )]
 position = Vector2( -6, 0 )
 
-[node name="CanvasModulate" type="CanvasModulate" parent="Map"]
-visible = false
+[node name="DayNight" type="CanvasModulate" parent="Map"]
 light_mask = -2147483647
 position = Vector2( 3.88107, 1.5892 )
 z_index = -1
-color = Color( 0.196078, 0.2, 0.309804, 1 )
+color = Color( 0.2, 0.2, 0.301961, 1 )
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
 light_mask = -2147483648

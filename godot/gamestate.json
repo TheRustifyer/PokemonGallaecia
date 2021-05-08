@@ -1,21 +1,22 @@
 {
   "player_data": {
     "name": "",
-    "player_direction": "Left",
+    "player_direction": "Upwards",
     "player_position": {
-      "y": 402.1766357421875,
-      "x": 76.16065979003906
+      "x": 154.14520263671875,
+      "y": 453.8179626464844
     }
   },
   "received_signals": 2,
   "total_registered_signals": 2,
   "current_scene_path": "res://godot/Game/Map.tscn",
   "game_external_data": {
-    "real_time_when_game_starts": "",
-    "todays_date": "",
-    "todays_day_of_the_week": "",
-    "current_wheather": "",
-    "todays_sunrise_time": "",
-    "todays_sunset_time": ""
+    "real_time_when_game_starts": "19:59:15",
+    "todays_date": " 8 May 2021",
+    "todays_day_of_the_week": "Sábado",
+    "current_weather": "Algo de nubes",
+    "todays_sunrise_time": "06:19:05",
+    "todays_sunset_time": "20:42:15",
+    "current_dn_cycle": "Day"
   }
 }

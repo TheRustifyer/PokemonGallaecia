@@ -1,3 +1,7 @@
+pub mod game_consts {
+    pub const UNIX_TIMESTAMP_OFFSET: i32 = 3600;
+}
+
 pub mod in_game_constant {
     use gdnative::prelude::*;
 
