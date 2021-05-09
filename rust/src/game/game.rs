@@ -46,7 +46,17 @@ impl GameExternalData {
         }
     }
 
+    /// Returns true if at least one of his attributes are not in the initial state
     fn has_data(&self) -> bool {
+        if self.real_time_when_game_starts == "" || self.todays_date == "" || self.todays_day_of_the_week == ""
+            || self.current_weather == "" || self.todays_sunrise_time == "" || self.todays_sunset_time == ""
+            || self.current_dn_cycle == DayNightCycle::NoData {
+                false
+            } else { true }
+    }
+
+    /// Method that checks when ALL attributes are still on initial state. Returns true when all are NOT on the initial state.
+    fn has_all_attr_with_no_default_data(&self) -> bool {
         if self.real_time_when_game_starts == "" && self.todays_date == "" && self.todays_day_of_the_week == ""
             && self.current_weather == "" && self.todays_sunrise_time == "" && self.todays_sunset_time == ""
             && self.current_dn_cycle == DayNightCycle::NoData {
@@ -77,6 +87,12 @@ pub struct Game {
     world_map_node: Option<Ref<Node>>,
     #[serde(skip)]
     current_scene: Option<Ref<Node>>,
+
+    // Stores the current real time in GTM + 1
+    current_time: NaiveTime,
+    
+    //Flag for control when all external data (from IoT) are fully loaded into `game_external_data: GameExternalData` object
+    full_data_retrieved: bool,
 }
 
 #[gdnative::methods]
@@ -96,6 +112,10 @@ impl Game {
             current_scene: None,
             // Game data of non game elements
             game_external_data: GameExternalData::new(),
+            // Current time
+            current_time: NaiveTime::from_hms(0, 0, 0),
+            // Flag to control when the data it's fully loaded into the game
+            full_data_retrieved: false,
         }
     }
 
@@ -113,20 +133,29 @@ impl Game {
         godot_print!("GAME DATA: {:#?}", &game_data);
         self.load_initial_scene(owner, game_data.current_scene_path);
 
-        // Sets the initial TIME and DATA and WEATHER information
-        self.get_time_data(owner);
+        let tree = unsafe { owner.get_tree().unwrap().assume_safe().current_scene().unwrap().assume_safe().is_inside_tree() };
 
-        //
+        // Sets the initial TIME and DATA and WEATHER information
+        // self.get_time_data(owner);
+
+        // While the new values are coming, load the most recent saved (last one stored), avoiding null data
         self.game_external_data.todays_sunrise_time = game_data.game_external_data.todays_sunrise_time;
         self.game_external_data.todays_sunset_time = game_data.game_external_data.todays_sunset_time;
 
         self.game_external_data.current_dn_cycle = game_data.game_external_data.current_dn_cycle;
-        godot_print!("Current time: {:?}", utils::get_current_time())
+        godot_print!("Current time: {:?}", utils::get_current_time());
 
+        // Deactivate de main game nodes when data isn't still retrieved from the REST Api's
+        unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(false) };
+        unsafe { owner.get_node_as::<Node2D>("Player").unwrap().set_visible(false) };
     }
 
     #[export]
     fn _process(&mut self, owner: &Node2D, _delta: f64) {
+        // Sets the current real TIME inside the Game
+        self.current_time = utils::get_current_time();
+        godot_print!("Hora actual: {:?}", &self.current_time); 
+        
         let input: &Input = Input::godot_singleton();
         
         // 1º -> Notifies all the node that had info to persist that it's time to save that data
@@ -144,37 +173,46 @@ impl Game {
             self.get_weather_data(owner);
         }
 
-        if self.game_external_data.has_data() {
-            self.control_day_night(owner);
+        self.control_day_night(owner);
+
+        if !self.full_data_retrieved {
+            if self.game_external_data.has_all_attr_with_no_default_data() {
+                unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(true) };
+                unsafe { owner.get_node_as::<Node2D>("Player").unwrap().set_visible(true) };
+                
+                self.full_data_retrieved = true;
+            }
         }
+
     } 
     
     #[export]
     fn control_day_night(&mut self, owner: &Node2D) {
-        // Get's a reference to the CanvasModulate Day-Night simulator
-        let day_night_node = unsafe { owner.get_node_as::<CanvasModulate>("./Map/DayNight").unwrap() };
+        let day_night_node;
+            // Get's a reference to the CanvasModulate Day-Night simulator
+            if let day_night_node = unsafe { owner.get_node_as::<CanvasModulate>("./Map/DayNight").unwrap() };
 
-        // Sets the DayNightCycle to a concrete variant by comparing current time with another one...
-        if utils::time_comparator(utils::get_current_time(), &self.game_external_data.todays_sunset_time) {
-            // Comparing current time with the sunset time, if current time > sunset time => It's night!
-            self.game_external_data.current_dn_cycle = DayNightCycle::Night;
-            godot_print!("CDN: ct > sunsettime")
-        } else if !utils::time_comparator(utils::get_current_time(), &self.game_external_data.todays_sunset_time) {
-            self.game_external_data.current_dn_cycle = DayNightCycle::Day;
-            godot_print!("CDN: ct < sunsettime")
-        } else if utils::time_comparator(utils::get_current_time(), &self.game_external_data.todays_sunrise_time) {
-            self.game_external_data.current_dn_cycle = DayNightCycle::Day;
-            godot_print!("CDN: ct > SUNRISEtime")
-        } else if !utils::time_comparator(utils::get_current_time(), &self.game_external_data.todays_sunrise_time) {
-            self.game_external_data.current_dn_cycle = DayNightCycle::Night;
-            godot_print!("CDN: ct < SUNRISEtime")
-        }
-        
-        match self.game_external_data.current_dn_cycle {
-            DayNightCycle::Day => day_night_node.set_deferred("color",Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 }),
-            DayNightCycle::Night => day_night_node.set_deferred("color",Color { r: 0.2, g: 0.2, b: 0.3, a: 1.0 }),
-            DayNightCycle::NoData => ()
-        }    
+            // Sets the DayNightCycle to a concrete variant by comparing current time with another one...
+            if utils::time_comparator(utils::get_current_time(), &self.game_external_data.todays_sunset_time) {
+                // Comparing current time with the sunset time, if current time > sunset time => It's night!
+                self.game_external_data.current_dn_cycle = DayNightCycle::Night;
+                godot_print!("CDN: ct > sunsettime")
+            } else if !utils::time_comparator(utils::get_current_time(), &self.game_external_data.todays_sunset_time) {
+                self.game_external_data.current_dn_cycle = DayNightCycle::Day;
+                godot_print!("CDN: ct < sunsettime")
+            } else if utils::time_comparator(utils::get_current_time(), &self.game_external_data.todays_sunrise_time) {
+                self.game_external_data.current_dn_cycle = DayNightCycle::Day;
+                godot_print!("CDN: ct > SUNRISEtime")
+            } else if !utils::time_comparator(utils::get_current_time(), &self.game_external_data.todays_sunrise_time) {
+                self.game_external_data.current_dn_cycle = DayNightCycle::Night;
+                godot_print!("CDN: ct < SUNRISEtime")
+            }
+            
+            match self.game_external_data.current_dn_cycle {
+                DayNightCycle::Day => day_night_node.set_deferred("color",Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 }),
+                DayNightCycle::Night => day_night_node.set_deferred("color",Color { r: 0.2, g: 0.2, b: 0.3, a: 1.0 }),
+                DayNightCycle::NoData => ()
+            }    
     }
 
 
@@ -220,13 +258,15 @@ impl Game {
         if !path.ends_with("Map.tscn") {
             owner.remove_child(self.world_map_node.unwrap());
 
-            // In order to go to a new scene, we must first load it as a resource
+            // First load it as a resource
             let new_scene = ResourceLoader::godot_singleton()
                 .load(path.to_string(), "", false).unwrap();
 
             // Convert the scene resource to a Node
             self.current_scene = unsafe { 
                 new_scene.assume_safe().cast::<PackedScene>().unwrap().instance(0) };
+
+            // Insert it on the SceneTree, and set the order
             owner.add_child(self.current_scene.unwrap(), true);
             owner.move_child(self.current_scene.unwrap(), 0)
         }
@@ -307,7 +347,6 @@ impl Game {
             Err(err) => godot_print!("Err => {:?}", err)
         }
     }
-
 
     /// Retrieves the weather data from OpenWeather
     fn get_weather_data(&self, owner: &Node2D) {

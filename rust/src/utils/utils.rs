@@ -163,6 +163,18 @@ pub fn convert_from_unix_timestamp(unix_time: i32) -> String {
     datetime.format("%H:%M:%S").to_string()
 }
 
+/// Converts a given UNIX timestamp to human-readable Date Format
+pub fn unix_timestamp_to_naivetime(unix_time: i32) -> NaiveTime {
+    // Creates a new SystemTime from the specified number of whole seconds
+    let d = UNIX_EPOCH + Duration::from_secs(unix_time as u64);
+    // Create DateTime from SystemTime
+    let datetime = DateTime::<Utc>::from(d);
+    // Formats the combined date and time with the specified format string.
+    let dt_formt = &datetime.format("%H:%M:%S").to_string()[..];
+    // Returns a NaiveTime object
+    NaiveTime::parse_from_str(dt_formt, "%H:%M:%S").unwrap()
+}
+
 /// Capitalize the first char of a given string
 pub fn uppercase_first_letter(s: &str) -> String {
     let mut c = s.chars();
@@ -173,7 +185,8 @@ pub fn uppercase_first_letter(s: &str) -> String {
 }
 
 pub fn get_current_time() -> NaiveTime {
-    Local::now().time().overflowing_add_signed(Dur::hours(1)).0
+    let timeconv = &Local::now().time().overflowing_add_signed(Dur::hours(1)).0.to_string()[..8];
+    NaiveTime::parse_from_str(timeconv, "%H:%M:%S").unwrap()
 }
 
 pub fn time_comparator(time1: NaiveTime, time2: &String) -> bool {
