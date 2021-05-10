@@ -1,14 +1,12 @@
-use std::str::FromStr;
-
 use gdnative::{api::CanvasModulate, prelude::*};
 use gdnative::api::{HTTPClient, HTTPRequest};
 
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{networking, secret, utils, consts::game_consts};
+use crate::utils::{consts::game_consts, networking, secret, utils};
 use crate::game::player::{PlayerData, PlayerDirection};
 
-use chrono::{NaiveDate, NaiveTime, prelude::DateTime};
+use chrono::NaiveTime;
 
 #[derive(PartialEq, Clone, Debug, ToVariant, Serialize, Deserialize)]
 pub enum DayNightCycle {
@@ -23,8 +21,6 @@ impl Default for DayNightCycle {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GameExternalData {
-    // Game real time when the game starts
-    real_time_when_game_starts: String,
     todays_date: String,
     todays_day_of_the_week: String,
     current_weather: String,
@@ -36,7 +32,6 @@ pub struct GameExternalData {
 impl GameExternalData {
     fn new() -> Self {
         Self {
-            real_time_when_game_starts: "".to_string(),
             todays_date: "".to_string(),
             todays_day_of_the_week: "".to_string(),
             current_weather: "".to_string(),
@@ -46,20 +41,10 @@ impl GameExternalData {
         }
     }
 
-    /// Returns true if at least one of his attributes are not in the initial state
-    fn has_data(&self) -> bool {
-        if self.real_time_when_game_starts == "" || self.todays_date == "" || self.todays_day_of_the_week == ""
-            || self.current_weather == "" || self.todays_sunrise_time == "" || self.todays_sunset_time == ""
-            || self.current_dn_cycle == DayNightCycle::NoData {
-                false
-            } else { true }
-    }
-
-    /// Method that checks when ALL attributes are still on initial state. Returns true when all are NOT on the initial state.
-    fn has_all_attr_with_no_default_data(&self) -> bool {
-        if self.real_time_when_game_starts == "" && self.todays_date == "" && self.todays_day_of_the_week == ""
-            && self.current_weather == "" && self.todays_sunrise_time == "" && self.todays_sunset_time == ""
-            && self.current_dn_cycle == DayNightCycle::NoData {
+    /// Returns true if all of his attributes are not in the initial/default state, that means, when all the 
+    /// REST Api calls to retrieve data are succesfully, and already stored data on this struct
+    fn all_external_data_arrived(&self) -> bool {
+        if self.current_weather == "" || self.todays_sunrise_time == "" || self.todays_sunset_time == "" {
                 false
             } else { true }
     }
@@ -73,6 +58,7 @@ pub struct Game {
 
     received_signals: i32,
     total_registered_signals: i32,
+    number_of_process: i32,
 
     // CurrentScenePath
     current_scene_path: String,
@@ -92,8 +78,14 @@ pub struct Game {
     current_time: NaiveTime,
     
     //Flag for control when all external data (from IoT) are fully loaded into `game_external_data: GameExternalData` object
+    #[serde(skip)]
     full_data_retrieved: bool,
+    
+    // Binding to the Input singleton
+    #[serde(skip)]
+    input: Option<&'static Input>
 }
+
 
 #[gdnative::methods]
 impl Game {
@@ -104,6 +96,8 @@ impl Game {
             // Counters that sync arriving times of different signals
             received_signals: 0,
             total_registered_signals: 2,
+            // TTimes that the process function is called
+            number_of_process: 0,
             // Default path of the game
             current_scene_path: "res://godot/Game/Map.tscn".to_string(),
             // Core nodes to track
@@ -116,6 +110,8 @@ impl Game {
             current_time: NaiveTime::from_hms(0, 0, 0),
             // Flag to control when the data it's fully loaded into the game
             full_data_retrieved: false,
+            // Input 
+            input: Some(Input::godot_singleton()),
         }
     }
 
@@ -128,22 +124,10 @@ impl Game {
         self.game_node = owner.get_node(".");
         self.world_map_node = owner.get_node("Map");
 
-        // Loads the correct scene from where the player was the last time that saved the game
-        let game_data: Game = utils::retrieve_game_data();
-        godot_print!("GAME DATA: {:#?}", &game_data);
-        self.load_initial_scene(owner, game_data.current_scene_path);
-
-        let tree = unsafe { owner.get_tree().unwrap().assume_safe().current_scene().unwrap().assume_safe().is_inside_tree() };
-
-        // Sets the initial TIME and DATA and WEATHER information
-        // self.get_time_data(owner);
-
-        // While the new values are coming, load the most recent saved (last one stored), avoiding null data
-        self.game_external_data.todays_sunrise_time = game_data.game_external_data.todays_sunrise_time;
-        self.game_external_data.todays_sunset_time = game_data.game_external_data.todays_sunset_time;
-
-        self.game_external_data.current_dn_cycle = game_data.game_external_data.current_dn_cycle;
-        godot_print!("Current time: {:?}", utils::get_current_time());
+        // While the new values are coming, load the most recent saved (last one stored), avoiding nulling data
+        let todays_date = utils::get_todays_date();
+        self.game_external_data.todays_day_of_the_week = todays_date.0;
+        self.game_external_data.todays_date = todays_date.2;
 
         // Deactivate de main game nodes when data isn't still retrieved from the REST Api's
         unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(false) };
@@ -152,67 +136,72 @@ impl Game {
 
     #[export]
     fn _process(&mut self, owner: &Node2D, _delta: f64) {
-        // Sets the current real TIME inside the Game
-        self.current_time = utils::get_current_time();
-        godot_print!("Hora actual: {:?}", &self.current_time); 
-        
-        let input: &Input = Input::godot_singleton();
+        // Updates the counter that help to reduce the amount of times that a function gets triggered by this _process callback
+        self.number_of_process += 1;
+        // Resets the counter when designed with an arbitrary value
+        if self.number_of_process > 1000 {
+            self.number_of_process = 0
+        }
         
         // 1º -> Notifies all the node that had info to persist that it's time to save that data
-        if Input::is_action_just_pressed(&input, "Menu") {
+        if Input::is_action_just_pressed(&self.input.unwrap(), "Menu") {
             self.call_save_game_data_group(owner);
         }
         // 2º -> When all signals are safetly stored in the class attributes, just call the data persistence method
         if self.received_signals == self.total_registered_signals {
             self.save_game();
         }
-
-        if self.game_external_data.todays_date == "" {
-            self.get_time_data(owner);
+        
+        if !self.full_data_retrieved {
+            let game_data: Game = utils::retrieve_game_data();
+            // godot_print!("GAME DATA: {:#?}", &game_data);
             self.get_sunrise_sunset_data(owner);
             self.get_weather_data(owner);
-        }
 
-        self.control_day_night(owner);
-
-        if !self.full_data_retrieved {
-            if self.game_external_data.has_all_attr_with_no_default_data() {
+            // When data finally arrives after the above callbacks...
+            if self.game_external_data.all_external_data_arrived() {
+                // Sets the initial luminic and weather conditions
+                self.control_day_phases(owner);
+                // Loads the correct scene from where the player was the last time that saved the game
+                self.load_initial_scene(owner, game_data.current_scene_path);
+                // This is where the loading screen should be working!!!
                 unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(true) };
                 unsafe { owner.get_node_as::<Node2D>("Player").unwrap().set_visible(true) };
-                
+                // All data loaded, change the flag to avoid enter this piece of code
                 self.full_data_retrieved = true;
             }
+        } else {
+            if self.number_of_process % 1000 == 0 {
+                godot_print!("Number of process % 100: {:?}", &self.number_of_process);
+                self.control_day_phases(owner);
+            }       
         }
-
     } 
-    
+
     #[export]
-    fn control_day_night(&mut self, owner: &Node2D) {
-        let day_night_node;
+    fn control_day_phases(&mut self, owner: &Node2D) {
+        if unsafe { self.world_map_node.unwrap().assume_safe().is_inside_tree() } {
             // Get's a reference to the CanvasModulate Day-Night simulator
-            if let day_night_node = unsafe { owner.get_node_as::<CanvasModulate>("./Map/DayNight").unwrap() };
+            let day_night_node = unsafe { owner.get_node_as::<CanvasModulate>("./Map/DayNight").unwrap() };
+
+            // Current time
+            let ctime = utils::get_current_time();
 
             // Sets the DayNightCycle to a concrete variant by comparing current time with another one...
-            if utils::time_comparator(utils::get_current_time(), &self.game_external_data.todays_sunset_time) {
-                // Comparing current time with the sunset time, if current time > sunset time => It's night!
-                self.game_external_data.current_dn_cycle = DayNightCycle::Night;
-                godot_print!("CDN: ct > sunsettime")
-            } else if !utils::time_comparator(utils::get_current_time(), &self.game_external_data.todays_sunset_time) {
-                self.game_external_data.current_dn_cycle = DayNightCycle::Day;
-                godot_print!("CDN: ct < sunsettime")
-            } else if utils::time_comparator(utils::get_current_time(), &self.game_external_data.todays_sunrise_time) {
-                self.game_external_data.current_dn_cycle = DayNightCycle::Day;
-                godot_print!("CDN: ct > SUNRISEtime")
-            } else if !utils::time_comparator(utils::get_current_time(), &self.game_external_data.todays_sunrise_time) {
-                self.game_external_data.current_dn_cycle = DayNightCycle::Night;
-                godot_print!("CDN: ct < SUNRISEtime")
+            if ctime > NaiveTime::from_num_seconds_from_midnight(0, 0) && 
+                !utils::time_comparator(ctime, &self.game_external_data.todays_sunrise_time) {
+                    self.game_external_data.current_dn_cycle = DayNightCycle::Night;
+            } else if utils::time_comparator(ctime, &self.game_external_data.todays_sunrise_time) && 
+                !utils::time_comparator(ctime, &self.game_external_data.todays_sunset_time)  {
+                    self.game_external_data.current_dn_cycle = DayNightCycle::Day;
             }
             
             match self.game_external_data.current_dn_cycle {
                 DayNightCycle::Day => day_night_node.set_deferred("color",Color { r: 1.0, g: 1.0, b: 1.0, a: 1.0 }),
                 DayNightCycle::Night => day_night_node.set_deferred("color",Color { r: 0.2, g: 0.2, b: 0.3, a: 1.0 }),
                 DayNightCycle::NoData => ()
-            }    
+            }  
+        }
     }
 
 
@@ -327,14 +316,15 @@ impl Game {
             true, HTTPClient::METHOD_GET, "")
     }
 
-    /// Retrieves the current real world time in Madrid GTM
-    fn get_time_data(&self, owner: &Node2D) {
-        match self.new_http_node(owner, "https://worldtimeapi.org/api/timezone/Europe/Madrid", "_get_real_time_data_response")
-        {
-            Ok(response) => response,
-            Err(err) => godot_print!("Err => {:?}", err)
-        }
-    }
+    //*! This method will work against our REST Api to check that players are not cheating OS time
+    // /// Retrieves the current real world time in Madrid GTM
+    // fn get_time_data(&self, owner: &Node2D) {
+    //     match self.new_http_node(owner, "https://worldtimeapi.org/api/timezone/Europe/Madrid", "_get_real_time_data_response")
+    //     {
+    //         Ok(response) => response,
+    //         Err(err) => godot_print!("Err => {:?}", err)
+    //     }
+    // }
 
     // Retrieves the Sunset/Sunrise data from OpenWeather
     fn get_sunrise_sunset_data(&self, owner: &Node2D) {
@@ -360,26 +350,27 @@ impl Game {
         }
     }
 
-    // <-------------------- HTTP METHODS where signals send the data with the requested RESPONSES ------------------------->
-    #[export]
-    fn _get_real_time_data_response(&mut self, _owner: &Node2D, _result: Variant, _response_code: i64, _headers: Variant, body: ByteArray) {
-        // Reads the incoming HTTP response as a String
-        let response = networking::http_body_to_string(body);
+    //*! When data arrives, should send back info to our REST Api indicating that the time hasn't been modified by the user
+    // // <-------------------- HTTP METHODS where signals send the data with the requested RESPONSES ------------------------->
+    // #[export]
+    // fn _get_real_time_data_response(&mut self, _owner: &Node2D, _result: Variant, _response_code: i64, _headers: Variant, body: ByteArray) {
+    //     // Reads the incoming HTTP response as a String
+    //     let response = networking::http_body_to_string(body);
         
-        // Sets the current time at the moment that this method gets triggered
-        let time = DateTime::parse_from_str(
-            &response.get("datetime").to_string()[..],"%+").unwrap().format("%H:%M:%S").to_string();
-        self.game_external_data.real_time_when_game_starts = time.to_owned();
+    //     // Sets the current time at the moment that this method gets triggered
+    //     let time = DateTime::parse_from_str(
+    //         &response.get("datetime").to_string()[..],"%+").unwrap().format("%H:%M:%S").to_string();
+    //     self.game_external_data.real_time_when_game_starts = time.to_owned();
 
-        // Sets the current date of today
-        let date = DateTime::parse_from_str(
-            &response.get("datetime").to_string()[..],"%+").unwrap().format("%e %B %Y").to_string();
-        self.game_external_data.todays_date = date.to_owned();
+    //     // Sets the current date of today
+    //     let date = DateTime::parse_from_str(
+    //         &response.get("datetime").to_string()[..],"%+").unwrap().format("%e %B %Y").to_string();
+    //     self.game_external_data.todays_date = date.to_owned();
         
-        // Sets the day of the week, parsing an String with a integer, to an integer value and gets back a "Day of the week" human-readable.
-        let day_of_the_week =  response.get("day_of_week").to_string().parse::<i32>().unwrap();
-        self.game_external_data.todays_day_of_the_week = utils::integer_to_day_of_the_week(day_of_the_week);
-    }
+    //     // Sets the day of the week, parsing an String with a integer, to an integer value and gets back a "Day of the week" human-readable.
+    //     let day_of_the_week =  response.get("day_of_week").to_string().parse::<i32>().unwrap();
+    //     self.game_external_data.todays_day_of_the_week = utils::integer_to_day_of_the_week(day_of_the_week);
+    // }
 
     #[export]
     fn _get_sunrise_sunset_data_response(&mut self, _owner: &Node2D, _result: Variant, _response_code: i64, _headers: Variant, body: ByteArray) {

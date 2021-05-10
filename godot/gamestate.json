@@ -3,22 +3,21 @@
     "name": "",
     "player_direction": "Downwards",
     "player_position": {
-      "y": 390.4850158691406,
-      "x": 150.81185913085938
+      "x": 152.00514221191406,
+      "y": 393.866943359375
     }
   },
   "received_signals": 2,
   "total_registered_signals": 2,
+  "number_of_process": 247,
   "current_scene_path": "res://godot/Game/WorldElements/PuebloDeTeo/Scenes/InteriorPokemonCenterPuebloDeTeo.tscn",
   "game_external_data": {
-    "real_time_when_game_starts": "09:41:42",
-    "todays_date": " 9 May 2021",
-    "todays_day_of_the_week": "{SinDatos:{}}",
-    "current_weather": "Muy nuboso",
-    "todays_sunrise_time": "06:17:54",
-    "todays_sunset_time": "20:43:22",
+    "todays_date": "Lunes, 10-05-2021",
+    "todays_day_of_the_week": "Lunes",
+    "current_weather": "Nubes dispersas",
+    "todays_sunrise_time": "06:16:44",
+    "todays_sunset_time": "20:44:29",
     "current_dn_cycle": "Day"
   },
-  "current_time": "09:41:44",
-  "full_data_retrieved": true
+  "current_time": "00:00:00"
 }
