@@ -3,13 +3,6 @@ use gdnative::api::{NinePatchRect, PackedScene, Resource};
 
 use crate::utils::utils;
 
-// use crate::game::pokemon::Pokemon;
-
-// use crate::game::code_abstractions::signals::RegisterSignal;
-// use crate::game::code_abstractions::node_operations::NodeReferences;
-
-// use crate::utils::utils;
-
 #[derive(NativeClass)]
 #[inherit(Control)]
 // #[register_with(Self::register_signal)]

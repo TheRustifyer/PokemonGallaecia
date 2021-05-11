@@ -150,7 +150,7 @@ impl Menu {
             let scene_tree_ref = 
                 unsafe { Node::get_tree(owner)
                 .unwrap().assume_safe() };
-            godot_print!("Current Scene: {:?}", SceneTree::current_scene(&scene_tree_ref));
+            godot_print!("Current Scene, selected from Menú: {:?}", SceneTree::current_scene(&scene_tree_ref));
         }
         else if Input::is_action_pressed(&input, "Exit") && self.menu_status == MenuStatus::Open{
             owner.emit_signal("menu_closed", &[]);

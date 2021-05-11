@@ -78,10 +78,31 @@ impl Game {
         }
     }
 
+    // The database is treated as a static resource
+    fn get_database_as_resource() -> TRef<'static, Node> { 
+        let db_resource = unsafe { ResourceLoader::godot_singleton()
+            .load("res://godot/Game/PokeDB.tscn", "", false)
+            .unwrap().assume_safe()
+            .cast::<PackedScene>()
+            .unwrap()
+            .instance(0)
+            .unwrap().assume_safe() };
+
+        db_resource
+    }
+
     #[export]
     fn _ready(&mut self, owner: &Node2D) {
         owner.set_process(true);
         owner.add_to_group("save_game_data", false);
+
+        // Load the database
+        let database = Game::get_database_as_resource();
+        owner.add_child(database, true);
+        for num in 0..database.get_child_count() {
+            godot_print!("Database Tables {:?}", unsafe { database.get_child(num).unwrap().assume_safe().name() })
+        }
+            
 
         // Gets references to the core nodes of the game
         self.game_node = owner.get_node(".");
@@ -120,9 +141,10 @@ impl Game {
             // godot_print!("GAME DATA: {:#?}", &game_data);
             if self.game_external_data.weather_response_codes == (429, 429) || self.game_external_data.weather_response_codes != (429, 429) {
                 godot_print!("OpenWeather API limit reached. Gonna use default data!");
+                self.current_weather = Weather::Rain; //*! DEBUG!! Spawned manually to check rain conditions
                 self.game_external_data.todays_sunrise_time = "08:00:00".to_string();
                 self.game_external_data.todays_sunset_time = "21:32:50".to_string();
-                self.game_external_data.current_weather = "Sun".to_string();
+                self.game_external_data.current_weather = "Sun".to_string(); // We don't need this anymore...
                 self.game_external_data.current_weather_detail = game_data.game_external_data.current_weather_detail;
             } else {
                 self.get_sunrise_sunset_data(owner);
@@ -396,6 +418,8 @@ impl Game {
                 .get("description").to_string()[..];
             self.game_external_data.current_weather_detail = utils::uppercase_first_letter(current_weather_detail);
         }
+
+        // HERE SHOULD GO THE MATCING EVENT FOR THE ACTUAL WEATHER CONDITIONS...
     }
 
     // <------------------------- WEATHER CONTROL ----------------------->
@@ -403,11 +427,10 @@ impl Game {
     fn rain(&mut self, owner: &Node2D) {
         let weather_node = unsafe { owner.get_node_as::<Particles2D>("Map/PuebloDeTeo/Rain").unwrap() };
         weather_node.set_emitting(true);
-        self.current_weather = Weather::Rain;
     }
 
-
  }
+
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct GameExternalData {

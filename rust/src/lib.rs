@@ -7,6 +7,8 @@ pub mod utils;
 use game_client::login_screen::LoginScreen;
 
 use game::game::Game;
+use game::pokemon::Pokemon;
+use game::pokemon_database::PokemonDB;
 use game::area_scene_switcher::AreaSceneSwitcher;
 use game::map::Map;
 use game::player::{PlayerAnimation, PlayerCharacter};
@@ -30,6 +32,8 @@ fn init(handle: InitHandle) {
     handle.add_class::<PlayerAnimation>();
 
     handle.add_class::<Game>();
+    handle.add_class::<Pokemon>();
+    handle.add_class::<PokemonDB>();
     handle.add_class::<Map>();
     handle.add_class::<AreaSceneSwitcher>();
     

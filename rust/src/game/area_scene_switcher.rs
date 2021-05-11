@@ -1,7 +1,6 @@
 use gdnative::prelude::*;
 use gdnative::api::Area2D;
 
-use crate::utils::utils;
 use crate::game::code_abstractions::signals::RegisterSignal;
 #[derive(Debug)]
 pub enum WhereIsPlayer {

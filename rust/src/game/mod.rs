@@ -2,6 +2,7 @@ pub mod game;
 
 pub mod player;
 pub mod pokemon;
+pub mod pokemon_database;
 
 pub mod map;
 pub mod map_elements__galicia;

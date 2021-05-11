@@ -98,5 +98,5 @@ position = Vector2( 283.445, 128.606 )
 texture = ExtResource( 9 )
 
 [node name="Rain" parent="." instance=ExtResource( 12 )]
-position = Vector2( 0, 0 )
+position = Vector2( 4, 0 )
 scale = Vector2( 2, 1 )
