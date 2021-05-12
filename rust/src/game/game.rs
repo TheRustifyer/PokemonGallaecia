@@ -1,4 +1,5 @@
-use gdnative::{api::{CanvasModulate, Particles2D}, prelude::*};
+use gdnative::{api::CanvasModulate, prelude::*};
+use gdnative::api::Particles2D;
 use gdnative::api::{HTTPClient, HTTPRequest};
 
 use serde::{Deserialize, Serialize};
