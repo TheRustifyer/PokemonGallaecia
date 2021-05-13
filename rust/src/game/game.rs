@@ -24,13 +24,15 @@ pub struct Game {
     // Game real time when the game starts
     game_external_data: GameExternalData,
 
-    //References to Nodes that will be dropped and added as childs during the game
+    //References to the most important nodes of the game
     #[serde(skip)]
     game_node: Option<Ref<Node>>,
     #[serde(skip)]
     world_map_node: Option<Ref<Node>>,
     #[serde(skip)]
     current_scene: Option<Ref<Node>>,
+    #[serde(skip)]
+    database: Option<TRef<'static, Node>>,
 
     // The current real time in GTM + 1. When game it's saved, stores the time when game has succesfully saved.
     current_time: NaiveTime,
@@ -75,6 +77,8 @@ impl Game {
             full_data_retrieved: false,
             // Input 
             input: Some(Input::godot_singleton()),
+            // Database
+            database: Some(Game::get_database_as_resource())
         }
     }
 
@@ -96,11 +100,16 @@ impl Game {
         owner.set_process(true);
         owner.add_to_group("save_game_data", false);
 
-        // Load the database
-        let database = Game::get_database_as_resource();
+        // Load the database and add it as a node
+        let database = self.database.unwrap();
         owner.add_child(database, true);
         for num in 0..database.get_child_count() {
             godot_print!("Database Tables {:?}", unsafe { database.get_child(num).unwrap().assume_safe().name() })
+        }
+        let pokemon_table = unsafe { database.get_child(0).unwrap().assume_safe() };
+        for num in 0..pokemon_table.get_child_count() {
+            godot_print!("Pokémon row NODE name: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().name() });
+            godot_print!("Pokémon ID: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().get("id").to_i64() })
         }
             
 
@@ -114,6 +123,7 @@ impl Game {
         self.game_external_data.todays_date = todays_date.2;
 
         // Deactivate de main game nodes when data isn't still retrieved from the REST Api's
+        // Should this one better just as a grey screen??
         unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(false) };
         unsafe { owner.get_node_as::<Node2D>("Player").unwrap().set_visible(false) };
     }

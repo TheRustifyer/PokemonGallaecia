@@ -86,38 +86,53 @@ impl RegisterSignal<Self> for PlayerCharacter {
             name: "player_position",
             args: &[]
         });
+
+        builder.add_signal( Signal {
+            name: "player_moving",
+            args: &[]
+        });
+
+        builder.add_signal( Signal {
+            name: "player_stopped",
+            args: &[]
+        });
     }
 }
 
 impl CharacterMovement<KinematicBody2D, Input>  for PlayerCharacter {
     /// The fn that manages the player motion on the `Map`, and updates the `self.player_status: PlayerStatus`, 
     /// which represents the current variant of the player different status and behaviours. 
-    fn move_character(&mut self, _owner: &KinematicBody2D, input: &Input) 
+    fn move_character(&mut self, owner: &KinematicBody2D, input: &Input) 
     {
         if Input::is_action_pressed(&input, "Left") {
             self.motion.x = in_game_constant::VELOCITY * -1.0;
             self.motion.y = 0.0;
-            self.player_status = PlayerStatus::Walking    
+            self.player_status = PlayerStatus::Walking;
+            owner.emit_signal("player_moving", &[]);
         } 
         else if Input::is_action_pressed(&input, "Right") {
             self.motion.x = in_game_constant::VELOCITY;
             self.motion.y = 0.0;
-            self.player_status = PlayerStatus::Walking 
+            self.player_status = PlayerStatus::Walking;
+            owner.emit_signal("player_moving", &[]); 
         } 
         else if Input::is_action_pressed(&input, "Up") {
             self.motion.y = in_game_constant::VELOCITY * - 1.0;
             self.motion.x = 0.0;
-            self.player_status = PlayerStatus::Walking 
+            self.player_status = PlayerStatus::Walking;
+            owner.emit_signal("player_moving", &[]);
         } 
         else if Input::is_action_pressed(&input, "Down") {
             self.motion.y = in_game_constant::VELOCITY;
             self.motion.x = 0.0;
-            self.player_status = PlayerStatus::Walking 
+            self.player_status = PlayerStatus::Walking;
+            owner.emit_signal("player_moving", &[]); 
         }
         else {
             self.motion.x = 0.0;
             self.motion.y = 0.0;
-            self.player_status = PlayerStatus::Idle
+            self.player_status = PlayerStatus::Idle;
+            owner.emit_signal("player_stopped", &[]);
         }
     }
 }

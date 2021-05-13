@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/snow.png-1d6ad0586f0386b0c8f9c46d27da9c15.stex"
+path="res://.import/tall_grass.png-193695850355c4c1c287e87c06ae7ec8.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://godot/Game/snow.png"
-dest_files=[ "res://.import/snow.png-1d6ad0586f0386b0c8f9c46d27da9c15.stex" ]
+source_file="res://gfx/Tilemaps/Grass/tall_grass.png"
+dest_files=[ "res://.import/tall_grass.png-193695850355c4c1c287e87c06ae7ec8.stex" ]
 
 [params]
 

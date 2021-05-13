@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/icon.png-3b5d504bdc2ac8cc90ae2a967ab8a46a.stex"
+path="res://.import/grass_step_animation.png-b998b1bf7e91d26fb342173e0cc33f1d.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://godot/Game/Weather/icon.png"
-dest_files=[ "res://.import/icon.png-3b5d504bdc2ac8cc90ae2a967ab8a46a.stex" ]
+source_file="res://gfx/Tilemaps/Grass/grass_step_animation.png"
+dest_files=[ "res://.import/grass_step_animation.png-b998b1bf7e91d26fb342173e0cc33f1d.stex" ]
 
 [params]
 

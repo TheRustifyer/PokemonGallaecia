@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://gfx/Tilemaps/Grass/Ground.tscn" type="PackedScene" id=1]
 [ext_resource path="res://gfx/Tilemaps/Buildings/Houses/Apartment Building (large).png" type="Texture" id=2]
@@ -12,6 +12,8 @@
 [ext_resource path="res://godot/Game/ScriptsOfMapElements/PuebloDeTeo/Truck.gdns" type="Script" id=10]
 [ext_resource path="res://gfx/torchmap.png" type="Texture" id=11]
 [ext_resource path="res://Weather/Rain.tscn" type="PackedScene" id=12]
+[ext_resource path="res://godot/Game/TallGrass.tscn" type="PackedScene" id=13]
+[ext_resource path="res://gfx/rain.png" type="Texture" id=14]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 14, 10.25 )
@@ -100,3 +102,9 @@ texture = ExtResource( 9 )
 [node name="Rain" parent="." instance=ExtResource( 12 )]
 position = Vector2( 4, 0 )
 scale = Vector2( 2, 1 )
+texture = ExtResource( 14 )
+
+[node name="Node" type="Node" parent="."]
+
+[node name="TallGrass" parent="Node" instance=ExtResource( 13 )]
+position = Vector2( 183.82, 527.433 )

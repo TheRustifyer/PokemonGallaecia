@@ -38,7 +38,9 @@ impl Truck {
     #[export]
     fn emit_object_signal(&self, _owner: TRef<Sprite>) {
         _owner.emit_signal("print_to_dialogue_box", &[Variant::from_godot_string(
-            &GodotString::from_str("Soy el camión de Pueblo de Teo!!"))]);
+            &GodotString::from_str(
+                "Soy el camión de pueblo de Teo"
+            ))]);
     }
 
     #[export]

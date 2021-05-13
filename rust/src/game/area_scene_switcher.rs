@@ -75,6 +75,7 @@ impl AreaSceneSwitcher {
     }
 
     #[export]
+    // Receives the on_area2d_body_entered signal, connected on the Godot GUI
     fn _on_area2d_body_entered(&self, owner: &Area2D, _body: Variant) {
         owner.emit_signal("scene_change", &[self.scene_to_switch.to_owned().to_variant()]);
     }
