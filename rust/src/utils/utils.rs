@@ -86,7 +86,7 @@ pub fn get_current_time() -> NaiveTime {
 
 pub fn time_comparator(time1: NaiveTime, time2: &String) -> bool {
     let timeconv = &time2[..];
-    godot_print!("TImeconv: {:?}", timeconv);
+    // godot_print!("TImeconv: {:?}", timeconv);
     let time_time2 = NaiveTime::parse_from_str(timeconv, "%H:%M:%S").unwrap();
     
     if time1 > time_time2 {

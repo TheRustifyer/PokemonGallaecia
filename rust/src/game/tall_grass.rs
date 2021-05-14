@@ -9,8 +9,6 @@ pub struct TallGrass {
     animation_player: Option<TRef<'static, AnimationPlayer>>,
     grass_overlay: TRef<'static, TextureRect>,
     grass_overlay_texture: Option<Ref<Texture>>,
-    // grass_step_effect: TRef<'static, Node2D>,
-    player_inside_tallgrass: bool,
 }
 
 impl RegisterSignal<Self> for TallGrass {
@@ -29,8 +27,6 @@ impl TallGrass {
             animation_player: None,
             grass_overlay: unsafe { TextureRect::new().assume_shared().assume_safe() },
             grass_overlay_texture: None,
-            // grass_step_effect: 
-            player_inside_tallgrass: false,
         }
     }
 
@@ -46,36 +42,27 @@ impl TallGrass {
             .cast::<Texture>()
             .unwrap()
             .assume_shared() });
-
-        godot_print!("Grass Overlay: {:?}", &self.grass_overlay_texture);
-// 
-        // self.connect_to_player_moving(owner);
-        // self.connect_to_player_stopped(owner);
     }
 
     #[export]
-    // Receives the on_area2d_body_entered signal, connected on the Godot GUI
+    /// Receives a signal when a body enteres the TallGrass (connected on the Godot GUI)
     fn _on_area2d_body_entered(&mut self, owner: TRef<Node2D>, _body: Variant) {
-        godot_print!("Signal received!");
-        self.player_inside_tallgrass = true;
         self.player_in_grass(owner);
-        self.animation_player.unwrap().play("Stepped", 0.0, 1.0, false)
+        self.animation_player.unwrap().play("Stepped", 0.0, 1.0, false);
     }
 
     #[export]
-    /// Connects the game data signal with the Game Node
-    fn player_exitting_grass(&mut self, owner: TRef<Node2D>) {
-        self.player_inside_tallgrass = false;
+    // Receives a signal when a body leaves the TallGrass (connected on the Godot GUI)
+    fn _on_area2d_body_exited(&mut self, owner: &Node2D, _body: Variant) {
         if unsafe { self.grass_overlay.assume_shared().is_instance_sane() } {
             self.grass_overlay.queue_free();
-        }
-        godot_print!("Player IN grass");
+            owner.remove_child(self.grass_overlay);
+        }  
     }
 
     #[export]
-    /// Connects the game data signal with the Game Node
     fn player_in_grass(&mut self, owner: TRef<Node2D>) {
-        // Grass step effect
+        // Creates a new grass step effect
         let grass_step_effect = unsafe { ResourceLoader::godot_singleton()
             .load("res://godot/Game/GrassStepEffect.tscn", "", false)
             .unwrap().assume_safe()
@@ -83,36 +70,28 @@ impl TallGrass {
             .unwrap()
             .instance(0)
             .unwrap().assume_safe()
-            // .cast::<Node2D>()
-            // .unwrap()
+            .cast::<Node2D>()
+            .unwrap()
         };
-        // grass_step_effect.set_position(owner.position());
-        owner.add_child(grass_step_effect, true);
-
-
-        self.grass_overlay.set_texture(unsafe { self.grass_overlay_texture.as_ref().unwrap().assume_safe() });
-        self.grass_overlay.set_position(owner.position(), false);
         
-        // unsafe { self.grass_overlay.get_parent().expect("No tiene parent").assume_safe().remove_child(self.grass_overlay) };
-        // owner.add_child(self.grass_overlay, true);
+        match grass_step_effect.get_parent() {
+            None => owner.add_child(grass_step_effect, true),
+            Some(_) => ()
+        }
+        
+        match &self.grass_overlay.get_parent() {
+            None => { self.grass_overlay =  unsafe { TextureRect::new().assume_shared().assume_safe() };
+                self.grass_overlay.set_texture(unsafe { self.grass_overlay_texture.as_ref().unwrap().assume_safe() });
+                self.grass_overlay.set_position(owner.position(), false);
+                self.grass_overlay.set_name("GrassStepEffect"); 
+                owner.add_child(self.grass_overlay, true);
+                owner.move_child(self.grass_overlay, owner.get_child_count() );
+            },
+            Some(_x) => godot_print!("self.grass_overlay: {:?}", unsafe { &self.grass_overlay.get_parent().unwrap().assume_safe().name() })
+        }
+        // Just for debug purposes
+        for children in 0..owner.get_child_count() {
+            godot_print!("Children NAME: {:?}", unsafe { owner.get_child(children).unwrap().assume_safe().name() })
+        }
     }
-
-    // <-------------- METHODS TO REVERSE CONNECT SIGNALS FROM PLAYER TO HERE ----------------------->
-
-    #[export]
-    /// Connects the game data signal with the Game Node
-    fn connect_to_player_moving(&self, owner: TRef<Node2D>) {
-        let player = unsafe { owner.get_node("/root/Game/Player").unwrap().assume_safe() };
-        player.connect("player_moving", owner, "player_exitting_grass",
-            VariantArray::new_shared(), 0).unwrap();
-    }
-
-    #[export]
-    /// Connects the game data signal with the Game Node
-    fn connect_to_player_stopped(&self, owner: TRef<Node2D>) {
-        let player = unsafe { owner.get_node("/root/Game/Player").unwrap().assume_safe() };
-        player.connect("player_moving", owner, "player_in_grass",
-            VariantArray::new_shared(), 0).unwrap();
-    }
-
 }

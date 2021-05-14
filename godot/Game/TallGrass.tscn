@@ -41,6 +41,7 @@ tracks/0/keys = {
 script = ExtResource( 2 )
 
 [node name="Sprite" type="Sprite" parent="."]
+light_mask = 2
 texture = ExtResource( 1 )
 centered = false
 hframes = 2
@@ -55,3 +56,4 @@ shape = SubResource( 1 )
 anims/Idle = SubResource( 2 )
 anims/Stepped = SubResource( 3 )
 [connection signal="body_entered" from="Area2D" to="." method="_on_area2d_body_entered"]
+[connection signal="body_exited" from="Area2D" to="." method="_on_area2d_body_exited"]

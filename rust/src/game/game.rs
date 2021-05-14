@@ -178,7 +178,7 @@ impl Game {
             }
         } else {
             if self.number_of_process % 100 == 0 {
-                godot_print!("Number of process % 100: {:?}", &self.number_of_process); // Reduces the nº of interactions, instead of every frame, every % of x
+                // godot_print!("Number of process % 100: {:?}", &self.number_of_process); // Reduces the nº of interactions, instead of every frame, every % of x
                 self.control_day_phases(owner);
                 if self.current_weather == Weather::Rain {
                     // Basic implementation on debug!!
@@ -196,8 +196,8 @@ impl Game {
 
             // Current time
             let ctime = utils::get_current_time();
-            godot_print!("CT from control_day_phases: {:?}", &ctime);
-            godot_print!("DayNightCycle: {:?}", &self.game_external_data.current_dn_cycle);
+            // godot_print!("CT from control_day_phases: {:?}", &ctime);
+            // godot_print!("DayNightCycle: {:?}", &self.game_external_data.current_dn_cycle);
 
             // Sets the DayNightCycle to a concrete variant by comparing current time with another one...
             if ctime > NaiveTime::from_num_seconds_from_midnight(0, 0) && 
