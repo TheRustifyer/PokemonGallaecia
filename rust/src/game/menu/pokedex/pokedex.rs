@@ -179,23 +179,6 @@ impl Pokedex {
         // Don't forget to updates the Y coordinate that will be passed in of the future (on NEXT iteration 'till exhaust) instance of the NinePatchRect PokedexEntry 
         self.y_entry_position += 150.0;
     }
-
-    // fn availiable_pokemon_list(&self) -> Vec<GodotString> {
-        
-    //     // Now it's a hardcoded version of Pokémon instances with just &str's! Be patient my padawans... or trainers!! :)
-        
-    //     let bulbasaur = GodotString::from_str("Bulbasaur");
-    //     let charmander = GodotString::from_str("Charmander");
-    //     let squirtle = GodotString::from_str("Squirtle");
-    //     let pikachu = GodotString::from_str("Pikachu");
-    //     let mewtwo = GodotString::from_str("Mewtwo");
-
-    //     let pokemon_vec = vec![bulbasaur, charmander, squirtle, pikachu, mewtwo];
-
-    //     return pokemon_vec
-
-    //     // Meh, may the Pokédex be with you.
-    // }
   
     fn availiable_pokemon_list(&self) -> Vec<PokedexEntry> {
         
@@ -235,7 +218,7 @@ impl Pokedex {
             false,
         );
 
-        let mut pokemon_vec = vec![];
+        let pokemon_vec = vec![];
 
         for number in 1..=151 {
             if number == 1 {
