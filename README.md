@@ -1,5 +1,5 @@
 # Pokemon Gallaecia
-Fangame in current development stage. Coming soon!
+Fangame, current under development. Coming soon!
 
 ![Logo](https://github.com/Pyzyryab/PokemonGallaecia/blob/main/gfx/gallaecia_github.png)
 
