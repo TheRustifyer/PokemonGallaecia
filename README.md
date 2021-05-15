@@ -9,6 +9,7 @@ Pokémon it's a trademark registered by The Pokémon Company. All intelectual pr
 All intellectual property is used to make a satirical ** non-profit ** fangame.
 
 The ultimate goals of creating this game are two:
+
 1st -> As a parody of healthy humor about Galicia, its culture, its land and its people. Made by Galicians for Galicians, but also for other players.
 
 2º -> As a challenge for programming and demonstrating skills and knowledge of creators in the face of the technology industry.
