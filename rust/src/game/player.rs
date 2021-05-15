@@ -1,18 +1,53 @@
 use std::collections::HashMap;
 
+use serde::{Serialize, Deserialize};
+use serde::ser::Serializer;
+
 use gdnative::prelude::*;
 use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D};
 
-use crate::game::dialogue_box::DialogueBoxStatus;
+use crate::{game::dialogue_box::DialogueBoxStatus};
 use crate::game::code_abstractions::{
     character::CharacterMovement,
     signals::GodotSignal,
     signals::RegisterSignal
 };
 
+use crate::utils::utils;
 use crate::utils::consts::in_game_constant;
 
 use super::menu::menu::MenuStatus;
+
+
+#[derive(Serialize, Deserialize, Debug)]
+/// This beautiful struct is the responsable of read the data coming from signals of all 
+/// different PLAYER "classes", processing that data and store it on an external resource
+/// where the data can persist
+pub struct PlayerData {
+    name: String,
+    player_direction: PlayerDirection,
+    player_position: HashMap<String, f64>,
+}
+
+impl PlayerData {
+
+    pub fn new() -> Self {
+        Self {
+            name: "".to_owned(),
+            player_direction: PlayerDirection::default(),
+            player_position: HashMap::new(),
+        }
+    }
+
+    pub fn set_player_direction(&mut self, player_current_direction: &PlayerDirection) {
+        self.player_direction = player_current_direction.to_owned();
+    }
+    pub fn set_player_position(&mut self, x: f64, y: f64) {
+        self.player_position.insert("x".to_owned(), x);
+        self.player_position.insert("y".to_owned(), y);
+    }
+}
+
 
 #[derive(NativeClass)]
 #[inherit(KinematicBody2D)]
@@ -24,10 +59,11 @@ pub struct PlayerCharacter {
     dialogue_box_status: DialogueBoxStatus,
     motion: Vector2, // A Vector2, which is a Godot type, in this case, represents and tracks the (x, y) coordinates on 2D space
     signals: HashMap<String, GodotSignal<'static>>,
+    current_position: Vector2,
+    counter: i32,
 }
 
 impl RegisterSignal<Self> for PlayerCharacter {
-
     fn register_signal(builder: &ClassBuilder<Self>) {
         // Indicates that the Player is moving
         builder.add_signal( Signal {
@@ -45,38 +81,58 @@ impl RegisterSignal<Self> for PlayerCharacter {
             name: "player_interacting",
             args: &[],
         });
+
+        builder.add_signal( Signal {
+            name: "player_position",
+            args: &[]
+        });
+
+        builder.add_signal( Signal {
+            name: "player_moving",
+            args: &[]
+        });
+
+        builder.add_signal( Signal {
+            name: "player_stopped",
+            args: &[]
+        });
     }
 }
 
 impl CharacterMovement<KinematicBody2D, Input>  for PlayerCharacter {
     /// The fn that manages the player motion on the `Map`, and updates the `self.player_status: PlayerStatus`, 
     /// which represents the current variant of the player different status and behaviours. 
-    fn move_character(&mut self, _owner: &KinematicBody2D, input: &Input) 
+    fn move_character(&mut self, owner: &KinematicBody2D, input: &Input) 
     {
         if Input::is_action_pressed(&input, "Left") {
             self.motion.x = in_game_constant::VELOCITY * -1.0;
             self.motion.y = 0.0;
-            self.player_status = PlayerStatus::Walking    
+            self.player_status = PlayerStatus::Walking;
+            owner.emit_signal("player_moving", &[]);
         } 
         else if Input::is_action_pressed(&input, "Right") {
             self.motion.x = in_game_constant::VELOCITY;
             self.motion.y = 0.0;
-            self.player_status = PlayerStatus::Walking 
+            self.player_status = PlayerStatus::Walking;
+            owner.emit_signal("player_moving", &[]); 
         } 
         else if Input::is_action_pressed(&input, "Up") {
             self.motion.y = in_game_constant::VELOCITY * - 1.0;
             self.motion.x = 0.0;
-            self.player_status = PlayerStatus::Walking 
+            self.player_status = PlayerStatus::Walking;
+            owner.emit_signal("player_moving", &[]);
         } 
         else if Input::is_action_pressed(&input, "Down") {
             self.motion.y = in_game_constant::VELOCITY;
             self.motion.x = 0.0;
-            self.player_status = PlayerStatus::Walking 
+            self.player_status = PlayerStatus::Walking;
+            owner.emit_signal("player_moving", &[]); 
         }
         else {
             self.motion.x = 0.0;
             self.motion.y = 0.0;
-            self.player_status = PlayerStatus::Idle
+            self.player_status = PlayerStatus::Idle;
+            owner.emit_signal("player_stopped", &[]);
         }
     }
 }
@@ -92,10 +148,29 @@ impl PlayerCharacter {
             menu_status: MenuStatus::Closed,
             dialogue_box_status: DialogueBoxStatus::Inactive,
             motion: Vector2::new(0.0, 0.0),
-            signals: HashMap::new()
+            signals: HashMap::new(),
+            current_position: Vector2::new(0.0, 0.0),
+            counter: 0
         }
     }
+
+    #[export]
+    fn _ready(&mut self, owner: &KinematicBody2D) {
+        // Adds the PlayerCharacter Node to the group that takes care about data persistence
+        owner.add_to_group("save_game_data", false);
+        
+        // Retrieves the player absolute position from a JSON config file
+        self.current_position.x = utils::get_player_absolute_position().0;
+        self.current_position.y = utils::get_player_absolute_position().1;
+
+        // Sets the retrieved position
+        owner.set_global_position(Vector2::new(self.current_position.x, self.current_position.y));
+
+        // Connect the Player Character with the Struct that takes care about process, manage and persist PlayerCharacter data
+        self.connect_to_game_data(owner);
+    }
     
+
     #[export]
     fn _physics_process(&mut self, owner: &KinematicBody2D, _delta: f32) {
         // First of all, we need a reference to our singleton(scene, node, value that exists through out the game) Input 
@@ -115,6 +190,10 @@ impl PlayerCharacter {
             let player_movement = owner.move_and_collide(
                 self.motion * _delta, false, false, false);
             
+            self.current_position = owner.global_position();
+            self.counter += 1;
+            // owner.set_global_position(self.current_position);
+
             // Check when the player press the `space bar` == "Interact" key binding. If the player isn't interacting with anything else
             // calls the `interact method`.
             if Input::is_action_just_pressed(&input, "Interact") {
@@ -124,17 +203,6 @@ impl PlayerCharacter {
             }
         }
     }
-
-    /// Method for control the PlayerCharacter interaction with the menu
-    // #[export]
-    // fn menu_interaction(&mut self, _owner: &KinematicBody2D, menu_selection: &Input) {
-    //     // if signal_info
-    // }
-
-    /// Send the "player interacting" custom signal, that alerts that the player is currently on `PlayerStatus::Interacting` state.
-    // fn player_in_menu(&self, owner: &KinematicBody2D) {
-    //     owner.emit_signal("player_in_menu", &[]);
-    // }
 
     /// Method designed to act as an intermediary when some event blocks any action of the player.
     ///
@@ -169,17 +237,6 @@ impl PlayerCharacter {
                 self.menu_status = MenuStatus::Closed
             }
         }
-        
-        // if signal_info == "on_dialogue" {
-        //     self.player_status = PlayerStatus::Interacting;
-        //     self.motion.x = 0.0;
-        //     self.motion.y = 0.0;
-        //     self.dialogue_box_status = DialogueBoxStatus::Active
-        // } else {
-        //     godot_print!("Player released");
-        //     self.player_status = PlayerStatus::default();
-        //     self.dialogue_box_status = DialogueBoxStatus::Inactive
-        // }
     }
 
     /// The method for the "Interaction" behaviour of the `Player Character`.
@@ -203,8 +260,6 @@ impl PlayerCharacter {
             _ => ()
         }
     }
-
-
 
     /// Send the "player interacting" custom signal, that alerts that the player is currently on `PlayerStatus::Interacting` state.
     fn player_is_interacting(&self, owner: &KinematicBody2D) {
@@ -239,14 +294,38 @@ impl PlayerCharacter {
         owner.emit_signal("animate", &[self.motion.to_variant()]);
     }
 
+    /// Connects the PlayerCharacter signal that transmits the current global position
+    fn connect_to_game_data(&self, owner: &KinematicBody2D) {
+        let receiver = unsafe { owner.get_node("/root/Game").unwrap().assume_safe() };
+        owner.connect("player_position", receiver,
+         "_save_player_position", VariantArray::new_shared(), 0).unwrap();
+    }
+
+    #[export]
+    fn save_game_data(&self, owner: &KinematicBody2D) {
+        owner.emit_signal("player_position", &[(self.current_position.x, self.current_position.y).to_variant()]);
+    }
+
 }
 
 #[derive(NativeClass)]
 #[inherit(AnimatedSprite)]
+#[register_with(Self::register_signal)]
+#[derive(Debug)]
 pub struct PlayerAnimation {
     current_player_motion: PlayerStatus,
     current_player_direction: PlayerDirection,
     idle_player_direction: PlayerDirection
+}
+
+impl RegisterSignal<Self> for PlayerAnimation {
+    fn register_signal(builder: &ClassBuilder<Self>) {
+        // Indicates that the Player is moving
+        builder.add_signal( Signal {
+            name: "player_direction",
+            args: &[],
+        });
+    }
 }
 
 #[gdnative::methods]
@@ -260,13 +339,27 @@ impl PlayerAnimation {
     }
 
     #[export]
+    fn _ready(&mut self, owner: &AnimatedSprite) {
+        // Adds the PlayerCharacter Node to the group that takes care about data persistence
+        owner.add_to_group("save_game_data", false);
+
+        self.idle_player_direction = utils::get_player_direction();
+
+        match self.idle_player_direction {
+            PlayerDirection::Downwards => { owner.play("idle front", false); }
+            PlayerDirection::Upwards => { owner.play("idle back", false); }
+            PlayerDirection::Left => { owner.play("idle left", false); }
+            PlayerDirection::Right => { owner.play("idle right", false); }
+        };
+
+        // Connects with the Game class
+        self.connect_to_game_data(owner);
+    }
+
+    #[export]
     fn _on_player_animate(&mut self, _owner: &AnimatedSprite, _motion: Vector2) {
         
-        let character_animated_sprite = unsafe 
-        { _owner.get_node_as::<AnimatedSprite>(
-            "."
-            ) }
-            .unwrap();
+        let character_animated_sprite = unsafe { _owner.get_node_as::<AnimatedSprite>( ".") }.unwrap();
 
         match _motion {
             x if x.x > 0.0 => 
@@ -282,10 +375,8 @@ impl PlayerAnimation {
                 { self.current_player_direction = PlayerDirection::Downwards; self.current_player_motion = PlayerStatus::Walking },
             
             _ => 
-                { self.current_player_motion = PlayerStatus::Idle }
-                
+                { self.current_player_motion = PlayerStatus::Idle }    
         }
-
 
         if self.current_player_motion == PlayerStatus::Idle {
             match self.idle_player_direction {
@@ -293,15 +384,13 @@ impl PlayerAnimation {
                 PlayerDirection::Upwards => { character_animated_sprite.play("idle back", false); }
                 PlayerDirection::Left => { character_animated_sprite.play("idle left", false); }
                 PlayerDirection::Right => { character_animated_sprite.play("idle right", false); }
-                // The starting position when the Player spawns on the screen
-                _ => character_animated_sprite.play("idle front", false)
             }; 
 
         } else if self.current_player_direction == PlayerDirection::Right {
             character_animated_sprite.play("walk right", false);
             self.idle_player_direction = PlayerDirection::Right;
 
-        } else if PlayerDirection::Left == self.current_player_direction {
+        } else if PlayerDirection::Left == self.current_player_direction {  
             character_animated_sprite.play("walk left", false);
             self.idle_player_direction = PlayerDirection::Left;
 
@@ -312,13 +401,24 @@ impl PlayerAnimation {
         } else if PlayerDirection::Upwards == self.current_player_direction {
             character_animated_sprite.play("walk upwards", false);
             self.idle_player_direction = PlayerDirection::Upwards;
-
         }
+    }
+
+    /// Connects the PlayerCharacter signal with the Game class
+    fn connect_to_game_data(&self, owner: &AnimatedSprite) {
+        let receiver = unsafe { owner.get_node("/root/Game").unwrap().assume_safe() };
+        owner.connect("player_direction", receiver,
+            "_save_player_direction", VariantArray::new_shared(), 0).unwrap();
+    }
+
+    #[export]
+    fn save_game_data(&self, owner: &AnimatedSprite) {
+        owner.emit_signal("player_direction", &[self.idle_player_direction.to_variant()]);
     }
 }
 
 #[derive(PartialEq, Clone, Debug)]
-enum PlayerStatus {
+pub enum PlayerStatus {
     Idle,
     Walking,
     // Running
@@ -329,15 +429,28 @@ impl Default for PlayerStatus {
     fn default() -> Self { PlayerStatus::Idle }
 }
 
-#[derive(PartialEq, Clone, Debug)]
-enum PlayerDirection {
-    Idle, // De momento necesitamos esto
+#[derive(PartialEq, Clone, Debug, ToVariant, Deserialize)]
+pub enum PlayerDirection {
     Upwards,
     Downwards,
     Left,
-    Right
+    Right,
 }
 
 impl Default for PlayerDirection {
-    fn default() -> Self { PlayerDirection::Idle }
+    fn default() -> Self { PlayerDirection::Downwards }
+}
+
+impl Serialize for PlayerDirection {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        match *self {
+            PlayerDirection::Upwards => serializer.serialize_unit_variant("PlayerDirection", 0, "Upwards"),
+            PlayerDirection::Downwards => serializer.serialize_unit_variant("PlayerDirection", 1, "Downwards"),
+            PlayerDirection::Left => serializer.serialize_unit_variant("PlayerDirection", 2, "Left"),
+            PlayerDirection::Right => serializer.serialize_unit_variant("PlayerDirection", 3, "Right"),
+        }
+    }
 }

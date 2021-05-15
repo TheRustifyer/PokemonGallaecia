@@ -85,7 +85,7 @@ impl DialogueBox {
         
         // Retrieves a reference Ref<RichTextLabel> to the text label
         self.dialogue_text_label = unsafe { Some(self.get_node_reference_from_root(
-            &owner, "Game/Player/Camera2D/DialogueBox/DialogueTextLabel"
+            &owner, "Game/Player/Camera2D/CanvasLayer/DialogueBox/DialogueTextLabel"
         ).unwrap().assume_safe().cast::<RichTextLabel>().unwrap().assume_shared()) };
 
         // Retrieves a Ref<T> of the player character that notifies if the DialogueBox is running
