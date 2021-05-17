@@ -26,8 +26,7 @@ config/icon="res://godot/icon.png"
 
 [display]
 
-window/size/width=1920
-window/size/height=1080
+window/size/height=780
 window/stretch/mode="2d"
 window/stretch/aspect="expand"
 

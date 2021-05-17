@@ -1,4 +1,4 @@
-use gdnative::{api::{AnimationPlayer, TextureRect}, prelude::*};
+use gdnative::{api::{AnimationPlayer, NinePatchRect, TextureRect}, prelude::*};
 
 use crate::game::code_abstractions::signals::RegisterSignal;
 
@@ -7,7 +7,7 @@ use crate::game::code_abstractions::signals::RegisterSignal;
 #[derive(Debug)]
 pub struct TallGrass {
     animation_player: Option<TRef<'static, AnimationPlayer>>,
-    grass_overlay: TRef<'static, TextureRect>,
+    grass_overlay: TRef<'static, Sprite>,
     grass_overlay_texture: Option<Ref<Texture>>,
 }
 
@@ -25,7 +25,7 @@ impl TallGrass {
     fn new(_owner: &Node2D) -> Self {
         Self {
             animation_player: None,
-            grass_overlay: unsafe { TextureRect::new().assume_shared().assume_safe() },
+            grass_overlay: unsafe { Sprite::new().assume_shared().assume_safe() },
             grass_overlay_texture: None,
         }
     }
@@ -80,14 +80,21 @@ impl TallGrass {
         }
         
         match &self.grass_overlay.get_parent() {
-            None => { self.grass_overlay =  unsafe { TextureRect::new().assume_shared().assume_safe() };
+
+            None => { self.grass_overlay =  unsafe { Sprite::new().assume_shared().assume_safe() };
+                self.grass_overlay.set_name("GrassOverlay");
                 self.grass_overlay.set_texture(unsafe { self.grass_overlay_texture.as_ref().unwrap().assume_safe() });
-                self.grass_overlay.set_position(owner.position(), false);
-                self.grass_overlay.set_name("GrassStepEffect"); 
+
                 owner.add_child(self.grass_overlay, true);
                 owner.move_child(self.grass_overlay, owner.get_child_count() );
+                self.grass_overlay.set("z_index", 2);
+                self.grass_overlay.set_position(Vector2::new(8.0, 8.0));
+
+                let player_node = unsafe { owner.get_node("/root/Game/Player").expect("Bad route to Game/Player").assume_safe().cast::<Node2D>().unwrap() };
+                player_node.set("z_index", 1);
+         
             },
-            Some(_x) => godot_print!("self.grass_overlay: {:?}", unsafe { &self.grass_overlay.get_parent().unwrap().assume_safe().name() })
+            Some(_x) => ()
         }
         // Just for debug purposes
         for children in 0..owner.get_child_count() {

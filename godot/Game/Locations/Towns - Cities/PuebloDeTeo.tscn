@@ -108,3 +108,12 @@ texture = ExtResource( 14 )
 
 [node name="TallGrass" parent="Node" instance=ExtResource( 13 )]
 position = Vector2( 183.82, 527.433 )
+
+[node name="TallGrass2" parent="Node" instance=ExtResource( 13 )]
+position = Vector2( 226.201, 527.266 )
+
+[node name="TallGrass3" parent="Node" instance=ExtResource( 13 )]
+position = Vector2( 211.852, 527.433 )
+
+[node name="TallGrass4" parent="Node" instance=ExtResource( 13 )]
+position = Vector2( 198.003, 527.433 )
