@@ -1,7 +1,7 @@
 # Pokemon Gallaecia
 Fangame, current under development. Coming soon!
 
-![Logo](https://github.com/Pyzyryab/PokemonGallaecia/blob/main/gfx/gallaecia_github.png)
+![Logo](https://github.com/Pyzyryab/PokemonGallaecia/blob/main/gfx/Misc/gallaecia_logo.png)
 
 # Disclaimer
 ## EN
