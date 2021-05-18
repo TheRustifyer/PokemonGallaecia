@@ -12,7 +12,6 @@ position = Vector2( 0.0793457, -1.02731 )
 script = ExtResource( 4 )
 
 [node name="Map" parent="." instance=ExtResource( 2 )]
-position = Vector2( -6, 0 )
 
 [node name="DayNight" type="CanvasModulate" parent="Map"]
 visible = false
@@ -23,6 +22,5 @@ color = Color( 0.2, 0.2, 0.301961, 1 )
 
 [node name="Player" parent="." instance=ExtResource( 1 )]
 light_mask = -2147483648
-position = Vector2( 379.85, 329.936 )
 z_index = 1
 script = ExtResource( 3 )

@@ -3,13 +3,12 @@ use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
 use serde::ser::Serializer;
 
-use gdnative::prelude::*;
+use gdnative::{api::RayCast2D, prelude::*};
 use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D};
 
 use crate::{game::dialogue_box::DialogueBoxStatus};
 use crate::game::code_abstractions::{
     character::CharacterMovement,
-    signals::GodotSignal,
     signals::RegisterSignal
 };
 
@@ -58,9 +57,13 @@ pub struct PlayerCharacter {
     menu_status: MenuStatus,
     dialogue_box_status: DialogueBoxStatus,
     motion: Vector2, // A Vector2, which is a Godot type, in this case, represents and tracks the (x, y) coordinates on 2D space
-    signals: HashMap<String, GodotSignal<'static>>,
-    current_position: Vector2,
-    counter: i32,
+    
+    current_position: Vector2, // Used to store data. Updated every frame with the player global position.
+    position: Vector2, // Used to simulate sliding effects, like walking on the ICE, by moving the player on his global position.
+
+    // Player Raycasts
+    blocking_raycast: Option<TRef<'static, RayCast2D>>, // Things that blocks the player movement
+    ledge_raycast: Option<TRef<'static, RayCast2D>>,
 }
 
 impl RegisterSignal<Self> for PlayerCharacter {
@@ -105,24 +108,28 @@ impl CharacterMovement<KinematicBody2D, Input>  for PlayerCharacter {
     fn move_character(&mut self, owner: &KinematicBody2D, input: &Input) 
     {
         if Input::is_action_pressed(&input, "Left") {
+            self.position.x += -16.0;
             self.motion.x = in_game_constant::VELOCITY * -1.0;
             self.motion.y = 0.0;
             self.player_status = PlayerStatus::Walking;
             owner.emit_signal("player_moving", &[]);
         } 
         else if Input::is_action_pressed(&input, "Right") {
+            self.position.x += 16.0;
             self.motion.x = in_game_constant::VELOCITY;
             self.motion.y = 0.0;
             self.player_status = PlayerStatus::Walking;
             owner.emit_signal("player_moving", &[]); 
         } 
         else if Input::is_action_pressed(&input, "Up") {
+            self.position.y += -16.0;
             self.motion.y = in_game_constant::VELOCITY * - 1.0;
             self.motion.x = 0.0;
             self.player_status = PlayerStatus::Walking;
             owner.emit_signal("player_moving", &[]);
         } 
         else if Input::is_action_pressed(&input, "Down") {
+            self.position.y += 16.0;
             self.motion.y = in_game_constant::VELOCITY;
             self.motion.x = 0.0;
             self.player_status = PlayerStatus::Walking;
@@ -142,15 +149,20 @@ impl CharacterMovement<KinematicBody2D, Input>  for PlayerCharacter {
 impl PlayerCharacter {  
 
     /// The `PlayerCharacter` constructor
-    fn new(_owner: &KinematicBody2D) -> Self {
+    fn new(owner: &KinematicBody2D) -> Self {
         Self {
             player_status: Default::default(),
+            
             menu_status: MenuStatus::Closed,
             dialogue_box_status: DialogueBoxStatus::Inactive,
+            
             motion: Vector2::new(0.0, 0.0),
-            signals: HashMap::new(),
+
             current_position: Vector2::new(0.0, 0.0),
-            counter: 0
+            position: Vector2::new(0.0, 0.0),
+
+            blocking_raycast: None,
+            ledge_raycast: None,
         }
     }
 
@@ -168,6 +180,10 @@ impl PlayerCharacter {
 
         // Connect the Player Character with the Struct that takes care about process, manage and persist PlayerCharacter data
         self.connect_to_game_data(owner);
+
+        // Sets the TRefs to the Raycast player nodes
+        self.blocking_raycast = unsafe { owner.get_node_as::<RayCast2D>("BlockingRayCast") };
+        self.ledge_raycast = unsafe { owner.get_node_as::<RayCast2D>("LedgeRayCast") };
     }
     
 
@@ -190,16 +206,25 @@ impl PlayerCharacter {
             let player_movement = owner.move_and_collide(
                 self.motion * _delta, false, false, false);
             
+                //TODO Exactly the same, but with the self.positon Vector 2 for Player in ICE
+            // let player_movement = owner.move_and_collide(
+            //     self.position * _delta , false, false, false);
+            
             self.current_position = owner.global_position();
-            self.counter += 1;
-            // owner.set_global_position(self.current_position);
-
+            
             // Check when the player press the `space bar` == "Interact" key binding. If the player isn't interacting with anything else
             // calls the `interact method`.
             if Input::is_action_just_pressed(&input, "Interact") {
                 if self.player_status != PlayerStatus::Interacting {
                     self.interact(owner, player_movement);
                 }
+            }
+
+            // Checks for jump over ledges
+            self.ledge_raycast.unwrap().set_cast_to(self.motion);
+            self.ledge_raycast.unwrap().force_raycast_update();
+            if self.ledge_raycast.unwrap().is_colliding() {
+                godot_print!("Player can jump!")
             }
         }
     }
@@ -251,6 +276,7 @@ impl PlayerCharacter {
                 let collision: TRef<KinematicCollision2D, Shared> = unsafe { collision_data.assume_safe() }; 
 
                 let coll_body: TRef<Node> = self.get_collision_body(collision);
+                godot_print!("Player colliding with: {:?}", coll_body.name());
 
                 //  Notifies the game that the player is interacting if true
                 if self.is_valid_interaction(coll_body) {

@@ -1,4 +1,5 @@
-use gdnative::{api::{AnimationPlayer, NinePatchRect, TextureRect}, prelude::*};
+use gdnative::prelude::*;
+use gdnative::api::AnimationPlayer;
 
 use crate::game::code_abstractions::signals::RegisterSignal;
 
@@ -80,8 +81,8 @@ impl TallGrass {
         }
         
         match &self.grass_overlay.get_parent() {
-
-            None => { self.grass_overlay =  unsafe { Sprite::new().assume_shared().assume_safe() };
+            None => { 
+                self.grass_overlay =  unsafe { Sprite::new().assume_shared().assume_safe() };
                 self.grass_overlay.set_name("GrassOverlay");
                 self.grass_overlay.set_texture(unsafe { self.grass_overlay_texture.as_ref().unwrap().assume_safe() });
 
@@ -92,8 +93,8 @@ impl TallGrass {
 
                 let player_node = unsafe { owner.get_node("/root/Game/Player").expect("Bad route to Game/Player").assume_safe().cast::<Node2D>().unwrap() };
                 player_node.set("z_index", 1);
-         
             },
+
             Some(_x) => ()
         }
         // Just for debug purposes
