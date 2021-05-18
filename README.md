@@ -1,18 +1,18 @@
 # Pokemon Gallaecia
 Fangame, current under development. Coming soon!
 
-![Logo](https://github.com/Pyzyryab/PokemonGallaecia/blob/main/gfx/gallaecia_github.png)
+![Logo](https://github.com/Pyzyryab/PokemonGallaecia/blob/main/gfx/Misc/gallaecia_logo.png)
 
 # Disclaimer
 ## EN
 Pokémon it's a trademark registered by The Pokémon Company. All intelectual property it's used to make a  and right are reserved to The Pokémon Company.
 All intellectual property is used to make a satirical ** non-profit ** fangame.
 
-The ultimate goals of creating this game are two:
+The ultimate goals of creating this game are:
 
-1st -> As a parody of healthy humor about Galicia, its culture, its land and its people. Made by Galicians for Galicians, but also for other players.
+1st -> As a parody of healthy humor about Galicia, its culture, its geography and its people. Made by Galicians for Galicians, but also for anyone else out there with a good humor sense.
 
-2º -> As a challenge for programming and demonstrating skills and knowledge of creators in the face of the technology industry.
+2º -> As a programming challenge, a skill coding demonstration and knowledge of creators in the face of the technology industry.
 
 There is practically no Pokémon fangame that is not made with tools such as OpenRPGMaker or similar.
 This game is coded entirely from the ground up by hand, using the `Rust` programming language, using a wrapper library (gdnative) that allows communication with the` Godot` video game engine, chosen to carry out this task.
