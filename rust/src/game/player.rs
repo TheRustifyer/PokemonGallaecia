@@ -52,18 +52,34 @@ impl PlayerData {
 #[inherit(KinematicBody2D)]
 #[register_with(Self::register_signal)]
 #[derive(Debug)]
+#[derive(Serialize, Deserialize)]
 pub struct PlayerCharacter {
+    #[serde(skip)]
     player_status: PlayerStatus,
+    #[serde(skip)]
     menu_status: MenuStatus,
+    #[serde(skip)]
     dialogue_box_status: DialogueBoxStatus,
-    motion: Vector2, // A Vector2, which is a Godot type, in this case, represents and tracks the (x, y) coordinates on 2D space
-    
-    current_position: Vector2, // Used to store data. Updated every frame with the player global position.
-    position: Vector2, // Used to simulate sliding effects, like walking on the ICE, by moving the player on his global position.
+
+    // Keyboard Input as singleton ref
+    #[serde(skip)]
+    input: Option<&'static Input>,
 
     // Player Raycasts
+    #[serde(skip)]
     blocking_raycast: Option<TRef<'static, RayCast2D>>, // Things that blocks the player movement
+    #[serde(skip)]
     ledge_raycast: Option<TRef<'static, RayCast2D>>,
+
+    // Player Tile-based movement system (under development)
+    #[serde(skip)]
+    initial_position: Vector2, 
+    #[serde(skip)]
+    input_direction: Vector2, 
+    #[serde(skip)]
+    is_moving: bool, 
+    #[serde(skip)]
+    percent_move_to_next_tile: f64,
 }
 
 impl RegisterSignal<Self> for PlayerCharacter {
@@ -102,44 +118,34 @@ impl RegisterSignal<Self> for PlayerCharacter {
     }
 }
 
-impl CharacterMovement<KinematicBody2D, Input>  for PlayerCharacter {
+impl CharacterMovement<KinematicBody2D, Input> for PlayerCharacter {
     /// The fn that manages the player motion on the `Map`, and updates the `self.player_status: PlayerStatus`, 
     /// which represents the current variant of the player different status and behaviours. 
-    fn move_character(&mut self, owner: &KinematicBody2D, input: &Input) 
-    {
-        if Input::is_action_pressed(&input, "Left") {
-            self.position.x += -16.0;
-            self.motion.x = in_game_constant::VELOCITY * -1.0;
-            self.motion.y = 0.0;
-            self.player_status = PlayerStatus::Walking;
-            owner.emit_signal("player_moving", &[]);
-        } 
-        else if Input::is_action_pressed(&input, "Right") {
-            self.position.x += 16.0;
-            self.motion.x = in_game_constant::VELOCITY;
-            self.motion.y = 0.0;
-            self.player_status = PlayerStatus::Walking;
-            owner.emit_signal("player_moving", &[]); 
-        } 
-        else if Input::is_action_pressed(&input, "Up") {
-            self.position.y += -16.0;
-            self.motion.y = in_game_constant::VELOCITY * - 1.0;
-            self.motion.x = 0.0;
-            self.player_status = PlayerStatus::Walking;
-            owner.emit_signal("player_moving", &[]);
-        } 
-        else if Input::is_action_pressed(&input, "Down") {
-            self.position.y += 16.0;
-            self.motion.y = in_game_constant::VELOCITY;
-            self.motion.x = 0.0;
-            self.player_status = PlayerStatus::Walking;
-            owner.emit_signal("player_moving", &[]); 
+    // fn move_character(&mut self, owner: &KinematicBody2D, input: &Input) 
+    fn move_player(&mut self, owner: &KinematicBody2D, delta: f32) {
+        self.percent_move_to_next_tile += in_game_constant::WALK_SPEED * delta as f64;
+
+        if self.percent_move_to_next_tile >= 1.0 {
+
+            owner.set_global_position(self.initial_position + Vector2::new(in_game_constant::TILE_SIZE * self.input_direction.x, in_game_constant::TILE_SIZE * self.input_direction.y));
+            self.percent_move_to_next_tile = 0.0;
+            self.is_moving = false;
+        } else {
+            owner.set_global_position(self.initial_position + Vector2::new(in_game_constant::TILE_SIZE * self.input_direction.x * self.percent_move_to_next_tile as f32,
+                 in_game_constant::TILE_SIZE * self.input_direction.y * self.percent_move_to_next_tile as f32));
         }
-        else {
-            self.motion.x = 0.0;
-            self.motion.y = 0.0;
-            self.player_status = PlayerStatus::Idle;
-            owner.emit_signal("player_stopped", &[]);
+    }
+
+    fn process_player_input(&mut self, owner: &KinematicBody2D, input: &Input) {
+        if self.input_direction.y == 0.0 {
+            self.input_direction.x = Input::is_action_pressed(&input, "Right") as i32 as f32 - Input::is_action_pressed(&input, "Left") as i32 as f32; 
+        }
+        if self.input_direction.x == 0.0 {
+            self.input_direction.y = Input::is_action_pressed(&input, "Down") as i32 as f32 - Input::is_action_pressed(&input, "Up") as i32 as f32;
+        }
+        if self.input_direction != Vector2::zero() {
+            self.initial_position = owner.global_position();
+            self.is_moving = true;
         }
     }
 }
@@ -149,20 +155,23 @@ impl CharacterMovement<KinematicBody2D, Input>  for PlayerCharacter {
 impl PlayerCharacter {  
 
     /// The `PlayerCharacter` constructor
-    fn new(owner: &KinematicBody2D) -> Self {
+    fn new(_owner: &KinematicBody2D) -> Self {
         Self {
             player_status: Default::default(),
             
             menu_status: MenuStatus::Closed,
             dialogue_box_status: DialogueBoxStatus::Inactive,
-            
-            motion: Vector2::new(0.0, 0.0),
 
-            current_position: Vector2::new(0.0, 0.0),
-            position: Vector2::new(0.0, 0.0),
+            input: Some(Input::godot_singleton()),
 
             blocking_raycast: None,
             ledge_raycast: None,
+
+            // Tile movement system
+            initial_position: Vector2::new(0.0, 0.0),
+            input_direction: Vector2::new(0.0, 0.0),
+            is_moving: false,
+            percent_move_to_next_tile: 0.0
         }
     }
 
@@ -172,11 +181,11 @@ impl PlayerCharacter {
         owner.add_to_group("save_game_data", false);
         
         // Retrieves the player absolute position from a JSON config file
-        self.current_position.x = utils::get_player_absolute_position().0;
-        self.current_position.y = utils::get_player_absolute_position().1;
+        self.initial_position.x = utils::get_player_absolute_position().0;
+        self.initial_position.y = utils::get_player_absolute_position().1;
 
         // Sets the retrieved position
-        owner.set_global_position(Vector2::new(self.current_position.x, self.current_position.y));
+        owner.set_global_position(Vector2::new(self.initial_position.x, self.initial_position.y));
 
         // Connect the Player Character with the Struct that takes care about process, manage and persist PlayerCharacter data
         self.connect_to_game_data(owner);
@@ -184,15 +193,14 @@ impl PlayerCharacter {
         // Sets the TRefs to the Raycast player nodes
         self.blocking_raycast = unsafe { owner.get_node_as::<RayCast2D>("BlockingRayCast") };
         self.ledge_raycast = unsafe { owner.get_node_as::<RayCast2D>("LedgeRayCast") };
+        // Sets how long is the Vector that looks for collisions on a Raycast
+        self.ledge_raycast.unwrap().set_cast_to(Vector2::new(0.0,  4.0));
     }
     
 
     #[export]
-    fn _physics_process(&mut self, owner: &KinematicBody2D, _delta: f32) {
-        // First of all, we need a reference to our singleton(scene, node, value that exists through out the game) Input 
-        let input: &Input = Input::godot_singleton();
-
-        // All Y axis motions are affected first by the gravity
+    fn _physics_process(&mut self, owner: &KinematicBody2D, delta: f32) {
+        // Y axis motions affected by gravity
         // self.apply_gravity(&owner);
         
         // Calling the method who animates the sprite when the KinematicBody2D is moving
@@ -200,32 +208,31 @@ impl PlayerCharacter {
         
         if self.player_status != PlayerStatus::Interacting {
             // Moving the player when an input is detected
-            self.move_character(&owner, &input);
-           
-            // Saving a Ref after moves the `Player`, in case of collision, player movement will store the data about that collision
-            let player_movement = owner.move_and_collide(
-                self.motion * _delta, false, false, false);
-            
-                //TODO Exactly the same, but with the self.positon Vector 2 for Player in ICE
-            // let player_movement = owner.move_and_collide(
-            //     self.position * _delta , false, false, false);
-            
-            self.current_position = owner.global_position();
-            
-            // Check when the player press the `space bar` == "Interact" key binding. If the player isn't interacting with anything else
-            // calls the `interact method`.
-            if Input::is_action_just_pressed(&input, "Interact") {
-                if self.player_status != PlayerStatus::Interacting {
-                    self.interact(owner, player_movement);
-                }
+            if self.is_moving == false {
+                self.process_player_input(owner, self.input.unwrap())
+            } else if self.input_direction != Vector2::zero() {
+                self.move_player(owner, delta);
+            } else {
+                self.is_moving = false;
             }
 
             // Checks for jump over ledges
-            self.ledge_raycast.unwrap().set_cast_to(self.motion);
             self.ledge_raycast.unwrap().force_raycast_update();
-            if self.ledge_raycast.unwrap().is_colliding() {
-                godot_print!("Player can jump!")
+            if self.ledge_raycast.unwrap().is_colliding() && Input::is_action_pressed(self.input.unwrap(), "Down"){
+                godot_print!("Player can jump!");
+                let pos_y_modifier = ( -0.96 - 0.53 * 64.0 + 0.05 * f32::powf(16.0, 2.0)) * - 1.0;
+                godot_print!("Modifier value: {:?}", &pos_y_modifier);
+                // self.position = Vector2::new(owner.global_position().x, owner.global_position().y + pos_y_modifier); 
+                // owner.set_position(self.position);
             }
+
+            // Check when the player press the `space bar` == "Interact" key binding. If the player isn't interacting with anything else
+            // calls the `interact method`.
+            // if Input::is_action_just_pressed(&input, "Interact") {
+            //     if self.player_status != PlayerStatus::Interacting {
+            //         self.interact(owner, player_movement);
+            //     }
+            // }
         }
     }
 
@@ -246,14 +253,12 @@ impl PlayerCharacter {
         match signal_info {
             "on_dialogue" => {
                 self.player_status = PlayerStatus::Interacting;
-                self.motion.x = 0.0;
-                self.motion.y = 0.0;
+                self.is_moving = false;
                 self.dialogue_box_status = DialogueBoxStatus::Active
             },
             "menu_active" => {
                 self.player_status = PlayerStatus::Interacting;
-                self.motion.x = 0.0;
-                self.motion.y = 0.0;
+                self.is_moving = false;
                 self.menu_status = MenuStatus::Open
             },
             _ => {
@@ -317,7 +322,7 @@ impl PlayerCharacter {
     ///
     /// Emit the signal "animate" and send the current player motion data for the receivers 
     fn animate_character(&self, owner: &KinematicBody2D) {
-        owner.emit_signal("animate", &[self.motion.to_variant()]);
+        owner.emit_signal("animate", &[self.input_direction.to_variant()]);
     }
 
     /// Connects the PlayerCharacter signal that transmits the current global position
@@ -329,7 +334,7 @@ impl PlayerCharacter {
 
     #[export]
     fn save_game_data(&self, owner: &KinematicBody2D) {
-        owner.emit_signal("player_position", &[(self.current_position.x, self.current_position.y).to_variant()]);
+        owner.emit_signal("player_position", &[(self.initial_position.x, self.initial_position.y).to_variant()]);
     }
 
 }

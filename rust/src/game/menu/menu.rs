@@ -12,12 +12,20 @@ pub enum MenuStatus {
     Open,
     Closed
 }
+impl Default for MenuStatus {
+    fn default() -> Self { MenuStatus::Closed }
+}
 
 #[derive(PartialEq, Clone, Debug)]
 pub enum MenuInput {
     Up,
-    Down
+    Down,
+    Idle,
 }
+impl Default for MenuInput {
+    fn default() -> Self { MenuInput::Idle }
+}
+
 #[derive(PartialEq, Clone, Debug)]
 pub enum MenuOptions {
     Pokedex,

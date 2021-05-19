@@ -5,7 +5,9 @@
 /// Character must represent any Kinematic2D Body that it's suppossed to be a human representation.
 pub mod character {
     pub trait CharacterMovement<O, I> {
-        fn move_character(&mut self, _owner: &O, input: &I);
+        fn process_player_input(&mut self, owner: &O, input: &I);
+        
+        fn move_player(&mut self, _owner: &O, delta: f32);
     }
 }
 

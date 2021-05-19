@@ -19,6 +19,9 @@ pub enum DialogueBoxStatus {
     Active,
     Inactive
 }
+impl Default for DialogueBoxStatus {
+    fn default() -> Self { DialogueBoxStatus::Inactive }
+}
 
 /// Dialogue Box it's build to manage all the text interactions in the game through the classical text box of Pokémon.
 ///

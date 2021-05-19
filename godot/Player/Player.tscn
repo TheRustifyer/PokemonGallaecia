@@ -25,10 +25,8 @@ shape = SubResource( 2 )
 [node name="PlayerAnimation" parent="." instance=ExtResource( 1 )]
 position = Vector2( 8, 8 )
 scale = Vector2( 0.5, 0.5 )
-animation = "idle back"
 
 [node name="Camera2D" type="Camera2D" parent="."]
-position = Vector2( 107.983, 64.145 )
 current = true
 zoom = Vector2( 0.35, 0.35 )
 
