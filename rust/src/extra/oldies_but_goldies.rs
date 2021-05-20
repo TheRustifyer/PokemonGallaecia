@@ -29,6 +29,15 @@ fn _on_player_input_text_entered(&self, _owner: &Node, new_text: GodotString) {
     
 }
 
+/// Returns a TRef<Node> of the body that is colliding with our player
+fn get_collision_body(&self, collision: TRef<KinematicCollision2D, Shared>) -> TRef<Node> {
+    unsafe { collision
+        .collider()
+        .unwrap()
+        .assume_safe()
+        }.cast::<Node>().unwrap()
+}
+
 
 // if Input::is_action_pressed(&input, "Jump") && owner.is_on_floor() {
 //     self.motion.y -= in_game_constant::JUMP_SPEED

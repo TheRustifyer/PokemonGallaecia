@@ -80,6 +80,8 @@ pub struct PlayerCharacter {
     is_moving: bool, 
     #[serde(skip)]
     percent_move_to_next_tile: f64,
+    #[serde(skip)]
+    jumping_over_ledge: bool,
 }
 
 impl RegisterSignal<Self> for PlayerCharacter {
@@ -132,6 +134,14 @@ impl CharacterMovement<KinematicBody2D, Input> for PlayerCharacter {
             self.initial_position = owner.global_position();
             self.is_moving = true;
         }
+        // Check when the player press the `space bar` == "Interact" key binding. If the player isn't interacting with anything else
+        // calls the `interact method`.
+        if Input::is_action_just_pressed(self.input.unwrap(), "Interact") {
+            godot_print!("Interact button pressed. PlayerStatus: {:?}", self.player_status);
+            if self.player_status != PlayerStatus::Interacting {
+                self.interact(owner, unsafe { self.blocking_raycast.unwrap().get_collider().unwrap().assume_safe().cast::<Node>().unwrap() })
+            }
+        } 
     }
 
     /// Moves the player 1 whole tile for every input command along a 2D surface
@@ -139,18 +149,71 @@ impl CharacterMovement<KinematicBody2D, Input> for PlayerCharacter {
         // Variable to store where the Raycast should point based on the player movement
         let raycast_vector_length_and_direction: Vector2 = self.input_direction * in_game_constant::TILE_SIZE / 2.0;
         // If we have Some(RayCast2D), then we can safetly operate over the pointer and set the Raycast casting direction and longitude
-        if let Some(blocking_raycast) = self.blocking_raycast {
-            blocking_raycast.set_cast_to(raycast_vector_length_and_direction);
-            blocking_raycast.force_raycast_update();
-            // If the RayCast do not detects any collision, we can move
-            if !blocking_raycast.is_colliding() {
-                self.move_character(owner, delta)
-            // If the player is colliding with somebody or some body, we handle the logic here
-            } else {
+        self.blocking_raycast.unwrap().set_cast_to(raycast_vector_length_and_direction);
+        self.blocking_raycast.unwrap().force_raycast_update();
+        self.ledge_raycast.unwrap().set_cast_to(raycast_vector_length_and_direction);
+        self.ledge_raycast.unwrap().force_raycast_update();
+
+        if (self.ledge_raycast.unwrap().is_colliding() && self.input_direction == Vector2::new(0.0, 1.0)) 
+            || self.jumping_over_ledge {
+            self.percent_move_to_next_tile += in_game_constant::JUMP_SPEED * delta as f64;
+            
+        // When jump, we want to cover a distance of 2 entire tiles
+            if self.percent_move_to_next_tile >= 2.0 {
+                owner.set_position(Vector2::new(owner.position().x, 
+                    self.initial_position.y + (self.input_direction.y * in_game_constant::TILE_SIZE * 2.0)));
+                self.percent_move_to_next_tile = 0.0;
                 self.is_moving = false;
-                godot_print!("Colliding with: {:?}", &blocking_raycast.get_collider());
+                self.jumping_over_ledge = false;
+            } else {
+                let jumping_input = in_game_constant::TILE_SIZE * self.input_direction.y * self.percent_move_to_next_tile as f32;
+                let pos_y_modifier = self.initial_position.y + (-0.96 - 0.53 * jumping_input + 0.05 * f32::powf(jumping_input, 2.0));
+                godot_print!("% move tnt: {:?}", &self.initial_position);
+                self.jumping_over_ledge = true;
+                owner.set_position(Vector2::new(owner.position().x,
+                    pos_y_modifier));
             }
+        } else if !self.blocking_raycast.unwrap().is_colliding() {
+            self.move_character(owner, delta);
+        } else {
+            self.is_moving = false;
         }
+
+        // if let Some(blocking_raycast) = self.blocking_raycast {
+        //     // Prepare the blocking Raycasts
+        //     blocking_raycast.set_cast_to(raycast_vector_length_and_direction);
+        //     blocking_raycast.force_raycast_update();
+        //     // If the RayCast do not detects any collision, we can move
+        //     if !blocking_raycast.is_colliding() {
+        //         self.move_character(owner, delta)
+        //     // If the player is colliding with somebody or some body, we handle the logic here
+        //     } else {
+        //         self.is_moving = false;
+        //         godot_print!("Colliding with: {:?}", blocking_raycast.get_collider());
+        //     }
+        // }
+        // if let Some(ledge_raycast) = self.ledge_raycast {
+        //     ledge_raycast.set_cast_to(raycast_vector_length_and_direction);
+        //     ledge_raycast.force_raycast_update();
+        //     if (ledge_raycast.is_colliding() && self.input_direction == Vector2::new(0.0, 1.0)) || self.jumping_over_ledge {
+        //         self.percent_move_to_next_tile += in_game_constant::JUMP_SPEED * delta as f64;
+        //         // When jump, we want to cover a distance of 2 entire tiles
+        //         if self.percent_move_to_next_tile >= 2.0 {
+        //             owner.set_position(Vector2::new(owner.position().x, 
+        //                 in_game_constant::TILE_SIZE * 8.0 * self.input_direction.y));
+        //             self.percent_move_to_next_tile = 0.0;
+        //             self.is_moving = false;
+        //             self.jumping_over_ledge = false;
+        //         } else {
+        //             let jumping_input = in_game_constant::TILE_SIZE * 4.0 * self.input_direction.y * self.percent_move_to_next_tile as f32;
+        //             let pos_y_modifier = self.initial_position.y + (-0.96 - 0.53 * jumping_input + 0.05 * f32::powf(jumping_input, 2.0));
+        //             godot_print!("Modifier value: {:?}", &pos_y_modifier);
+        //             self.jumping_over_ledge = true;
+        //             owner.set_position(Vector2::new(owner.position().x,
+        //                 pos_y_modifier));
+        //         }
+        //     }
+        // }
     }
 
     /// Creates a `tile based` movement for the given Kinematic Body
@@ -192,7 +255,8 @@ impl PlayerCharacter {
             initial_position: Vector2::new(0.0, 0.0),
             input_direction: Vector2::new(0.0, 0.0),
             is_moving: false,
-            percent_move_to_next_tile: 0.0
+            percent_move_to_next_tile: 0.0,
+            jumping_over_ledge: false,
         }
     }
 
@@ -214,10 +278,9 @@ impl PlayerCharacter {
         // Sets the TRefs to the Raycast player nodes
         self.blocking_raycast = unsafe { owner.get_node_as::<RayCast2D>("BlockingRayCast") };
         self.ledge_raycast = unsafe { owner.get_node_as::<RayCast2D>("LedgeRayCast") };
-        // Sets how long is the Vector that looks for collisions on a Raycast
+        // Sets how long is the Vector that looks for collisions on the ledges Raycasts
         self.ledge_raycast.unwrap().set_cast_to(Vector2::new(0.0,  4.0));
     }
-    
 
     #[export]
     fn _physics_process(&mut self, owner: &KinematicBody2D, delta: f32) {
@@ -231,27 +294,13 @@ impl PlayerCharacter {
             } else {
                 self.is_moving = false;
             }
-
             // Calling the method that animates the sprite when the KinematicBody2D is moving
             self.animate_character(&owner);
-
-            // Checks for jump over ledges
-            self.ledge_raycast.unwrap().force_raycast_update();
-            if self.ledge_raycast.unwrap().is_colliding() && Input::is_action_pressed(self.input.unwrap(), "Down"){
-                godot_print!("Player can jump!");
-                let pos_y_modifier = ( -0.96 - 0.53 * 64.0 + 0.05 * f32::powf(16.0, 2.0)) * - 1.0;
-                godot_print!("Modifier value: {:?}", &pos_y_modifier);
-                // self.position = Vector2::new(owner.global_position().x, owner.global_position().y + pos_y_modifier); 
-                // owner.set_position(self.position);
-            }
-
-            // Check when the player press the `space bar` == "Interact" key binding. If the player isn't interacting with anything else
-            // calls the `interact method`.
-            // if Input::is_action_just_pressed(&input, "Interact") {
-            //     if self.player_status != PlayerStatus::Interacting {
-            //         self.interact(owner, player_movement);
-            //     }
-            // }
+        } else {
+            // If player it's interacting, set the movement to zero...
+            self.input_direction = Vector2::zero();
+            // Notifies the PlayerAnimation class that we are IDLE 'cause interaction
+            self.animate_character(&owner);
         }
     }
 
@@ -267,7 +316,7 @@ impl PlayerCharacter {
     fn handle_interaction(&mut self, _owner: &KinematicBody2D, signal_info: String) {
         // Get a full `slice` of the parameters in order to match it with a `classical` &str
         let signal_info = &signal_info[..];
-        
+        godot_print!("Signal Info: {:?}", signal_info);
         // Matching the signal extra data
         match signal_info {
             "on_dialogue" => {
@@ -294,26 +343,11 @@ impl PlayerCharacter {
     ///
     /// If there's Some() collision, checks if the object are allowed to interact with the player.
     /// Sends a signal alerting that the player if the object has an "Interact" child.
-    fn interact(&mut self, owner: &KinematicBody2D, collision_data: Option<Ref<KinematicCollision2D>>) {
-        match collision_data {
-            Some(collision_data) => { 
-                let collision: TRef<KinematicCollision2D, Shared> = unsafe { collision_data.assume_safe() }; 
-
-                let coll_body: TRef<Node> = self.get_collision_body(collision);
-                godot_print!("Player colliding with: {:?}", coll_body.name());
-
-                //  Notifies the game that the player is interacting if true
-                if self.is_valid_interaction(coll_body) {
-                    self.player_is_interacting(owner);
-                }
-            },
-            _ => ()
+    fn interact(&mut self, owner: &KinematicBody2D, coll_body: TRef<Node>) {
+        //  Notifies the game that the player is interacting if true
+        if self.is_valid_interaction(coll_body) {
+            self.player_is_interacting(owner);
         }
-    }
-
-    /// Send the "player interacting" custom signal, that alerts that the player is currently on `PlayerStatus::Interacting` state.
-    fn player_is_interacting(&self, owner: &KinematicBody2D) {
-        owner.emit_signal("player_interacting", &[]);
     }
 
     /// Given a body that is colliding with the `Player Character`, checks if has an "Interaction" Node,
@@ -328,13 +362,9 @@ impl PlayerCharacter {
         } else { return false; }
     }
 
-    /// Returns a TRef<Node> of the body that is colliding with our player
-    fn get_collision_body(&self, collision: TRef<KinematicCollision2D, Shared>) -> TRef<Node> {
-        unsafe { collision
-            .collider()
-            .unwrap()
-            .assume_safe()
-          }.cast::<Node>().unwrap()
+    /// Send the "player interacting" custom signal, that alerts that the player is currently on `PlayerStatus::Interacting` state.
+    fn player_is_interacting(&self, owner: &KinematicBody2D) {
+        owner.emit_signal("player_interacting", &[]);
     }
 
     /// If the player character is moving, should be an animated representation.

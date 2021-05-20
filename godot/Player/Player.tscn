@@ -10,16 +10,15 @@ resource_name = "Player"
 class_name = "PlayerCharacter"
 library = ExtResource( 3 )
 
-[sub_resource type="CapsuleShape2D" id=2]
-radius = 2.66198
-height = 1.11587
+[sub_resource type="RectangleShape2D" id=2]
+extents = Vector2( 4.44588, 7.54323 )
 
 [node name="Player" type="KinematicBody2D"]
 collision_mask = 6
 script = SubResource( 1 )
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
-position = Vector2( 8, 8 )
+position = Vector2( 8.18729, 8.28093 )
 shape = SubResource( 2 )
 
 [node name="PlayerAnimation" parent="." instance=ExtResource( 1 )]
