@@ -121,21 +121,6 @@ impl RegisterSignal<Self> for PlayerCharacter {
 impl CharacterMovement<KinematicBody2D, Input> for PlayerCharacter {
     /// The fn that manages the player motion on the `Map`, and updates the `self.player_status: PlayerStatus`, 
     /// which represents the current variant of the player different status and behaviours. 
-    // fn move_character(&mut self, owner: &KinematicBody2D, input: &Input) 
-    fn move_player(&mut self, owner: &KinematicBody2D, delta: f32) {
-        self.percent_move_to_next_tile += in_game_constant::WALK_SPEED * delta as f64;
-
-        if self.percent_move_to_next_tile >= 1.0 {
-
-            owner.set_global_position(self.initial_position + Vector2::new(in_game_constant::TILE_SIZE * self.input_direction.x, in_game_constant::TILE_SIZE * self.input_direction.y));
-            self.percent_move_to_next_tile = 0.0;
-            self.is_moving = false;
-        } else {
-            owner.set_global_position(self.initial_position + Vector2::new(in_game_constant::TILE_SIZE * self.input_direction.x * self.percent_move_to_next_tile as f32,
-                 in_game_constant::TILE_SIZE * self.input_direction.y * self.percent_move_to_next_tile as f32));
-        }
-    }
-
     fn process_player_input(&mut self, owner: &KinematicBody2D, input: &Input) {
         if self.input_direction.y == 0.0 {
             self.input_direction.x = Input::is_action_pressed(&input, "Right") as i32 as f32 - Input::is_action_pressed(&input, "Left") as i32 as f32; 
@@ -147,6 +132,42 @@ impl CharacterMovement<KinematicBody2D, Input> for PlayerCharacter {
             self.initial_position = owner.global_position();
             self.is_moving = true;
         }
+    }
+
+    /// Moves the player 1 whole tile for every input command along a 2D surface
+    fn tilemove_or_collide(&mut self, owner: &KinematicBody2D, delta: f32) {
+        // Variable to store where the Raycast should point based on the player movement
+        let raycast_vector_length_and_direction: Vector2 = self.input_direction * in_game_constant::TILE_SIZE / 2.0;
+        // If we have Some(RayCast2D), then we can safetly operate over the pointer and set the Raycast casting direction and longitude
+        if let Some(blocking_raycast) = self.blocking_raycast {
+            blocking_raycast.set_cast_to(raycast_vector_length_and_direction);
+            blocking_raycast.force_raycast_update();
+            // If the RayCast do not detects any collision, we can move
+            if !blocking_raycast.is_colliding() {
+                self.move_character(owner, delta)
+            // If the player is colliding with somebody or some body, we handle the logic here
+            } else {
+                self.is_moving = false;
+                godot_print!("Colliding with: {:?}", &blocking_raycast.get_collider());
+            }
+        }
+    }
+
+    /// Creates a `tile based` movement for the given Kinematic Body
+    fn move_character(&mut self, owner: &KinematicBody2D, delta: f32) {
+        // Increment the variable that tracks the position on the road between one tile and another
+        self.percent_move_to_next_tile += in_game_constant::WALK_SPEED * delta as f64;
+        // If the player already moved an entire tile...
+        if self.percent_move_to_next_tile >= 1.0 {
+            owner.set_global_position(self.initial_position + Vector2::new(in_game_constant::TILE_SIZE * self.input_direction.x, 
+                in_game_constant::TILE_SIZE * self.input_direction.y));
+            self.percent_move_to_next_tile = 0.0; // Set to zero to be ready for the next tile movement
+            self.is_moving = false; // The player completed a whole step (moved one entire tile)
+        // Else, sets the player position to a "somewhere-in-between" point
+        } else {
+            owner.set_global_position(self.initial_position + Vector2::new(in_game_constant::TILE_SIZE * self.input_direction.x * self.percent_move_to_next_tile as f32,
+                in_game_constant::TILE_SIZE * self.input_direction.y * self.percent_move_to_next_tile as f32));
+        }    
     }
 }
 
@@ -200,21 +221,19 @@ impl PlayerCharacter {
 
     #[export]
     fn _physics_process(&mut self, owner: &KinematicBody2D, delta: f32) {
-        // Y axis motions affected by gravity
-        // self.apply_gravity(&owner);
-        
-        // Calling the method who animates the sprite when the KinematicBody2D is moving
-        self.animate_character(&owner);
-        
+        // Checks that the player it's able to move
         if self.player_status != PlayerStatus::Interacting {
             // Moving the player when an input is detected
             if self.is_moving == false {
                 self.process_player_input(owner, self.input.unwrap())
             } else if self.input_direction != Vector2::zero() {
-                self.move_player(owner, delta);
+                self.tilemove_or_collide(owner, delta);
             } else {
                 self.is_moving = false;
             }
+
+            // Calling the method that animates the sprite when the KinematicBody2D is moving
+            self.animate_character(&owner);
 
             // Checks for jump over ledges
             self.ledge_raycast.unwrap().force_raycast_update();

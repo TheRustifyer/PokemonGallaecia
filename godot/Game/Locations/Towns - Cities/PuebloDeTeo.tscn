@@ -40,6 +40,7 @@ __meta__ = {
 [node name="StaticBody2D" type="StaticBody2D" parent="Truck"]
 position = Vector2( 4, 4 )
 scale = Vector2( 2, 2 )
+collision_layer = 2
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Truck/StaticBody2D"]
 position = Vector2( -1.25, -0.25 )
@@ -92,6 +93,7 @@ position = Vector2( 2.27625, 27.0933 )
 
 [node name="StaticBody2D" type="StaticBody2D" parent="Buildings/PokemonCenterPuebloDeTeo"]
 position = Vector2( 2.22723, -0.445465 )
+collision_layer = 2
 
 [node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Buildings/PokemonCenterPuebloDeTeo/StaticBody2D"]
 polygon = PoolVector2Array( -40.3241, 31.89, -41.215, -24.6821, -31.8605, -27.5775, 26.9388, -27.5775, 30.5024, -24.4594, 34.7341, -20.0049, 34.5114, 31.6672, 32.5069, 37.4581, 7.56174, 37.6807, 7.56174, 20.3082, -11.8153, 20.0855, -11.8153, 37.6807, -35.4241, 37.9035 )

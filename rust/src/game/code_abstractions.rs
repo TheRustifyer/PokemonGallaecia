@@ -6,8 +6,10 @@
 pub mod character {
     pub trait CharacterMovement<O, I> {
         fn process_player_input(&mut self, owner: &O, input: &I);
+
+        fn tilemove_or_collide(&mut self, owner: &O, delta: f32);
         
-        fn move_player(&mut self, _owner: &O, delta: f32);
+        fn move_character(&mut self, _owner: &O, delta: f32);
     }
 }
 
