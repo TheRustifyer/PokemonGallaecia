@@ -10,6 +10,7 @@ pub mod map_elements__galicia;
 pub mod area_scene_switcher;
 pub mod tall_grass;
 pub mod grass_step_effect;
+pub mod landing_dust_effect;
 pub mod menu;
 pub mod dialogue_box;
 pub mod code_abstractions;

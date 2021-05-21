@@ -33,7 +33,7 @@ animations = [ {
 
 [node name="GrassStepEffect" type="AnimatedSprite"]
 frames = SubResource( 5 )
-frame = 3
+frame = 2
 playing = true
 centered = false
 script = ExtResource( 2 )

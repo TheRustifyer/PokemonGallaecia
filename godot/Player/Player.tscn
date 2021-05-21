@@ -1,9 +1,10 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://godot/Player/PlayerAnimation.tscn" type="PackedScene" id=1]
 [ext_resource path="res://godot/Game/Menu.tscn" type="PackedScene" id=2]
 [ext_resource path="res://godot/rust_library.gdnlib" type="GDNativeLibrary" id=3]
 [ext_resource path="res://godot/Game/Dialogue Box.tscn" type="PackedScene" id=4]
+[ext_resource path="res://gfx/Players/player_shadow.png" type="Texture" id=5]
 
 [sub_resource type="NativeScript" id=1]
 resource_name = "Player"
@@ -16,6 +17,10 @@ extents = Vector2( 4.44588, 7.54323 )
 [node name="Player" type="KinematicBody2D"]
 collision_mask = 6
 script = SubResource( 1 )
+
+[node name="Shadow" type="Sprite" parent="."]
+texture = ExtResource( 5 )
+centered = false
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 position = Vector2( 8.18729, 8.28093 )

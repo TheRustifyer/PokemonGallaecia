@@ -4,11 +4,11 @@ use serde::{Serialize, Deserialize};
 use serde::ser::Serializer;
 
 use gdnative::{api::RayCast2D, prelude::*};
-use gdnative::api::{AnimatedSprite, KinematicBody2D, KinematicCollision2D};
+use gdnative::api::{AnimatedSprite, KinematicBody2D};
 
 use crate::{game::dialogue_box::DialogueBoxStatus};
 use crate::game::code_abstractions::{
-    character::CharacterMovement,
+    character::{CharacterMovement, CharacterJump},
     signals::RegisterSignal
 };
 
@@ -70,6 +70,13 @@ pub struct PlayerCharacter {
     blocking_raycast: Option<TRef<'static, RayCast2D>>, // Things that blocks the player movement
     #[serde(skip)]
     ledge_raycast: Option<TRef<'static, RayCast2D>>,
+    // Player Shadow
+    #[serde(skip)]
+    player_shadow: Option<TRef<'static, Sprite>>,
+    #[serde(skip)]
+    landing_dust_effect_node: Option<TRef<'static, Node>>,
+    #[serde(skip)]
+    landing_dust_effect: Option<TRef<'static, AnimatedSprite>>,
 
     // Player Tile-based movement system (under development)
     #[serde(skip)]
@@ -137,7 +144,6 @@ impl CharacterMovement<KinematicBody2D, Input> for PlayerCharacter {
         // Check when the player press the `space bar` == "Interact" key binding. If the player isn't interacting with anything else
         // calls the `interact method`.
         if Input::is_action_just_pressed(self.input.unwrap(), "Interact") {
-            godot_print!("Interact button pressed. PlayerStatus: {:?}", self.player_status);
             if self.player_status != PlayerStatus::Interacting {
                 self.interact(owner, unsafe { self.blocking_raycast.unwrap().get_collider().unwrap().assume_safe().cast::<Node>().unwrap() })
             }
@@ -155,27 +161,7 @@ impl CharacterMovement<KinematicBody2D, Input> for PlayerCharacter {
         self.ledge_raycast.unwrap().force_raycast_update();
 
         if (self.ledge_raycast.unwrap().is_colliding() && self.input_direction == Vector2::new(0.0, 1.0)) || self.jumping_over_ledge {
-            self.percent_move_to_next_tile += in_game_constant::JUMP_SPEED * delta as f64;
-            // When jump, we want to cover a distance of 2 entire tiles
-            if self.percent_move_to_next_tile >= 2.0 {
-                // First, when player completes the jump, we should normalize the distance traveled by correcting the "jump simullator ecuation on the else case"
-                let mut character_position: f32 = owner.position().y.ceil();
-                while character_position % 16.0 != 0.0 { 
-                    character_position += 1.0;
-                }
-                // Now we can set the final point, where the player arrives after complete the jump
-                owner.set_position(Vector2::new(owner.position().x, character_position));
-                // Set back flags and trackers to default
-                self.percent_move_to_next_tile = 0.0;
-                self.is_moving = false;
-                self.jumping_over_ledge = false;
-            } else {
-                let jumping_input = in_game_constant::TILE_SIZE * self.input_direction.y * self.percent_move_to_next_tile as f32;
-                let jump_simullator_ecuation = self.initial_position.y + (-0.96 - 0.53 * jumping_input + 0.05 * f32::powf(jumping_input, 2.0));
-                self.jumping_over_ledge = true;
-                owner.set_position(Vector2::new(owner.position().x,
-                jump_simullator_ecuation.ceil()));
-            }
+            self.jump_over_ledge(owner, delta);
         } else if !self.blocking_raycast.unwrap().is_colliding() {
             self.move_character(owner, delta);
         } else {
@@ -201,6 +187,37 @@ impl CharacterMovement<KinematicBody2D, Input> for PlayerCharacter {
     }
 }
 
+impl CharacterJump<KinematicBody2D, Input> for PlayerCharacter {
+    fn jump_over_ledge(&mut self, owner: &KinematicBody2D, delta: f32) {
+        self.percent_move_to_next_tile += in_game_constant::JUMP_SPEED * delta as f64;
+            // When jump, we want to cover a distance of 2 entire tiles
+        if self.percent_move_to_next_tile >= 2.0 {
+            // First, when player completes the jump, we should normalize the distance traveled by correcting the "jump simullator ecuation on the else case"
+            let mut character_position: f32 = owner.position().y.ceil();
+            while character_position % 16.0 != 0.0 { 
+                character_position += 1.0;
+            }
+            // Now we can set the final point, where the player arrives after complete the jump
+            owner.set_position(Vector2::new(owner.position().x, character_position));
+            // Set back flags and trackers to default
+            self.percent_move_to_next_tile = 0.0;
+            self.is_moving = false;
+            self.jumping_over_ledge = false;
+            self.player_shadow.unwrap().set_visible(false);
+            // Manages the landing effect
+            self.landing_dust_effect(owner);
+
+        } else {
+            let jumping_input = in_game_constant::TILE_SIZE * self.input_direction.y * self.percent_move_to_next_tile as f32;
+            let jump_simullator_ecuation = self.initial_position.y + (-0.96 - 0.53 * jumping_input + 0.05 * f32::powf(jumping_input, 2.0));
+            self.jumping_over_ledge = true;
+            owner.set_position(Vector2::new(owner.position().x,
+            jump_simullator_ecuation.ceil()));
+            self.player_shadow.unwrap().set_visible(true);
+        }
+    }
+}
+
 
 #[gdnative::methods]
 impl PlayerCharacter {  
@@ -217,6 +234,9 @@ impl PlayerCharacter {
 
             blocking_raycast: None,
             ledge_raycast: None,
+            player_shadow: None,
+            landing_dust_effect_node: None,
+            landing_dust_effect: None,
 
             // Tile movement system
             initial_position: Vector2::new(0.0, 0.0),
@@ -247,6 +267,11 @@ impl PlayerCharacter {
         self.ledge_raycast = unsafe { owner.get_node_as::<RayCast2D>("LedgeRayCast") };
         // Sets how long is the Vector that looks for collisions on the ledges Raycasts
         self.ledge_raycast.unwrap().set_cast_to(Vector2::new(0.0,  4.0));
+        // Set the TRef to the player shadow
+        self.player_shadow = unsafe { owner.get_node_as::<Sprite>("Shadow") };
+        self.player_shadow.unwrap().set_visible(false); // The shadow it's only visible when the player it's jumping
+        // Load the landing dust effect
+
     }
 
     #[export]
@@ -269,6 +294,21 @@ impl PlayerCharacter {
             // Notifies the PlayerAnimation class that we are IDLE 'cause interaction
             self.animate_character(&owner);
         }
+    }
+
+    #[export]
+    fn landing_dust_effect(&mut self, owner: &KinematicBody2D) {
+        let landing_dust_effect_node = unsafe { ResourceLoader::godot_singleton()
+            .load("res://godot/Game/LandingDustEffect.tscn", "", false)
+            .unwrap().assume_safe()
+            .cast::<PackedScene>()
+            .unwrap()
+            .instance(0)
+            .unwrap().assume_safe() };
+        let landing_dust_effect = landing_dust_effect_node.cast::<AnimatedSprite>().unwrap();
+
+        owner.add_child(landing_dust_effect, true);
+        owner.move_child(landing_dust_effect, 0);
     }
 
     /// Method designed to act as an intermediary when some event blocks any action of the player.
@@ -352,7 +392,6 @@ impl PlayerCharacter {
     fn save_game_data(&self, owner: &KinematicBody2D) {
         owner.emit_signal("player_position", &[(self.initial_position.x, self.initial_position.y).to_variant()]);
     }
-
 }
 
 #[derive(NativeClass)]
