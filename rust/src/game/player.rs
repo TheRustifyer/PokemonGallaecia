@@ -154,66 +154,33 @@ impl CharacterMovement<KinematicBody2D, Input> for PlayerCharacter {
         self.ledge_raycast.unwrap().set_cast_to(raycast_vector_length_and_direction);
         self.ledge_raycast.unwrap().force_raycast_update();
 
-        if (self.ledge_raycast.unwrap().is_colliding() && self.input_direction == Vector2::new(0.0, 1.0)) 
-            || self.jumping_over_ledge {
+        if (self.ledge_raycast.unwrap().is_colliding() && self.input_direction == Vector2::new(0.0, 1.0)) || self.jumping_over_ledge {
             self.percent_move_to_next_tile += in_game_constant::JUMP_SPEED * delta as f64;
-            
-        // When jump, we want to cover a distance of 2 entire tiles
+            // When jump, we want to cover a distance of 2 entire tiles
             if self.percent_move_to_next_tile >= 2.0 {
-                owner.set_position(Vector2::new(owner.position().x, 
-                    self.initial_position.y + (self.input_direction.y * in_game_constant::TILE_SIZE * 2.0)));
+                // First, when player completes the jump, we should normalize the distance traveled by correcting the "jump simullator ecuation on the else case"
+                let mut character_position: f32 = owner.position().y.ceil();
+                while character_position % 16.0 != 0.0 { 
+                    character_position += 1.0;
+                }
+                // Now we can set the final point, where the player arrives after complete the jump
+                owner.set_position(Vector2::new(owner.position().x, character_position));
+                // Set back flags and trackers to default
                 self.percent_move_to_next_tile = 0.0;
                 self.is_moving = false;
                 self.jumping_over_ledge = false;
             } else {
                 let jumping_input = in_game_constant::TILE_SIZE * self.input_direction.y * self.percent_move_to_next_tile as f32;
-                let pos_y_modifier = self.initial_position.y + (-0.96 - 0.53 * jumping_input + 0.05 * f32::powf(jumping_input, 2.0));
-                godot_print!("% move tnt: {:?}", &self.initial_position);
+                let jump_simullator_ecuation = self.initial_position.y + (-0.96 - 0.53 * jumping_input + 0.05 * f32::powf(jumping_input, 2.0));
                 self.jumping_over_ledge = true;
                 owner.set_position(Vector2::new(owner.position().x,
-                    pos_y_modifier));
+                jump_simullator_ecuation.ceil()));
             }
         } else if !self.blocking_raycast.unwrap().is_colliding() {
             self.move_character(owner, delta);
         } else {
             self.is_moving = false;
         }
-
-        // if let Some(blocking_raycast) = self.blocking_raycast {
-        //     // Prepare the blocking Raycasts
-        //     blocking_raycast.set_cast_to(raycast_vector_length_and_direction);
-        //     blocking_raycast.force_raycast_update();
-        //     // If the RayCast do not detects any collision, we can move
-        //     if !blocking_raycast.is_colliding() {
-        //         self.move_character(owner, delta)
-        //     // If the player is colliding with somebody or some body, we handle the logic here
-        //     } else {
-        //         self.is_moving = false;
-        //         godot_print!("Colliding with: {:?}", blocking_raycast.get_collider());
-        //     }
-        // }
-        // if let Some(ledge_raycast) = self.ledge_raycast {
-        //     ledge_raycast.set_cast_to(raycast_vector_length_and_direction);
-        //     ledge_raycast.force_raycast_update();
-        //     if (ledge_raycast.is_colliding() && self.input_direction == Vector2::new(0.0, 1.0)) || self.jumping_over_ledge {
-        //         self.percent_move_to_next_tile += in_game_constant::JUMP_SPEED * delta as f64;
-        //         // When jump, we want to cover a distance of 2 entire tiles
-        //         if self.percent_move_to_next_tile >= 2.0 {
-        //             owner.set_position(Vector2::new(owner.position().x, 
-        //                 in_game_constant::TILE_SIZE * 8.0 * self.input_direction.y));
-        //             self.percent_move_to_next_tile = 0.0;
-        //             self.is_moving = false;
-        //             self.jumping_over_ledge = false;
-        //         } else {
-        //             let jumping_input = in_game_constant::TILE_SIZE * 4.0 * self.input_direction.y * self.percent_move_to_next_tile as f32;
-        //             let pos_y_modifier = self.initial_position.y + (-0.96 - 0.53 * jumping_input + 0.05 * f32::powf(jumping_input, 2.0));
-        //             godot_print!("Modifier value: {:?}", &pos_y_modifier);
-        //             self.jumping_over_ledge = true;
-        //             owner.set_position(Vector2::new(owner.position().x,
-        //                 pos_y_modifier));
-        //         }
-        //     }
-        // }
     }
 
     /// Creates a `tile based` movement for the given Kinematic Body

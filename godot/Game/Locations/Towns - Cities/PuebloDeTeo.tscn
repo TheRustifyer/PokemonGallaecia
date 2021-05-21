@@ -26,7 +26,7 @@ tile_data = PoolIntArray( 65533, 0, 0, 65534, 0, 1, 65535, 0, 1, 0, 0, 1, 1, 0, 
 
 [node name="Ledge" parent="." instance=ExtResource( 15 )]
 position = Vector2( 223.698, 527.433 )
-tile_data = PoolIntArray( -327696, 0, 0, -327695, 0, 1, -327694, 0, 1, -327693, 0, 1, -327692, 0, 1, -327691, 0, 1, -327690, 0, 1, -327689, 0, 1, -327688, 0, 1, -327687, 0, 1, -327686, 0, 1, -327685, 0, 1, -327684, 0, 2 )
+tile_data = PoolIntArray( -327687, 0, 0, -327686, 0, 1, -327685, 0, 1, -327684, 0, 2, -393216, 0, 0, -131079, 0, 0, -131078, 0, 1, -131077, 0, 1, -131076, 0, 2, -7, 0, 0, -6, 0, 1, -5, 0, 1, -4, 0, 2, 131065, 0, 0, 131066, 0, 1, 131067, 0, 1, 131068, 0, 1, 131069, 0, 2, 262137, 0, 0, 262138, 0, 1, 262139, 0, 1, 262140, 0, 1, 262141, 0, 2 )
 
 [node name="Truck" type="Sprite" parent="."]
 position = Vector2( 216, 224 )
@@ -75,9 +75,9 @@ shadow_enabled = true
 shadow_color = Color( 0.513726, 0.0823529, 0.0823529, 0 )
 
 [node name="Light2D2" type="Light2D" parent="Buildings/Apartment Building (large)"]
-position = Vector2( -494.305, 114.662 )
+position = Vector2( -491.155, 86.3138 )
 rotation = 1.59681
-scale = Vector2( 0.144338, 0.192191 )
+scale = Vector2( 0.114026, 0.196306 )
 texture = ExtResource( 11 )
 texture_scale = 2.93
 color = Color( 0.0705882, 0.419608, 0.65098, 1 )
