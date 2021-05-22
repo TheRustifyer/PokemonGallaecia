@@ -1,10 +1,9 @@
-
 /// A base blueprint that defines the behaviour of the game characters.
 ///
 /// The most basic abstraction of the game core, a character.
 /// Character must represent any Kinematic2D Body that it's suppossed to be a human representation.
 pub mod character {
-    pub trait CharacterMovement<O, I> {
+    pub trait CharacterTileMovement<O, I> {
         fn process_player_input(&mut self, owner: &O, input: &I);
 
         fn tilemove_or_collide(&mut self, owner: &O, delta: f32);
@@ -14,6 +13,8 @@ pub mod character {
 
     pub trait CharacterJump<O, I>: CharacterMovement<O, I> {
         fn jump_over_ledge(&mut self, owner: &O, delta: f32);
+
+        fn landing_dust_effect(&mut self, owner: &O);
     }
 }
 
@@ -33,7 +34,6 @@ pub mod signals {
     ///
     /// Remember to implement the `#[register_with(Self::N)]` attribute where `N` is the name of the method that is registering the signal
     pub trait RegisterSignal<T> {
-        
         /// Registers a signal on `Godot`directly from the Rust code.
         fn register_signal(_builder: &ClassBuilder<T>) -> ();
     }

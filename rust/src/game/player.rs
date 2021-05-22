@@ -8,7 +8,7 @@ use gdnative::api::{AnimatedSprite, KinematicBody2D};
 
 use crate::{game::dialogue_box::DialogueBoxStatus};
 use crate::game::code_abstractions::{
-    character::{CharacterMovement, CharacterJump},
+    character::{CharacterTileMovement, CharacterJump},
     signals::RegisterSignal
 };
 
@@ -127,7 +127,7 @@ impl RegisterSignal<Self> for PlayerCharacter {
     }
 }
 
-impl CharacterMovement<KinematicBody2D, Input> for PlayerCharacter {
+impl CharacterTileMovement<KinematicBody2D, Input> for PlayerCharacter {
     /// The fn that manages the player motion on the `Map`, and updates the `self.player_status: PlayerStatus`, 
     /// which represents the current variant of the player different status and behaviours. 
     fn process_player_input(&mut self, owner: &KinematicBody2D, input: &Input) {
@@ -216,6 +216,20 @@ impl CharacterJump<KinematicBody2D, Input> for PlayerCharacter {
             self.player_shadow.unwrap().set_visible(true);
         }
     }
+
+    fn landing_dust_effect(&mut self, owner: &KinematicBody2D) {
+        let landing_dust_effect_node = unsafe { ResourceLoader::godot_singleton()
+            .load("res://godot/Game/LandingDustEffect.tscn", "", false)
+            .unwrap().assume_safe()
+            .cast::<PackedScene>()
+            .unwrap()
+            .instance(0)
+            .unwrap().assume_safe() };
+        let landing_dust_effect = landing_dust_effect_node.cast::<AnimatedSprite>().unwrap();
+
+        owner.add_child(landing_dust_effect, true);
+        owner.move_child(landing_dust_effect, 0);
+    }
 }
 
 
@@ -296,21 +310,6 @@ impl PlayerCharacter {
         }
     }
 
-    #[export]
-    fn landing_dust_effect(&mut self, owner: &KinematicBody2D) {
-        let landing_dust_effect_node = unsafe { ResourceLoader::godot_singleton()
-            .load("res://godot/Game/LandingDustEffect.tscn", "", false)
-            .unwrap().assume_safe()
-            .cast::<PackedScene>()
-            .unwrap()
-            .instance(0)
-            .unwrap().assume_safe() };
-        let landing_dust_effect = landing_dust_effect_node.cast::<AnimatedSprite>().unwrap();
-
-        owner.add_child(landing_dust_effect, true);
-        owner.move_child(landing_dust_effect, 0);
-    }
-
     /// Method designed to act as an intermediary when some event blocks any action of the player.
     ///
     /// Ex:
@@ -323,7 +322,6 @@ impl PlayerCharacter {
     fn handle_interaction(&mut self, _owner: &KinematicBody2D, signal_info: String) {
         // Get a full `slice` of the parameters in order to match it with a `classical` &str
         let signal_info = &signal_info[..];
-        godot_print!("Signal Info: {:?}", signal_info);
         // Matching the signal extra data
         match signal_info {
             "on_dialogue" => {
