@@ -4,7 +4,7 @@
 [ext_resource path="res://godot/Game/TallGrass.gdns" type="Script" id=2]
 
 [sub_resource type="RectangleShape2D" id=1]
-extents = Vector2( 5, 5 )
+extents = Vector2( 2.11161, 1.8628 )
 
 [sub_resource type="Animation" id=2]
 resource_name = "Idle"
@@ -49,7 +49,7 @@ hframes = 2
 [node name="Area2D" type="Area2D" parent="."]
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
-position = Vector2( 8, 8 )
+position = Vector2( 7.80157, 3.53543 )
 shape = SubResource( 1 )
 
 [node name="AnimationPlayer" type="AnimationPlayer" parent="."]

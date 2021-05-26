@@ -21,8 +21,7 @@ config/icon="res://godot/icon.png"
 
 [display]
 
-window/size/width=1920
-window/size/height=1080
+window/size/height=780
 window/stretch/mode="2d"
 window/stretch/aspect="expand"
 
@@ -78,6 +77,12 @@ Enter={
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":false,"meta":false,"command":false,"pressed":false,"scancode":16777221,"unicode":0,"echo":false,"script":null)
  ]
 }
+
+[layer_names]
+
+2d_physics/layer_1="Player"
+2d_physics/layer_2="World"
+2d_physics/layer_3="Ledge"
 
 [rendering]
 

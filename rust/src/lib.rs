@@ -13,6 +13,7 @@ use game::pokemon_database::PokemonDB;
 use game::area_scene_switcher::AreaSceneSwitcher;
 use game::tall_grass::TallGrass;
 use game::grass_step_effect::GrassStepEffect;
+use game::landing_dust_effect::LandingDustEffect;
 use game::map::Map;
 use game::player::{PlayerAnimation, PlayerCharacter};
 use game::dialogue_box::DialogueBox;
@@ -42,6 +43,7 @@ fn init(handle: InitHandle) {
     handle.add_class::<AreaSceneSwitcher>();
     handle.add_class::<TallGrass>();
     handle.add_class::<GrassStepEffect>();
+    handle.add_class::<LandingDustEffect>();
     
     handle.add_class::<Menu>();
     handle.add_class::<DialogueBox>();

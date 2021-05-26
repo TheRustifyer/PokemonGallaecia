@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/icon.png-76bda4b3d2af20d82435398b18fd5d60.stex"
+path="res://.import/ledge.png-4d6d3cc4612bd46c647037c0e386dd17.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Weather/icon.png"
-dest_files=[ "res://.import/icon.png-76bda4b3d2af20d82435398b18fd5d60.stex" ]
+source_file="res://gfx/Tilemaps/WorldElements/ledge.png"
+dest_files=[ "res://.import/ledge.png-4d6d3cc4612bd46c647037c0e386dd17.stex" ]
 
 [params]
 

@@ -3,17 +3,30 @@
     "name": "",
     "player_direction": "Right",
     "player_position": {
+<<<<<<< HEAD
       "x": 128.39315795898438,
       "y": 499.2904357910156
+=======
+      "x": 112.0,
+      "y": 368.0
+>>>>>>> 876758c7a64239fdf043fa8335a9482548e8c6c3
     }
   },
   "received_signals": 2,
   "total_registered_signals": 2,
+<<<<<<< HEAD
   "number_of_process": 590,
   "current_scene_path": "res://godot/Game/Map.tscn",
   "game_external_data": {
     "todays_date": "Sábado, 15-05-2021",
     "todays_day_of_the_week": "Sábado",
+=======
+  "number_of_process": 36,
+  "current_scene_path": "res://godot/Game/Map.tscn",
+  "game_external_data": {
+    "todays_date": "Domingo, 23-05-2021",
+    "todays_day_of_the_week": "Domingo",
+>>>>>>> 876758c7a64239fdf043fa8335a9482548e8c6c3
     "current_weather": "Sun",
     "current_weather_detail": "Nubes dispersas",
     "weather_response_codes": [
