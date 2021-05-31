@@ -9,6 +9,8 @@ use crate::game::player::{PlayerData, PlayerDirection};
 
 use chrono::NaiveTime;
 
+use super::code_abstractions::database::Database;
+
 #[derive(NativeClass)]
 #[inherit(Node2D)]
 #[derive(Debug, Serialize, Deserialize)]
@@ -50,6 +52,8 @@ pub struct Game {
     input: Option<&'static Input>
 }
 
+// Impl of database will use the "default implementation in the trait methods"
+impl Database for Game {}
 
 #[gdnative::methods]
 impl Game {
@@ -81,19 +85,6 @@ impl Game {
             // Database
             database: Some(Game::get_database_as_resource())
         }
-    }
-
-    // The database is treated as a static resource
-    fn get_database_as_resource() -> TRef<'static, Node> { 
-        let db_resource = unsafe { ResourceLoader::godot_singleton()
-            .load("res://godot/Game/PokeDB.tscn", "", false)
-            .unwrap().assume_safe()
-            .cast::<PackedScene>()
-            .unwrap()
-            .instance(0)
-            .unwrap().assume_safe() };
-
-        db_resource
     }
 
     #[export]

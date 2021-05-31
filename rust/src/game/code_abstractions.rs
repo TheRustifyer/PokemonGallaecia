@@ -49,3 +49,26 @@ pub mod node_operations {
         fn get_node_reference_from_root(&mut self, owner: &T, path: &str) -> Option<Ref<Node>> ;
     }
 }
+
+pub mod database {
+    use gdnative::prelude::*;
+
+    /// Database on this game are Godot Nodes representing a classic relational DB structure
+    ///
+    /// This trait provides the methods to operate with and over the game database.
+    /// This game obviously needs a Database system, so it's fine to coerce it to make sure that implements it
+    pub trait Database {
+        // The database will be treated as a static resource
+        fn get_database_as_resource() -> TRef<'static, Node> { 
+            let db_resource = unsafe { ResourceLoader::godot_singleton()
+                .load("res://godot/Game/PokeDB.tscn", "", false)
+                .unwrap().assume_safe()
+                .cast::<PackedScene>()
+                .unwrap()
+                .instance(0)
+                .unwrap().assume_safe() };
+
+            db_resource
+        }
+    }
+}
