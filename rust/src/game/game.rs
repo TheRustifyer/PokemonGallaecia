@@ -124,7 +124,7 @@ impl Game {
         self.game_external_data.todays_date = todays_date.2;
 
         // Deactivate de main game nodes when data isn't still retrieved from the REST Api's
-        // Should this one better just as a grey screen??
+        // Should this one better just as a grey or loading screen??
         unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(false) };
         unsafe { owner.get_node_as::<Node2D>("Player").unwrap().set_visible(false) };
     }
@@ -150,11 +150,12 @@ impl Game {
         if !self.full_data_retrieved {
             let game_data: Game = utils::retrieve_game_data();
             // godot_print!("GAME DATA: {:#?}", &game_data);
+            // Care, this validation is bypassing the if-else block logics for debug purposes
             if self.game_external_data.weather_response_codes == (429, 429) || self.game_external_data.weather_response_codes != (429, 429) {
                 godot_print!("OpenWeather API limit reached. Gonna use default data!");
                 self.current_weather = Weather::Rain; //*! DEBUG!! Spawned manually to check rain conditions
-                self.game_external_data.todays_sunrise_time = "08:00:00".to_string();
-                self.game_external_data.todays_sunset_time = "21:32:50".to_string();
+                self.game_external_data.todays_sunrise_time = "08:00:00".to_string(); // Handcoded values now
+                self.game_external_data.todays_sunset_time = "21:32:50".to_string(); // IDEM
                 self.game_external_data.current_weather = "Sun".to_string(); // We don't need this anymore...
                 self.game_external_data.current_weather_detail = game_data.game_external_data.current_weather_detail;
             } else {
@@ -287,8 +288,8 @@ impl Game {
     /// from the outside world to a building interior, and VICEVERSA
     fn change_map(&mut self, owner: &Node2D, path: Variant) {
         
-        // Stores a path to a scene provided by a signal triggered for a collision between an area and a playe
-        self.current_scene_path  = path.to_string();
+        // Stores a path to a scene provided by a signal triggered for a collision between an area and a player
+        self.current_scene_path = path.to_string();
 
         // Going from outdoors to indoors...
         if self.current_scene_path.ends_with("Map.tscn") {

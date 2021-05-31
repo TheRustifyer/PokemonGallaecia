@@ -11,7 +11,7 @@ pub mod character {
         fn move_character(&mut self, _owner: &O, delta: f32);
     }
 
-    pub trait CharacterJump<O, I>: CharacterMovement<O, I> {
+    pub trait CharacterJump<O, I>: CharacterTileMovement<O, I> {
         fn jump_over_ledge(&mut self, owner: &O, delta: f32);
 
         fn landing_dust_effect(&mut self, owner: &O);
