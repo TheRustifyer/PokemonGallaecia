@@ -95,15 +95,8 @@ impl Game {
         // Load the database and add it as a node
         let database = self.database.unwrap();
         owner.add_child(database, true);
-        for num in 0..database.get_child_count() {
-            godot_print!("Database Tables {:?}", unsafe { database.get_child(num).unwrap().assume_safe().name() })
-        }
-        let pokemon_table = unsafe { database.get_child(0).unwrap().assume_safe() };
-        for num in 0..pokemon_table.get_child_count() {
-            godot_print!("Pokémon row NODE name: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().name() });
-            godot_print!("Pokémon ID: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().get("id").to_i64() })
-        }
-            
+        // Print the Database status, with tables, rows... Debug only
+        self.debug_database_info(database);
 
         // Gets references to the core nodes of the game
         self.game_node = owner.get_node(".");

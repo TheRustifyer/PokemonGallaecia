@@ -70,5 +70,16 @@ pub mod database {
 
             db_resource
         }
+
+        fn debug_database_info(&self, database: TRef<Node>) {
+            for num in 0..database.get_child_count() {
+                godot_print!("Database Tables {:?}", unsafe { database.get_child(num).unwrap().assume_safe().name() })
+            }
+            let pokemon_table = unsafe { database.get_child(0).unwrap().assume_safe() };
+            for num in 0..pokemon_table.get_child_count() {
+                godot_print!("Pokémon row NODE name: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().name() });
+                godot_print!("Pokémon ID: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().get("id").to_i64() })
+            }
+        }
     }
 }
