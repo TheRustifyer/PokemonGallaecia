@@ -52,7 +52,7 @@ pub struct Game {
     input: Option<&'static Input>
 }
 
-// Impl of database will use the "default implementation in the trait methods"
+// Impl of database will use the "default implementation of the trait methods"
 impl Database for Game {}
 
 #[gdnative::methods]
@@ -177,10 +177,10 @@ impl Game {
     fn control_day_phases(&mut self, owner: &Node2D) {
         if unsafe { self.world_map_node.unwrap().assume_safe().is_inside_tree() } {
             // Get's a reference to the CanvasModulate Day-Night simulator
-            let day_night_node = unsafe { owner.get_node_as::<CanvasModulate>("./Map/DayNight").unwrap() };
+            let day_night_node: TRef<CanvasModulate> = unsafe { owner.get_node_as::<CanvasModulate>("./Map/DayNight").unwrap() };
 
             // Current time
-            let ctime = utils::get_current_time();
+            let ctime: NaiveTime = utils::get_current_time();
             // godot_print!("CT from control_day_phases: {:?}", &ctime);
             // godot_print!("DayNightCycle: {:?}", &self.game_external_data.current_dn_cycle);
 
