@@ -4,6 +4,8 @@ import platform
 import subprocess
 import re
 
+from win10toast import ToastNotifier
+
 from rust.autocompiler import compile_rust
 
 # Getting the base details
@@ -52,6 +54,25 @@ rust_dll_path = rust_compiling_folder + '\\' + library
 # Setting our base commands, flags and paths
 subprocess_args = [command, rust_dll_path, godot_dir]
 
+# Fn that makes appear a pop-up desktop notification
+def desktop_result_notification(sucess):
+    toast = ToastNotifier()
+    icon = "ferris.ico"
+    dur = 10
+    if sucess:
+        title = "Build completed!"
+        message = "Godot-Rust has been compiled succesfully.\nGo ahead and play with your new toy."
+        toast.show_toast(title, message, icon_path=icon, duration=dur)
+
+    else:
+        title = "Build failed!"
+        message = "Something has went wrong. Ckeck stderr for more info."
+        toast.show_toast(title, message, icon_path=icon, duration=dur)
+
+    
+
+
+# The core of this mini Python library. The responsable of compile
 def replace_rust_dll():
     if OS == 'Windows':
         '''First we need to declare a new thread to make Python
@@ -79,12 +100,18 @@ def replace_rust_dll():
             print('Coping files, wait...')
             print('\t' + execution_result + f'\n\tFile: {library} to {godot_dir}')
 
+            desktop_result_notification(True)
+        
+        else:
+            desktop_result_notification(False)
+
         '''To avoid use PIPES on stdout and stderr...
         and in W10, prompt gets waiting if no PIPE de process... so...'''
         # subprocess.call(['exit'], shell=True)
 
     else:
         pass
+    
     
 if __name__ == '__main__':
     replace_rust_dll()
