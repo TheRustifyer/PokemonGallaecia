@@ -84,7 +84,7 @@ impl AreaSceneSwitcher {
     /// Connects the game data signal with the Game Node
     fn connect_signal_to_root_node(&self, owner: &Area2D) {
         let game = unsafe { owner.get_node("/root/Game").unwrap().assume_safe() };
-        owner.connect("scene_change", game, "change_map",
+        owner.connect("scene_change", game, "change_world_scene",
             VariantArray::new_shared(), 0).unwrap();
     }
 }

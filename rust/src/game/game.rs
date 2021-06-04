@@ -1,5 +1,5 @@
 use gdnative::{api::CanvasModulate, prelude::*};
-use gdnative::api::Particles2D;
+use gdnative::api::{AnimationPlayer, Particles2D};
 use gdnative::api::{HTTPClient, HTTPRequest};
 
 use serde::{Deserialize, Serialize};
@@ -8,6 +8,8 @@ use crate::utils::{consts::game_consts, networking, secret, utils};
 use crate::game::player::{PlayerData, PlayerDirection};
 
 use chrono::NaiveTime;
+
+use super::code_abstractions::database::Database;
 
 #[derive(NativeClass)]
 #[inherit(Node2D)]
@@ -19,6 +21,8 @@ pub struct Game {
     total_registered_signals: i32,
     number_of_process: i32,
 
+    // Current Scene Type
+    current_scene_type: CurrentSceneType,
     // CurrentScenePath
     current_scene_path: String,
 
@@ -50,6 +54,8 @@ pub struct Game {
     input: Option<&'static Input>
 }
 
+// Impl of database will use the "default implementation of the trait methods"
+impl Database for Game {}
 
 #[gdnative::methods]
 impl Game {
@@ -62,6 +68,8 @@ impl Game {
             total_registered_signals: 2,
             // TTimes that the process function is called
             number_of_process: 0,
+            // User define enum to represent in which type of world scene the player is
+            current_scene_type: Default::default(),
             // Default path of the game
             current_scene_path: "res://godot/Game/Map.tscn".to_string(),
             // Core nodes to track
@@ -83,19 +91,6 @@ impl Game {
         }
     }
 
-    // The database is treated as a static resource
-    fn get_database_as_resource() -> TRef<'static, Node> { 
-        let db_resource = unsafe { ResourceLoader::godot_singleton()
-            .load("res://godot/Game/PokeDB.tscn", "", false)
-            .unwrap().assume_safe()
-            .cast::<PackedScene>()
-            .unwrap()
-            .instance(0)
-            .unwrap().assume_safe() };
-
-        db_resource
-    }
-
     #[export]
     fn _ready(&mut self, owner: &Node2D) {
         owner.set_process(true);
@@ -104,15 +99,8 @@ impl Game {
         // Load the database and add it as a node
         let database = self.database.unwrap();
         owner.add_child(database, true);
-        for num in 0..database.get_child_count() {
-            godot_print!("Database Tables {:?}", unsafe { database.get_child(num).unwrap().assume_safe().name() })
-        }
-        let pokemon_table = unsafe { database.get_child(0).unwrap().assume_safe() };
-        for num in 0..pokemon_table.get_child_count() {
-            godot_print!("Pokémon row NODE name: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().name() });
-            godot_print!("Pokémon ID: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().get("id").to_i64() })
-        }
-            
+        // Print the Database status, with tables, rows... Debug only
+        self.debug_database_info(database);
 
         // Gets references to the core nodes of the game
         self.game_node = owner.get_node(".");
@@ -124,7 +112,7 @@ impl Game {
         self.game_external_data.todays_date = todays_date.2;
 
         // Deactivate de main game nodes when data isn't still retrieved from the REST Api's
-        // Should this one better just as a grey screen??
+        // Should this one better just as a grey or loading screen??
         unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(false) };
         unsafe { owner.get_node_as::<Node2D>("Player").unwrap().set_visible(false) };
     }
@@ -150,11 +138,12 @@ impl Game {
         if !self.full_data_retrieved {
             let game_data: Game = utils::retrieve_game_data();
             // godot_print!("GAME DATA: {:#?}", &game_data);
+            // ! Care, this validation is bypassing the if-else block logics for debug purposes. Remeber to change it back
             if self.game_external_data.weather_response_codes == (429, 429) || self.game_external_data.weather_response_codes != (429, 429) {
                 godot_print!("OpenWeather API limit reached. Gonna use default data!");
                 self.current_weather = Weather::Rain; //*! DEBUG!! Spawned manually to check rain conditions
-                self.game_external_data.todays_sunrise_time = "08:00:00".to_string();
-                self.game_external_data.todays_sunset_time = "21:32:50".to_string();
+                self.game_external_data.todays_sunrise_time = "08:00:00".to_string(); // Handcoded values now
+                self.game_external_data.todays_sunset_time = "21:32:50".to_string(); // IDEM
                 self.game_external_data.current_weather = "Sun".to_string(); // We don't need this anymore...
                 self.game_external_data.current_weather_detail = game_data.game_external_data.current_weather_detail;
             } else {
@@ -168,6 +157,7 @@ impl Game {
                 self.control_day_phases(owner);
                 // Loads the correct scene from where the player was the last time that saved the game
                 self.load_initial_scene(owner, game_data.current_scene_path);
+                self.current_scene_type = game_data.current_scene_type;
                 // This is where the loading screen should be working!!!
                 unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(true) };
                 unsafe { owner.get_node_as::<Node2D>("Player").unwrap().set_visible(true) };
@@ -177,11 +167,12 @@ impl Game {
                 godot_print!("Aún no se han recuperado todos los datos...");
             }
         } else {
+            // Reduces the nº of interactions, instead of every frame, every % of x
             if self.number_of_process % 100 == 0 {
-                // godot_print!("Number of process % 100: {:?}", &self.number_of_process); // Reduces the nº of interactions, instead of every frame, every % of x
+                // godot_print!("Number of process % 100: {:?}", &self.number_of_process); 
                 self.control_day_phases(owner);
                 if self.current_weather == Weather::Rain {
-                    // Basic implementation on debug!!
+                    // Basic implementation, still on debug!!
                     self.rain(owner)
                 }
             }       
@@ -192,10 +183,10 @@ impl Game {
     fn control_day_phases(&mut self, owner: &Node2D) {
         if unsafe { self.world_map_node.unwrap().assume_safe().is_inside_tree() } {
             // Get's a reference to the CanvasModulate Day-Night simulator
-            let day_night_node = unsafe { owner.get_node_as::<CanvasModulate>("./Map/DayNight").unwrap() };
+            let day_night_node: TRef<CanvasModulate> = unsafe { owner.get_node_as::<CanvasModulate>("./Map/DayNight").unwrap() };
 
             // Current time
-            let ctime = utils::get_current_time();
+            let ctime: NaiveTime = utils::get_current_time();
             // godot_print!("CT from control_day_phases: {:?}", &ctime);
             // godot_print!("DayNightCycle: {:?}", &self.game_external_data.current_dn_cycle);
 
@@ -285,18 +276,28 @@ impl Game {
     #[export]
     /// This method it's the receiver of the signal that notifies that the game detected the player on an area designed to switch him
     /// from the outside world to a building interior, and VICEVERSA
-    fn change_map(&mut self, owner: &Node2D, path: Variant) {
-        
-        // Stores a path to a scene provided by a signal triggered for a collision between an area and a playe
-        self.current_scene_path  = path.to_string();
+    fn change_world_scene(&mut self, owner: &Node2D, path: Variant) {
+        let scene_transition_animation = unsafe { owner.get_node_as::<CanvasLayer>("SceneTransition")
+            .unwrap().get_node("AnimationPlayer").unwrap().assume_safe().cast::<AnimationPlayer>().unwrap()
+        };
+
+        // Stores a path to a scene provided by a signal triggered for a collision between an area and a player
+        self.current_scene_path = path.to_string();
 
         // Going from outdoors to indoors...
         if self.current_scene_path.ends_with("Map.tscn") {
+            scene_transition_animation.play("FadeToBlack", -1.0, 0.5, false);
+
             owner.remove_child(self.current_scene.unwrap());
             owner.add_child(self.world_map_node.unwrap(), true);
-            owner.move_child(self.world_map_node.unwrap(), 0)
-        // Changing to an inside scene...
+            owner.move_child(self.world_map_node.unwrap(), 0);
+            self.current_scene_type = CurrentSceneType::Outdoors;
+            scene_transition_animation.play("FadeToNormal", -1.0, 0.5, false);
+        
+            // Changing to an inside scene...
         } else {
+            scene_transition_animation.play("FadeToBlack", -1.0, 0.5, false);
+            
             // Now let's gonna remove the Map from the SceneTree
             owner.remove_child(self.world_map_node.unwrap());
 
@@ -310,11 +311,15 @@ impl Game {
 
             // Finally we insert our new Node, setting Game as it's parent
             owner.add_child(self.current_scene.unwrap(), false);
+            // unsafe { owner.call_deferred("add_child", &[self.current_scene.unwrap().to_variant()]) };
             unsafe { self.current_scene.unwrap().assume_safe().set_owner(self.game_node.unwrap()) };
             
             // To render the Nodes for it's correct superposition one over another, let's move the 
             // new inserted child to the position that fits the "surface" drawing role.
-            owner.move_child(self.current_scene.unwrap(), 0)
+            owner.move_child(self.current_scene.unwrap(), 0);   
+
+            self.current_scene_type = CurrentSceneType::Indoors;
+            scene_transition_animation.play("FadeToNormal", -1.0, 0.5, false);
         }
     }
 
@@ -478,6 +483,21 @@ impl GameExternalData {
     }
 }
 
+
+
+#[derive(PartialEq, Clone, Debug, ToVariant, Serialize, Deserialize)]
+pub enum CurrentSceneType {
+    Indoors,
+    Outdoors,
+    Battle,
+    NoData
+}
+
+impl Default for CurrentSceneType {
+    fn default() -> Self { CurrentSceneType::NoData }
+}
+
+
 #[derive(PartialEq, Clone, Debug, ToVariant, Serialize, Deserialize)]
  pub enum Weather {
     Thunderstorm, // 2xx
@@ -491,6 +511,7 @@ impl GameExternalData {
  impl Default for Weather {
     fn default() -> Self { Weather::Sun }
 }
+
 
 #[derive(PartialEq, Clone, Debug, ToVariant, Serialize, Deserialize)]
 pub enum DayNightCycle {

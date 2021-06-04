@@ -120,7 +120,6 @@ impl DialogueBox {
                 // Get the text to print from the struct attribute
                 // Due to we need to access it's methods, we need to assume same to get a TRef<T>, where it's methods belong
                 let dialogue_text_label = unsafe { self.dialogue_text_label.unwrap().assume_safe() };
-                // let _player_ref = unsafe { self.player_ref.unwrap().assume_safe() };
 
                 // Then, we should make visible the Pokémon Dialog Box
                 _owner.set_visible(true);

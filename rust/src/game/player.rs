@@ -55,6 +55,7 @@ impl PlayerData {
 #[derive(Serialize, Deserialize)]
 pub struct PlayerCharacter {
     #[serde(skip)]
+    #[export]
     player_status: PlayerStatus,
     #[serde(skip)]
     menu_status: MenuStatus,
@@ -284,8 +285,6 @@ impl PlayerCharacter {
         // Set the TRef to the player shadow
         self.player_shadow = unsafe { owner.get_node_as::<Sprite>("Shadow") };
         self.player_shadow.unwrap().set_visible(false); // The shadow it's only visible when the player it's jumping
-        // Load the landing dust effect
-
     }
 
     #[export]
@@ -306,7 +305,7 @@ impl PlayerCharacter {
             // If player it's interacting, set the movement to zero...
             self.input_direction = Vector2::zero();
             // Notifies the PlayerAnimation class that we are IDLE 'cause interaction
-            self.animate_character(&owner);
+            self.animate_character(&owner); // <- Player interacting
         }
     }
 

@@ -9,17 +9,17 @@ extents = Vector2( 22.6417, 8.03357 )
 [node name="InteriorPokemonCenterPuebloDeTeo" type="Node2D"]
 
 [node name="Interior" type="Sprite" parent="."]
-position = Vector2( 200.647, 372.189 )
-scale = Vector2( 1.40502, 1.35304 )
+position = Vector2( 200, 368 )
 texture = ExtResource( 1 )
 
 [node name="Exit" type="Node2D" parent="."]
 
 [node name="Area2D" parent="Exit" instance=ExtResource( 2 )]
 position = Vector2( 202.359, 480.496 )
+monitorable = false
 
 [node name="CollisionShape2D" parent="Exit/Area2D" index="0"]
-position = Vector2( -1.42764, -8.17134 )
+position = Vector2( -2.35899, -32.496 )
 shape = SubResource( 1 )
 
 [editable path="Exit/Area2D"]

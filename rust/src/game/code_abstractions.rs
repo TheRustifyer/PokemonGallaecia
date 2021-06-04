@@ -11,6 +11,7 @@ pub mod character {
         fn move_character(&mut self, _owner: &O, delta: f32);
     }
 
+    // Supertrait. Child of CharacterTileMovement. A Pokémon jump it's usually 2 tiles
     pub trait CharacterJump<O, I>: CharacterTileMovement<O, I> {
         fn jump_over_ledge(&mut self, owner: &O, delta: f32);
 
@@ -47,5 +48,39 @@ pub mod node_operations {
         /// Given a reference to _owner<T>, (&owner) and a path **from the root** to a Node, brings back a 
         /// Ref<T> to the desired node.
         fn get_node_reference_from_root(&mut self, owner: &T, path: &str) -> Option<Ref<Node>> ;
+    }
+}
+
+pub mod database {
+    use gdnative::prelude::*;
+
+    /// Database on this game are Godot Nodes representing a classic relational DB structure
+    ///
+    /// This trait provides the methods to operate with and over the game database.
+    /// This game obviously needs a Database system, so it's fine to coerce it to make sure that implements it
+    pub trait Database {
+        // The database will be treated as a static resource
+        fn get_database_as_resource() -> TRef<'static, Node> { 
+            let db_resource = unsafe { ResourceLoader::godot_singleton()
+                .load("res://godot/Game/PokeDB.tscn", "", false)
+                .unwrap().assume_safe()
+                .cast::<PackedScene>()
+                .unwrap()
+                .instance(0)
+                .unwrap().assume_safe() };
+
+            db_resource
+        }
+
+        fn debug_database_info(&self, database: TRef<Node>) {
+            for num in 0..database.get_child_count() {
+                godot_print!("Database Tables {:?}", unsafe { database.get_child(num).unwrap().assume_safe().name() })
+            }
+            let pokemon_table = unsafe { database.get_child(0).unwrap().assume_safe() };
+            for num in 0..pokemon_table.get_child_count() {
+                godot_print!("Pokémon row NODE name: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().name() });
+                godot_print!("Pokémon ID: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().get("id").to_i64() })
+            }
+        }
     }
 }
