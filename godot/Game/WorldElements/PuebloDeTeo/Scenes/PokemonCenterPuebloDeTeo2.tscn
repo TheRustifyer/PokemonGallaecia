@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://godot/Game/SceneSwitcher.tscn" type="PackedScene" id=1]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Businesses/Pokemon Center.png" type="Texture" id=3]
+
+[node name="PokemonCenterPuebloDeTeo2" type="Sprite"]
+position = Vector2( 360, 296 )
+texture = ExtResource( 3 )
+__meta__ = {
+"_edit_group_": true
+}
+
+[node name="Area2D" parent="." instance=ExtResource( 1 )]
+position = Vector2( 2.27625, 27.0933 )
+
+[node name="StaticBody2D" type="StaticBody2D" parent="."]
+position = Vector2( 2.22723, -0.445465 )
+collision_layer = 2
+
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="StaticBody2D"]
+polygon = PoolVector2Array( -40.3241, 31.89, -41.215, -24.6821, -31.8605, -27.5775, 26.9388, -27.5775, 30.5024, -24.4594, 34.7341, -20.0049, 34.5114, 31.6672, 32.5069, 37.4581, 7.56174, 37.6807, 7.56174, 20.3082, -11.8153, 20.0855, -11.8153, 37.6807, -35.4241, 37.9035 )

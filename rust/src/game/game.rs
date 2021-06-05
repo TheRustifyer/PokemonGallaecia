@@ -284,13 +284,16 @@ impl Game {
         // Stores a path to a scene provided by a signal triggered for a collision between an area and a player
         self.current_scene_path = path.to_string();
 
-        // Going from outdoors to indoors...
+        // Going from indoors to outdoors...
         if self.current_scene_path.ends_with("Map.tscn") {
             scene_transition_animation.play("FadeToBlack", -1.0, 0.5, false);
 
             owner.remove_child(self.current_scene.unwrap());
-            owner.add_child(self.world_map_node.unwrap(), true);
+            unsafe { self.current_scene.unwrap().assume_safe().queue_free() };
+
+            unsafe { owner.call_deferred("add_child", &[self.world_map_node.unwrap().to_variant()]) };
             owner.move_child(self.world_map_node.unwrap(), 0);
+            
             self.current_scene_type = CurrentSceneType::Outdoors;
             scene_transition_animation.play("FadeToNormal", -1.0, 0.5, false);
         

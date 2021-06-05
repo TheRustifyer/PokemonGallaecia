@@ -50,6 +50,8 @@ impl AreaSceneSwitcher {
         //
         owner.add_to_group("save_game_data", false);
         //
+        // owner.area_set
+        //
         self.connect_signal_to_root_node(owner);
 
         //Name of the parent object that this Area2D is attached
@@ -69,8 +71,7 @@ impl AreaSceneSwitcher {
             self.scene_to_switch = "res://godot/Game/Map.tscn".to_string();
         } else {
             self.scene_to_switch = "res://godot/Game/WorldElements/".to_string() + 
-                &self.owner_node + &"/Scenes".to_string() + &"/Interior".to_string() + 
-                &self.parent_name + &".tscn".to_string();
+                &self.owner_node + &"/Scenes".to_string() + &"/Interior".to_string() + &self.parent_name + &".tscn".to_string();
         } 
     }
 
