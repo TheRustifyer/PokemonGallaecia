@@ -3,13 +3,13 @@
     "name": "",
     "player_direction": "Left",
     "player_position": {
-      "x": 96.0,
+      "x": 32.0,
       "y": 430.9726867675781
     }
   },
   "received_signals": 2,
   "total_registered_signals": 2,
-  "number_of_process": 340,
+  "number_of_process": 278,
   "current_scene_type": "NoData",
   "current_scene_path": "res://godot/Game/Map.tscn",
   "game_external_data": {

@@ -277,6 +277,7 @@ impl Game {
     /// This method it's the receiver of the signal that notifies that the game detected the player on an area designed to switch him
     /// from the outside world to a building interior, and VICEVERSA
     fn change_world_scene(&mut self, owner: &Node2D, path: Variant) {
+        // Gets a TRef to the Node that makes the transition between scenes animation
         let scene_transition_animation = unsafe { owner.get_node_as::<CanvasLayer>("SceneTransition")
             .unwrap().get_node("AnimationPlayer").unwrap().assume_safe().cast::<AnimationPlayer>().unwrap()
         };
@@ -288,21 +289,19 @@ impl Game {
         if self.current_scene_path.ends_with("Map.tscn") {
             scene_transition_animation.play("FadeToBlack", -1.0, 0.5, false);
 
-            owner.remove_child(self.current_scene.unwrap());
-            unsafe { self.current_scene.unwrap().assume_safe().queue_free() };
+            unsafe { owner.call_deferred("remove_child", &[self.current_scene.unwrap().to_variant()]) };
 
             unsafe { owner.call_deferred("add_child", &[self.world_map_node.unwrap().to_variant()]) };
-            owner.move_child(self.world_map_node.unwrap(), 0);
             
             self.current_scene_type = CurrentSceneType::Outdoors;
-            scene_transition_animation.play("FadeToNormal", -1.0, 0.5, false);
+            scene_transition_animation.play("FadeToNormal", -1.0, 1.0, false);
         
-            // Changing to an inside scene...
+        // Changing to an inside scene...
         } else {
             scene_transition_animation.play("FadeToBlack", -1.0, 0.5, false);
             
             // Now let's gonna remove the Map from the SceneTree
-            owner.remove_child(self.world_map_node.unwrap());
+            unsafe { owner.call_deferred("remove_child", &[self.world_map_node.unwrap().to_variant()]) };
 
             // In order to go to a new scene, we must first load it as a resource
             let new_scene = ResourceLoader::godot_singleton()
@@ -311,18 +310,22 @@ impl Game {
             // Convert the scene resource to a Node
             self.current_scene = unsafe { 
                 new_scene.assume_safe().cast::<PackedScene>().unwrap().instance(0) };
-
-            // Finally we insert our new Node, setting Game as it's parent
-            owner.add_child(self.current_scene.unwrap(), false);
-            // unsafe { owner.call_deferred("add_child", &[self.current_scene.unwrap().to_variant()]) };
-            unsafe { self.current_scene.unwrap().assume_safe().set_owner(self.game_node.unwrap()) };
             
-            // To render the Nodes for it's correct superposition one over another, let's move the 
-            // new inserted child to the position that fits the "surface" drawing role.
-            owner.move_child(self.current_scene.unwrap(), 0);   
-
+            // Finally we insert our new Node, setting Game as it's parent
+            unsafe { owner.call_deferred("add_child", &[self.current_scene.unwrap().to_variant()]) };
+            //Sets what type of scene it's being player now
             self.current_scene_type = CurrentSceneType::Indoors;
-            scene_transition_animation.play("FadeToNormal", -1.0, 0.5, false);
+            // Gets back the screen without fades
+            scene_transition_animation.play("FadeToNormal", -1.0, 1.0, false);
+
+            // ! Normalize node position, relative to player. Here, for every new indoors scene that it's being player, 
+            // automatically moves it (set it's position) taking the player position as reference and then modifing with certain offset.
+            // Indoors scenes in Pokémon usually starts on a red carpet, spawing the player there, so basically we are moving the scene to fit that condition.
+            let player_pos = unsafe { owner.get_node("Player").unwrap().assume_safe().cast::<KinematicBody2D>().unwrap().position() };
+            unsafe { self.current_scene.unwrap().assume_safe().cast::<Node2D>().unwrap().set_position(
+                player_pos - Vector2::new(192.5, 422.0)
+            ) };
+                
         }
     }
 
@@ -438,14 +441,17 @@ impl Game {
             self.game_external_data.current_weather_detail = utils::uppercase_first_letter(current_weather_detail);
         }
 
-        // HERE SHOULD GO THE MATCING EVENT FOR THE ACTUAL WEATHER CONDITIONS...
+        // HERE SHOULD GO THE MATCHING EVENT FOR THE ACTUAL WEATHER CONDITIONS...
     }
 
     // <------------------------- WEATHER CONTROL ----------------------->
     #[export]
     fn rain(&mut self, owner: &Node2D) {
-        let weather_node = unsafe { owner.get_node_as::<Particles2D>("Map/PuebloDeTeo/Rain").unwrap() };
-        weather_node.set_emitting(true);
+        if self.current_scene_type != CurrentSceneType::Indoors {
+            if let Some(weather_node) = unsafe { owner.get_node_as::<Particles2D>("Map/PuebloDeTeo/Rain") } {
+                weather_node.set_emitting(true)
+            }
+        }   
     }
 
  }
