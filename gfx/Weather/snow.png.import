@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/snow.png-97e5332734ab5bae2e84f50e56977ba9.stex"
+path="res://.import/snow.png-0bf7f5252bde9f6010e6e0511a591549.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Weather/assets/snow.png"
-dest_files=[ "res://.import/snow.png-97e5332734ab5bae2e84f50e56977ba9.stex" ]
+source_file="res://gfx/Weather/snow.png"
+dest_files=[ "res://.import/snow.png-0bf7f5252bde9f6010e6e0511a591549.stex" ]
 
 [params]
 

@@ -2,15 +2,15 @@
 
 importer="texture"
 type="StreamTexture"
-path="res://.import/rain.png-0d0d4af7697af89a5c53ce7d5af0ba43.stex"
+path="res://.import/rain.png-014392410938b275b9f1c036779defe9.stex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://Weather/assets/rain.png"
-dest_files=[ "res://.import/rain.png-0d0d4af7697af89a5c53ce7d5af0ba43.stex" ]
+source_file="res://gfx/Weather/rain.png"
+dest_files=[ "res://.import/rain.png-014392410938b275b9f1c036779defe9.stex" ]
 
 [params]
 
