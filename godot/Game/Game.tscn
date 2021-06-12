@@ -45,6 +45,7 @@ script = ExtResource( 4 )
 position = Vector2( -0.0793457, 1.02731 )
 
 [node name="DayNight" type="CanvasModulate" parent="Map"]
+visible = false
 light_mask = -2147483647
 position = Vector2( 3.88107, 1.5892 )
 z_index = -1

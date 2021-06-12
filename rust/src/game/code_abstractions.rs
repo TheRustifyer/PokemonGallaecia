@@ -84,3 +84,47 @@ pub mod database {
         }
     }
 }
+
+pub mod dialogue_connections {
+
+    use gdnative::prelude::*;
+    /// Trait with the methods that allows a Node to print text on the Pokémon Dialogue Box and to spawn interactive dialogues based on elections
+    ///
+    /// This traits provides a default method implementation, allowing to reduce the amount of code necessary for the hundreds of Nodes with interactions,
+    /// and every node with a text to print should implements this methods
+    pub trait DialogueBoxActions {
+
+        /// Method designed for connect the player with an element with an interaction
+        /// 
+        /// When player collides with an object (Node) that has an interaction, player emits a signal that triggers the
+        /// emit object signal
+        fn connect_to_player(&self, _owner: TRef<Sprite>) {
+            let player_signal = unsafe { Node::get_tree(&_owner).unwrap()
+                .assume_safe().root()
+                .unwrap().assume_safe()
+                .get_node("Game/Player")
+                .unwrap().assume_safe() };
+
+                player_signal.connect("player_interacting", _owner, 
+                "emit_object_signal", VariantArray::new_shared(), 0).unwrap();
+        }
+
+        /// Connects the Node that implements this trait and uses th
+        fn connect_signal_to_dialogue_box(&self, _owner: &Sprite) {
+            let receiver = unsafe { Node::get_tree(_owner).unwrap()
+                .assume_safe().root()
+                .unwrap().assume_safe()
+                .get_node("Game/Player/Camera2D/CanvasLayer/DialogueBox")
+                .unwrap().assume_safe() };
+            
+            
+            let my_signal_connected = _owner.connect("print_to_dialogue_box", 
+            receiver, "_print_dialogue", VariantArray::new_shared(), 0);
+        
+            match my_signal_connected {
+                Ok(()) => my_signal_connected.unwrap(),
+                Err(e) => godot_error!("{}", e)
+            };   
+        }
+    }
+}

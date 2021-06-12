@@ -7,7 +7,7 @@
 extents = Vector2( 22.6417, 8.03357 )
 
 [node name="InteriorPokemonCenterPuebloDeTeo" type="Node2D"]
-position = Vector2( -16, -192 )
+position = Vector2( 16, -208 )
 __meta__ = {
 "_edit_group_": true
 }

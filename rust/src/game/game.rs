@@ -305,7 +305,7 @@ impl Game {
 
             // In order to go to a new scene, we must first load it as a resource
             let new_scene = ResourceLoader::godot_singleton()
-            .load(path.to_string(), "", false).unwrap();
+                .load(path.to_string(), "", false).unwrap();
 
             // Convert the scene resource to a Node
             self.current_scene = unsafe { 
@@ -317,7 +317,7 @@ impl Game {
             self.current_scene_type = CurrentSceneType::Indoors;
             // Gets back the screen without fades
             scene_transition_animation.play("FadeToNormal", -1.0, 1.0, false);
-
+            
             // ! Normalize node position, relative to player. Here, for every new indoors scene that it's being player, 
             // automatically moves it (set it's position) taking the player position as reference and then modifing with certain offset.
             // Indoors scenes in Pokémon usually starts on a red carpet, spawing the player there, so basically we are moving the scene to fit that condition.

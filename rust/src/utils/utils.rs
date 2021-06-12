@@ -119,7 +119,7 @@ pub fn set_label_text(_owner: &Node, _label_path: &String, text: &String) {
         set_text(text);
 }
 
-/// Convenient function to change scene just passing the _owner and a path as a String
+/// Convenient function to change scene just passing the `owner` and a `path` as a String
 pub fn change_scene(_owner: &Node, next_scene_path: String) -> () {
     
     let scene_tree_ref = 

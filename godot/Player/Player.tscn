@@ -51,8 +51,17 @@ anchor_left = 0.226042
 anchor_top = 0.857407
 anchor_right = 0.773958
 anchor_bottom = 0.967593
-margin_right = 0.0
-margin_bottom = 0.0
+margin_left = -0.46701
+margin_top = 0.222534
+margin_right = -0.53302
+margin_bottom = 12.2775
+
+[node name="Cursor" parent="Camera2D/CanvasLayer/DialogueBox" index="1"]
+position = Vector2( 384.837, 38.6851 )
+
+[node name="Arrow" parent="Camera2D/CanvasLayer/DialogueBox/Cursor" index="0"]
+position = Vector2( 138.068, 30.1738 )
+scale = Vector2( 1.23338, 0.929566 )
 
 [node name="LedgeRayCast" type="RayCast2D" parent="."]
 position = Vector2( 8, 8 )
@@ -64,3 +73,5 @@ position = Vector2( 8, 8 )
 cast_to = Vector2( 0, 8 )
 collision_mask = 6
 [connection signal="animate" from="." to="PlayerAnimation" method="_on_player_animate"]
+
+[editable path="Camera2D/CanvasLayer/DialogueBox"]

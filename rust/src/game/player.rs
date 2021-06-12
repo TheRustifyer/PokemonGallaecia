@@ -146,7 +146,11 @@ impl CharacterTileMovement<KinematicBody2D, Input> for PlayerCharacter {
         // calls the `interact method`.
         if Input::is_action_just_pressed(self.input.unwrap(), "Interact") {
             if self.player_status != PlayerStatus::Interacting {
-                self.interact(owner, unsafe { self.blocking_raycast.unwrap().get_collider().unwrap().assume_safe().cast::<Node>().unwrap() })
+                if let Some(collider) = self.blocking_raycast.unwrap().get_collider() {
+                    if let Some(interaction) = unsafe { collider.assume_safe().cast::<Node>() } {
+                        self.interact(owner, interaction)
+                    }
+                }
             }
         } 
     }

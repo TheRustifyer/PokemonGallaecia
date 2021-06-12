@@ -3,6 +3,8 @@ use crate::game::code_abstractions::{
     node_operations::NodeReferences
 };
 
+use gdnative::api::AnimatedSprite;
+use gdnative::api::AnimationPlayer;
 use gdnative::prelude::*;
 use gdnative::{api::RichTextLabel, api::NinePatchRect};
 
@@ -12,8 +14,6 @@ const DIALOGUE_SPEED: f64 = 0.05;
 ///
 /// Active -> Dialogue Box is printing text and is visible on the screen
 /// Inactive -> The dialogue box has his visible property setted to `hidden`, so isn't appearing on the screen.
-///
-///  That's what this two Variants represents.
 #[derive(PartialEq, Clone, Debug)]
 pub enum DialogueBoxStatus {
     Active,
@@ -35,10 +35,15 @@ pub struct DialogueBox {
     timer: f64,
     text_to_print: String,
     current_char: i32,
+    current_line: i32,
+    current_line_bound: i32,
+    total_lines: i32,
     dialogue_text_label: Option<Ref<RichTextLabel>>,
     player_ref: Option<Ref<Node>>,
     dialogue_box_status: DialogueBoxStatus,
     times_pressed_interact: i32,
+    // Gets an input singleton to point to the input events
+    input: &'static Input
 }
 
 impl RegisterSignal<Self> for DialogueBox {
@@ -75,10 +80,14 @@ impl DialogueBox {
             timer: 0.0,
             text_to_print: Default::default(),
             current_char: 0,
+            current_line: 1,
+            current_line_bound: 3,
+            total_lines: 0,
             dialogue_text_label: None,
             player_ref: None,
             dialogue_box_status: DialogueBoxStatus::Inactive,
             times_pressed_interact: 0,
+            input: Input::godot_singleton(),
         } 
     }
 
@@ -93,17 +102,18 @@ impl DialogueBox {
 
         // Retrieves a Ref<T> of the player character that notifies if the DialogueBox is running
         // This will be called to manage if player can move again or it's reading the label
-        self.player_ref = self.get_node_reference_from_root(
-            &owner, "Game/Player"
-        );
+        self.player_ref = self.get_node_reference_from_root(&owner, "Game/Player");
 
         // Call the function that connect the signals of this struct with the player character
         self.connect_to_player(owner);
+
+        // The **lines** of the text that will be printed
+        self.total_lines = unsafe {self.dialogue_text_label.unwrap().assume_safe().get_line_count() as i32};
     }
 
     #[export]
     fn _process(&mut self, _owner: &NinePatchRect, _delta: f64) {
-        
+
         // If the `printing` flag is true means that the `_print_dialogue` method was triggered by a signal binding
         if self.printing {
             self.timer += _delta; // Uses a timer as a "time handler", using delta to set it's value
@@ -126,47 +136,82 @@ impl DialogueBox {
                 
                 // Nested IF block. When code reaches this point basically we gonna check if there are still remaining characters to print.
                 // If there still characters, we iterate to append to the label the next item
-                if self.current_char < self.text_to_print.len() as i32 - 1 {                       
-                    dialogue_text_label.set_bbcode(dialogue_text_label.bbcode() + 
-                        GodotString::from(String::from(self.text_to_print.chars().nth(self.current_char as usize).expect("No more chars to print"))));                       
-                    // Go next character next time
-                    self.current_char += 1;
+                if self.current_char < self.text_to_print.len() as i32 {
 
+                    let arrow_sprite = unsafe { _owner.get_node("Cursor/Arrow")
+                    .unwrap().assume_safe().cast::<AnimatedSprite>().unwrap() };
+                    
+                    if self.current_line < self.current_line_bound {
+                        self.printer(dialogue_text_label);
+
+                    } else {
+                        arrow_sprite.set_visible(true);
+                        arrow_sprite.play("", false);
+
+                        if Input::is_action_pressed(&self.input, "Interact") {
+                            dialogue_text_label.scroll_to_line(self.current_line as i64 - 1);
+                            self.current_line_bound += 1;
+                            arrow_sprite.stop();
+                            arrow_sprite.set_visible(false);
+                        }
+                    }
+                    
                 // but if all characters are printed, wait for the player that with one more interaction button press,
                 // closes the label
                 } else {
-                    // Gets an input singleton to point to the input events
-                    let input: &Input = Input::godot_singleton();
-                    
-                    if Input::is_action_pressed(&input, "Interact") {
-                        self.times_pressed_interact += 1;
-                    
-                        // Just checks if the player pressed the interact button **when all the characters are already printed**.
-                        if self.times_pressed_interact >= 1 {
-                            // Hides the `DialogueBox`
-                            _owner.set_visible(false);
-                            // Reset the internal values of the inside label to the first ones, let it ready for next interaction...
-                            self.set_empty_dialogue_box(dialogue_text_label);
-                            // Notifies all listeners the status of the DialogueBox
-                            _owner.emit_signal("dialogue_box_inactive", &[Variant::from_godot_string(
-                                &GodotString::from_str(""))]);
-                            // Restart the interact when all char printed to zero for the next time
-                            self.times_pressed_interact = 0;
-                            // Saves the current status of the DialogueBox for data management
-                            self.dialogue_box_status = DialogueBoxStatus::Inactive
-                        }
-                    }
-                } 
+                    self.finish_dialogue(_owner, dialogue_text_label)
+                }
+            }
+        }
+    }
+
+    fn printer(&mut self, dialogue_text_label: TRef<RichTextLabel>) {
+
+        if let Some(current_char_to_print) = self.text_to_print.chars().nth(self.current_char as usize) {
+            
+            if current_char_to_print == '\n' {
+                self.current_line += 1;
+            }
+
+            dialogue_text_label.set_bbcode(dialogue_text_label.bbcode() + 
+            GodotString::from(String::from(current_char_to_print)));
+        }
+                                
+        // Go next character next time
+        self.current_char += 1;
+    }
+
+    // Method for end the dialogue when there's no more text to print
+    fn finish_dialogue(&mut self, owner: &NinePatchRect, dialogue_text_label: TRef<RichTextLabel>) {
+                
+        if Input::is_action_pressed(&self.input, "Interact") {
+            self.times_pressed_interact += 1;
+            
+            // Just checks if the player pressed the interact button **when all the characters are already printed**.
+            if self.times_pressed_interact >= 1 {
+                // Hides the `DialogueBox`
+                owner.set_visible(false);
+                // Reset the internal values of the inside label to the first ones, let it ready for next interaction...
+                self.set_empty_dialogue_box(dialogue_text_label);
+                // Notifies all listeners the status of the DialogueBox
+                owner.emit_signal("dialogue_box_inactive", &[Variant::from_godot_string(
+                    &GodotString::from_str(""))]);
+                // Restart the interact when all char printed to zero for the next time
+                self.times_pressed_interact = 0;
+                // Saves the current status of the DialogueBox for data management
+                self.dialogue_box_status = DialogueBoxStatus::Inactive
             }
         }
     }
     
-    /// Sets the text label inside the Pokémon dialogue box to the initial status
+    /// Sets the text label inside the Pokémon dialogue box to the initial status and all the variables that tracks it's status
     fn set_empty_dialogue_box(&mut self, dialogue_text_label: TRef<RichTextLabel>) {
         self.current_char = 0;
         self.printing = false;
         self.timer = 0.0;
         dialogue_text_label.set_bbcode("");
+        self.current_line = 1;
+        self.current_line_bound = 3;
     }
 
     #[export]
