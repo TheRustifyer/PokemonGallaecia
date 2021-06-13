@@ -42,17 +42,23 @@ impl Truck {
     #[export]
     /// Method that receives the signal that the player it's interacting, so this object can emit the text to print via signal.
     fn emit_object_signal(&self, _owner: TRef<Sprite>) {
-        _owner.emit_signal("print_to_dialogue_box", &[Variant::from_godot_string(
-            &GodotString::from_str(
-                "Soy el camión de pueblo de Teo".to_owned()
-                + &"\nEsto sólo es una línea de prueba.".to_owned()
-                + &"\nY esta otra más".to_owned()
-                + &"\nY esta otra más".to_owned()
-                + &"\nY esta otra más".to_owned()
-                + "\nY esta otra más"
-                )
-            )
-        ]);
-    }
 
+        let dialogue_data = (
+            1, 
+            vec!["Si", "No"],
+            vec![
+                "Soy el camión de pueblo de Teo".to_owned()
+                + &"\nEsto sólo es una línea de prueba".to_owned()
+                + &"\nY esta otra más".to_owned()
+                + &"\nY esta otra más".to_owned()
+                + &"\nY esta otra más".to_owned()
+                + &"\nY esta otra más"
+            ]
+        );
+
+        _owner.emit_signal("print_to_dialogue_box", &[
+                dialogue_data.to_variant()
+            ]
+        );
+    }
 }

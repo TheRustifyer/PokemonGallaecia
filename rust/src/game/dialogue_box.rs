@@ -4,7 +4,6 @@ use crate::game::code_abstractions::{
 };
 
 use gdnative::api::AnimatedSprite;
-use gdnative::api::AnimationPlayer;
 use gdnative::prelude::*;
 use gdnative::{api::RichTextLabel, api::NinePatchRect};
 
@@ -33,11 +32,17 @@ impl Default for DialogueBoxStatus {
 pub struct DialogueBox {
     printing: bool,
     timer: f64,
+
+    dialogue_election: Option<DialogueElection<String>>,
+
     text_to_print: String,
+    text_container: Vec<String>,
+
     current_char: i32,
     current_line: i32,
     current_line_bound: i32,
     total_lines: i32,
+
     dialogue_text_label: Option<Ref<RichTextLabel>>,
     player_ref: Option<Ref<Node>>,
     dialogue_box_status: DialogueBoxStatus,
@@ -78,11 +83,17 @@ impl DialogueBox {
         Self {
             printing: false,
             timer: 0.0,
+
+            dialogue_election: None,
+
             text_to_print: Default::default(),
+            text_container: Default::default(),
+
             current_char: 0,
             current_line: 1,
             current_line_bound: 3,
             total_lines: 0,
+
             dialogue_text_label: None,
             player_ref: None,
             dialogue_box_status: DialogueBoxStatus::Inactive,
@@ -106,6 +117,9 @@ impl DialogueBox {
 
         // Call the function that connect the signals of this struct with the player character
         self.connect_to_player(owner);
+
+        // Setting the initial text
+        // self.text_to_print = self.text_container.get(0).unwrap().to_owned();
 
         // The **lines** of the text that will be printed
         self.total_lines = unsafe {self.dialogue_text_label.unwrap().assume_safe().get_line_count() as i32};
@@ -155,7 +169,7 @@ impl DialogueBox {
                             arrow_sprite.set_visible(false);
                         }
                     }
-                    
+                  
                 // but if all characters are printed, wait for the player that with one more interaction button press,
                 // closes the label
                 } else {
@@ -228,8 +242,95 @@ impl DialogueBox {
     #[export]
     /// Triggered by any connected signal through the game, sets the starting point to print content and provides
     /// the text that should be printed, passed by any availiable caller
-    fn _print_dialogue(&mut self, _owner: &NinePatchRect, text: GodotString) {
-        self.printing = true;
-        self.text_to_print = text.to_string();
+    fn _print_dialogue(&mut self, _owner: &NinePatchRect, dialogue_elections: VariantArray) {
+
+        // Converts back the data on the Variant Array to a User Defined Struct
+        let dialogue_election_data = DialogueElection::<String>::get_data_from_variant(
+            dialogue_elections
+        );
+
+        self.dialogue_election = Some(DialogueElection::new(
+            dialogue_election_data.0,
+            dialogue_election_data.1,
+            dialogue_election_data.2,
+        ));
+
+        if let Some(dialogue_election) = &self.dialogue_election {
+            self.printing = true;
+            self.text_container = dialogue_election.get_text_to_print().to_owned();
+
+            // At least always should one element inside the Vec of text_to_print
+            self.text_to_print = self.text_container.get(0).unwrap().to_owned();
+        };
     }
 }
+
+
+#[derive(Debug, ToVariant, Clone)]
+pub struct DialogueElection<T> {
+    number_of_decisions: i32,
+    availiable_decisions: Vec<T>,
+    text_to_print: Vec<String>
+    // responses: HashMap<T, String>
+}
+
+impl<T> DialogueElection<T> {
+
+    pub fn new(
+        number_of_decisions: i32, 
+        availiable_decisions: Vec<T>, 
+        text_to_print: Vec<String>
+    ) -> Self { 
+        Self { number_of_decisions, availiable_decisions, text_to_print } 
+    }
+
+    /// Converts the data encapsulated on a `VariantArray` argument on a new DialogueElection<T> instance
+    ///
+    /// Kind of a `static method`, 'cause just need this struct to destructure data into a custom data structure.
+    pub fn get_data_from_variant(dialogue_elections: VariantArray) -> (i32, Vec<String>, Vec<String>) {
+
+        let mut availiable_decisions: Vec<String> = Vec::new();
+        for element in dialogue_elections.get(1).to_array().into_iter() {
+            availiable_decisions.push(element.to_string())
+        };
+
+        let mut text_to_print: Vec<String> = Vec::new();
+        for element in dialogue_elections.get(2).to_array().into_iter() {
+            text_to_print.push(element.to_string())
+        }
+
+        let dialogue_election_data = (
+            dialogue_elections.get(0).to_i64() as i32,
+            availiable_decisions,
+            text_to_print
+        );
+
+        dialogue_election_data
+    }
+
+    // Getters and Setters
+    pub fn get_number_of_decisions(&self) -> i32 {
+        self.number_of_decisions
+    }
+
+    pub fn set_number_of_decisions(&mut self, number_of_decisions: i32) {
+        self.number_of_decisions = number_of_decisions;
+    }
+
+    pub fn get_availiable_decisions(&self) -> &Vec<T> {
+        &self.availiable_decisions
+    }
+
+    pub fn set_availiable_decisions(&mut self, availiable_decisions: Vec<T>) {
+        self.availiable_decisions = availiable_decisions;
+    }
+
+    pub fn get_text_to_print(&self) -> &Vec<String> {
+        &self.text_to_print
+    }
+
+    pub fn set_text_to_print(&mut self, text_to_print: Vec<String>) {
+        self.text_to_print = text_to_print;
+    }
+}
+
