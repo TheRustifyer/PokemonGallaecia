@@ -48,11 +48,10 @@ impl Truck {
             vec!["Si", "No"],
             vec![
                 "Soy el camión de pueblo de Teo".to_owned()
-                + &"\nEsto sólo es una línea de prueba".to_owned()
-                + &"\nY esta otra más".to_owned()
-                + &"\nY esta otra más".to_owned()
-                + &"\nY esta otra más".to_owned()
-                + &"\nY esta otra más"
+                + &"\nQuiero contarte un secreto sobre RUST.".to_owned()
+                + &"\nQuieres saberlo?",
+                "El compilador de RUST está to broken, bro".to_owned(),
+                "Pues quédate con JAJAJAJAJAVA, pringao.".to_owned()
             ]
         );
 

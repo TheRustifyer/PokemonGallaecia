@@ -63,6 +63,29 @@ position = Vector2( 384.837, 38.6851 )
 position = Vector2( 138.068, 30.1738 )
 scale = Vector2( 1.23338, 0.929566 )
 
+[node name="ElectionMenu" parent="Camera2D/CanvasLayer/DialogueBox" index="2"]
+visible = false
+margin_left = 454.124
+margin_top = -100.625
+margin_right = 553.124
+margin_bottom = -7.62543
+
+[node name="MenuSelector" parent="Camera2D/CanvasLayer/DialogueBox/ElectionMenu" index="0"]
+position = Vector2( 19.4648, 26.8577 )
+scale = Vector2( 1.14942, 0.835752 )
+
+[node name="Option1" parent="Camera2D/CanvasLayer/DialogueBox/ElectionMenu" index="1"]
+margin_left = 37.622
+margin_top = 11.8694
+margin_right = 69.622
+margin_bottom = 40.8694
+
+[node name="Option2" parent="Camera2D/CanvasLayer/DialogueBox/ElectionMenu" index="2"]
+margin_left = 37.7458
+margin_top = 48.6085
+margin_right = 66.7458
+margin_bottom = 75.6085
+
 [node name="LedgeRayCast" type="RayCast2D" parent="."]
 position = Vector2( 8, 8 )
 cast_to = Vector2( 0, 8 )

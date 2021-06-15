@@ -37,6 +37,10 @@ pub struct DialogueBox {
 
     text_to_print: String,
     text_container: Vec<String>,
+    current_text_container_position: i32,
+    decision_selected: i32,
+    number_of_decisions: i32,
+    selection_enabled: bool,
 
     current_char: i32,
     current_line: i32,
@@ -88,6 +92,10 @@ impl DialogueBox {
 
             text_to_print: Default::default(),
             text_container: Default::default(),
+            current_text_container_position: 0,
+            decision_selected: 1,
+            number_of_decisions: 0,
+            selection_enabled: false,
 
             current_char: 0,
             current_line: 1,
@@ -118,9 +126,6 @@ impl DialogueBox {
         // Call the function that connect the signals of this struct with the player character
         self.connect_to_player(owner);
 
-        // Setting the initial text
-        // self.text_to_print = self.text_container.get(0).unwrap().to_owned();
-
         // The **lines** of the text that will be printed
         self.total_lines = unsafe {self.dialogue_text_label.unwrap().assume_safe().get_line_count() as i32};
     }
@@ -131,6 +136,11 @@ impl DialogueBox {
         // If the `printing` flag is true means that the `_print_dialogue` method was triggered by a signal binding
         if self.printing {
             self.timer += _delta; // Uses a timer as a "time handler", using delta to set it's value
+
+            // Checks if there are elections in the current NPC dialogue
+            if self.dialogue_election.as_ref().unwrap().get_number_of_decisions() > 0 && self.selection_enabled {
+                self.enable_elections_on_interactive_dialogue(_owner, self.selection_enabled);
+            }
             
             // Constant there acts algo as a barrier to trigger the print event
             if self.timer > DIALOGUE_SPEED {
@@ -152,37 +162,125 @@ impl DialogueBox {
                 // If there still characters, we iterate to append to the label the next item
                 if self.current_char < self.text_to_print.len() as i32 {
 
-                    let arrow_sprite = unsafe { _owner.get_node("Cursor/Arrow")
-                    .unwrap().assume_safe().cast::<AnimatedSprite>().unwrap() };
-                    
+                    self.selection_enabled = false;
+                    self.enable_elections_on_interactive_dialogue(_owner, self.selection_enabled);
+
                     if self.current_line < self.current_line_bound {
-                        self.printer(dialogue_text_label);
-
+                        self.printer(&dialogue_text_label);
                     } else {
-                        arrow_sprite.set_visible(true);
-                        arrow_sprite.play("", false);
+                        self.play_arrow_animation(_owner, &dialogue_text_label);
+                    }
 
-                        if Input::is_action_pressed(&self.input, "Interact") {
-                            dialogue_text_label.scroll_to_line(self.current_line as i64 - 1);
-                            self.current_line_bound += 1;
-                            arrow_sprite.stop();
-                            arrow_sprite.set_visible(false);
+                } else if self.current_char == self.text_to_print.len() as i32 {
+                    if self.number_of_decisions > 0 {
+                        self.selection_enabled = true;
+                    }    
+                    self.play_arrow_animation(_owner, &dialogue_text_label);
+                    if Input::is_action_pressed(&self.input, "Interact") {
+                        self.current_char += 1;
+                    }
+                // but if all characters are printed, wait for the player that with one more interaction button press,
+                // closes the label or chooses an option (depending on the NPC history)
+                } else {
+
+                    if let Some(dialogue_election) = self.dialogue_election.to_owned() {
+            
+                        if self.number_of_decisions >= 1 {
+
+                            self.selection_enabled = false;
+                            self.number_of_decisions -= 1;
+
+                            self.set_empty_dialogue_box(&dialogue_text_label);
+
+                            // Sets the response based on what the player has choosed
+                            // The Vec<String> with all the text maps the next characteristics:
+                            // ! Index 0: Base text
+                            // ! Index 1: Affirmative response / response that maps the selection nº 1
+                            // ! Index 2: Negative response / response that maps the selection nº 2
+                            // ! Index 3 and so forth...: Next response / response that maps the selection nº 3 and so forth...
+                            self.current_text_container_position += self.decision_selected;
+                                
+                            self.text_to_print = dialogue_election.get_text_to_print()[self.current_text_container_position as usize].to_owned();
+                            self.printer(&dialogue_text_label);
+
+                        } else {
+                            self.play_arrow_animation(_owner, &dialogue_text_label);
+                            self.finish_dialogue(_owner, &dialogue_text_label);
                         }
                     }
-                  
-                // but if all characters are printed, wait for the player that with one more interaction button press,
-                // closes the label
-                } else {
-                    self.finish_dialogue(_owner, dialogue_text_label)
                 }
             }
         }
     }
 
-    fn printer(&mut self, dialogue_text_label: TRef<RichTextLabel>) {
+    fn enable_elections_on_interactive_dialogue(&mut self, owner: &NinePatchRect, visible: bool) {
+        // Pop up election menu
+        let election_menu = unsafe { owner.get_node("ElectionMenu")
+            .unwrap().assume_safe().cast::<NinePatchRect>().unwrap() };
+        election_menu.set_visible(visible);
+        let menu_selector_arrow = unsafe { election_menu.get_node("MenuSelector")
+            .unwrap().assume_safe().cast::<Node2D>().unwrap() };
+        let n_av_decisions = self.dialogue_election.as_ref().unwrap().get_availiable_decisions().len() as f32;
+
+        godot_print!("Decision selected: {:?}", &self.decision_selected);
+        if Input::is_action_just_pressed(&self.input, "Menu_Up") && self.current_char == self.text_to_print.len() as i32 {
+            if self.decision_selected == 1 {
+                self.decision_selected = n_av_decisions as i32;
+                menu_selector_arrow.set_position(
+                    Vector2::new(
+                        menu_selector_arrow.position().x, menu_selector_arrow.position().y + (40.14 * (n_av_decisions - 1.0))
+                    )
+                )
+            } else {
+                self.decision_selected -= 1;
+                menu_selector_arrow.set_position(
+                    Vector2::new(
+                        menu_selector_arrow.position().x, menu_selector_arrow.position().y - 40.14
+                    )
+                )
+            }
+        }
+
+        if Input::is_action_just_pressed(&self.input, "Menu_Down") && self.current_char == self.text_to_print.len() as i32 {
+            if self.decision_selected == n_av_decisions as i32{
+                self.decision_selected = 1;
+                menu_selector_arrow.set_position(
+                    Vector2::new(
+                        menu_selector_arrow.position().x, menu_selector_arrow.position().y - (40.14 * (n_av_decisions - 1.0))
+                    )
+                )
+            } else {
+                self.decision_selected += 1;
+                menu_selector_arrow.set_position(
+                    Vector2::new(
+                        menu_selector_arrow.position().x, menu_selector_arrow.position().y + 40.14
+                    )
+                )
+            } 
+        }
+
+    }
+
+    fn play_arrow_animation(&mut self, owner: &NinePatchRect, dialogue_text_label: &TRef<RichTextLabel>) {
+
+        let arrow_sprite = unsafe { owner.get_node("Cursor/Arrow")
+            .unwrap().assume_safe().cast::<AnimatedSprite>().unwrap() };
+
+        arrow_sprite.set_visible(true);
+        arrow_sprite.play("", false);
+
+        if Input::is_action_pressed(&self.input, "Interact") {
+            dialogue_text_label.scroll_to_line(self.current_line as i64 - 1);
+            self.current_line_bound += 1;
+            arrow_sprite.stop();
+            arrow_sprite.set_visible(false);
+        }
+    }
+
+    fn printer(&mut self, dialogue_text_label: &TRef<RichTextLabel>) {
 
         if let Some(current_char_to_print) = self.text_to_print.chars().nth(self.current_char as usize) {
-            
+
             if current_char_to_print == '\n' {
                 self.current_line += 1;
             }
@@ -196,8 +294,10 @@ impl DialogueBox {
     }
 
     // Method for end the dialogue when there's no more text to print
-    fn finish_dialogue(&mut self, owner: &NinePatchRect, dialogue_text_label: TRef<RichTextLabel>) {
+    fn finish_dialogue(&mut self, owner: &NinePatchRect, dialogue_text_label: &TRef<RichTextLabel>) {
                 
+        // self.printing = false;
+
         if Input::is_action_pressed(&self.input, "Interact") {
             self.times_pressed_interact += 1;
             
@@ -206,26 +306,28 @@ impl DialogueBox {
                 // Hides the `DialogueBox`
                 owner.set_visible(false);
                 // Reset the internal values of the inside label to the first ones, let it ready for next interaction...
-                self.set_empty_dialogue_box(dialogue_text_label);
+                self.set_empty_dialogue_box(&dialogue_text_label);
                 // Notifies all listeners the status of the DialogueBox
                 owner.emit_signal("dialogue_box_inactive", &[Variant::from_godot_string(
                     &GodotString::from_str(""))]);
                 // Restart the interact when all char printed to zero for the next time
                 self.times_pressed_interact = 0;
                 // Saves the current status of the DialogueBox for data management
-                self.dialogue_box_status = DialogueBoxStatus::Inactive
+                self.dialogue_box_status = DialogueBoxStatus::Inactive;
+                // End of printing
+                self.printing = false;
             }
         }
     }
     
     /// Sets the text label inside the Pokémon dialogue box to the initial status and all the variables that tracks it's status
-    fn set_empty_dialogue_box(&mut self, dialogue_text_label: TRef<RichTextLabel>) {
+    fn set_empty_dialogue_box(&mut self, dialogue_text_label: &TRef<RichTextLabel>) {
         self.current_char = 0;
-        self.printing = false;
         self.timer = 0.0;
         dialogue_text_label.set_bbcode("");
         self.current_line = 1;
         self.current_line_bound = 3;
+        self.current_text_container_position = 0;
     }
 
     #[export]
@@ -236,7 +338,6 @@ impl DialogueBox {
             VariantArray::new_shared(), 0).unwrap();
         _owner.connect("dialogue_box_inactive", receiver, "handle_interaction",
             VariantArray::new_shared(), 0).unwrap();
-
     }
 
     #[export]
@@ -261,6 +362,9 @@ impl DialogueBox {
 
             // At least always should one element inside the Vec of text_to_print
             self.text_to_print = self.text_container.get(0).unwrap().to_owned();
+
+            // Counter
+            self.number_of_decisions = dialogue_election.get_number_of_decisions();
         };
     }
 }
