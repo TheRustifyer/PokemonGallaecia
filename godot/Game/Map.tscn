@@ -1,9 +1,14 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://godot/Game/Locations/Towns - Cities/PuebloDeTeo.tscn" type="PackedScene" id=1]
 [ext_resource path="res://godot/Game/Map.gdns" type="Script" id=2]
+[ext_resource path="res://godot/Game/Locations/Towns - Cities/CampoDePruebas.tscn" type="PackedScene" id=3]
 
 [node name="Map" type="Node2D"]
 script = ExtResource( 2 )
 
 [node name="PuebloDeTeo" parent="." instance=ExtResource( 1 )]
+position = Vector2( -9.52448, 6.34961 )
+
+[node name="CampoDePruebas" parent="." instance=ExtResource( 3 )]
+position = Vector2( 1567.29, 175.708 )

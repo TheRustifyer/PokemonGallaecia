@@ -222,7 +222,6 @@ impl DialogueBox {
             .unwrap().assume_safe().cast::<Node2D>().unwrap() };
         let n_av_decisions = self.dialogue_election.as_ref().unwrap().get_availiable_decisions().len() as f32;
 
-        godot_print!("Decision selected: {:?}", &self.decision_selected);
         if Input::is_action_just_pressed(&self.input, "Menu_Up") && self.current_char == self.text_to_print.len() as i32 {
             if self.decision_selected == 1 {
                 self.decision_selected = n_av_decisions as i32;
@@ -328,6 +327,7 @@ impl DialogueBox {
         self.current_line = 1;
         self.current_line_bound = 3;
         self.current_text_container_position = 0;
+        self.decision_selected = 1;
     }
 
     #[export]
@@ -375,6 +375,8 @@ pub struct DialogueElection<T> {
     number_of_decisions: i32,
     availiable_decisions: Vec<T>,
     text_to_print: Vec<String>
+
+    // ! Posible upgrade
     // responses: HashMap<T, String>
 }
 

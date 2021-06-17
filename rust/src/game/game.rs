@@ -448,7 +448,7 @@ impl Game {
     #[export]
     fn rain(&mut self, owner: &Node2D) {
         if self.current_scene_type != CurrentSceneType::Indoors {
-            if let Some(weather_node) = unsafe { owner.get_node_as::<Particles2D>("Map/PuebloDeTeo/Rain") } {
+            if let Some(weather_node) = unsafe { owner.get_node_as::<Particles2D>("Map/CampoDePruebas/Rain") } {
                 weather_node.set_emitting(true)
             }
         }   
