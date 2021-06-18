@@ -19,6 +19,7 @@ use super::menu::menu::MenuStatus;
 
 
 #[derive(Serialize, Deserialize, Debug)]
+#[derive(Clone)]
 /// This beautiful struct is the responsable of read the data coming from signals of all 
 /// different PLAYER "classes", processing that data and store it on an external resource
 /// where the data can persist

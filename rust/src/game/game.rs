@@ -4,19 +4,37 @@ use gdnative::api::{HTTPClient, HTTPRequest};
 
 use serde::{Deserialize, Serialize};
 
-use crate::utils::{consts::game_consts, networking, secret, utils};
+use crate::utils::{consts::game_consts, networking, utils};
 use crate::game::player::{PlayerData, PlayerDirection};
 
 use chrono::NaiveTime;
 
 use super::code_abstractions::database::Database;
+use super::city::{GameCity, City, CityWeather};
 
 #[derive(NativeClass)]
 #[inherit(Node2D)]
 #[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone)]
 pub struct Game {
+    // Flag to quickly control if we are working on development or in production
+    #[serde(skip)]
+    in_development: bool,
+
+    // Urls of dev and production backends
+    #[serde(skip)]
+    development_url: &'static str,
+    #[serde(skip)]
+    production_url: &'static str,
+
+    // The struct that will hold all necesary Player Data
     player_data: PlayerData,
 
+    // A list storing all the availiable locations on the game
+    #[serde(skip)]
+    game_cities: Vec<City>,
+
+    // Some "trackers"
     received_signals: i32,
     total_registered_signals: i32,
     number_of_process: i32,
@@ -54,6 +72,7 @@ pub struct Game {
     input: Option<&'static Input>
 }
 
+
 // Impl of database will use the "default implementation of the trait methods"
 impl Database for Game {}
 
@@ -62,7 +81,15 @@ impl Game {
     
     fn new(_owner: &Node2D) -> Self {
         Self {
+            // Development or production flag
+            in_development: true,
+            // Backend server addresses
+            development_url: "http://localhost:8080/api/Game",
+            production_url: "",
+            // Initializes a new `PlayerData` struct 
             player_data: PlayerData::new(),
+            // Locations
+            game_cities: Vec::new(),
             // Counters that sync arriving times of different signals
             received_signals: 0,
             total_registered_signals: 2,
@@ -115,6 +142,15 @@ impl Game {
         // Should this one better just as a grey or loading screen??
         unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(false) };
         unsafe { owner.get_node_as::<Node2D>("Player").unwrap().set_visible(false) };
+
+        // Loads all the availiable cities/towns in the game
+        for game_city in GameCity::values() {
+            let place = City::new(game_city.to_fmt_string(), None);
+            self.game_cities.append(&mut vec![place]);
+        }
+
+        // Calls our Java Spring backend to retrieve the real tiem information
+        self.get_external_game_data(owner);
     }
 
     #[export]
@@ -136,19 +172,18 @@ impl Game {
         }
         
         if !self.full_data_retrieved {
-            let game_data: Game = utils::retrieve_game_data();
+            let game_data = utils::retrieve_game_data();
             // godot_print!("GAME DATA: {:#?}", &game_data);
-            // ! Care, this validation is bypassing the if-else block logics for debug purposes. Remeber to change it back
-            if self.game_external_data.weather_response_codes == (429, 429) || self.game_external_data.weather_response_codes != (429, 429) {
+            if self.game_external_data.spring_backend_response_code != 200 {
                 godot_print!("OpenWeather API limit reached. Gonna use default data!");
                 self.current_weather = Weather::Rain; //*! DEBUG!! Spawned manually to check rain conditions
                 self.game_external_data.todays_sunrise_time = "08:00:00".to_string(); // Handcoded values now
                 self.game_external_data.todays_sunset_time = "21:32:50".to_string(); // IDEM
-                self.game_external_data.current_weather = "Sun".to_string(); // We don't need this anymore...
-                self.game_external_data.current_weather_detail = game_data.game_external_data.current_weather_detail;
+                self.game_external_data.cities_weather_loaded = true;
             } else {
-                self.get_sunrise_sunset_data(owner);
-                self.get_weather_data(owner);
+                if self.number_of_process % 10 == 0 {
+                    godot_print!("Esperando la respuesta del servidor...");
+                }
             }
 
             // When data finally arrives after the above callbacks...
@@ -164,7 +199,9 @@ impl Game {
                 // All data loaded, change the flag to avoid enter this piece of code
                 self.full_data_retrieved = true;
             } else {
-                godot_print!("Aún no se han recuperado todos los datos...");
+                if self.number_of_process % 10 == 0 {
+                    godot_print!("Aún no se han recuperado todos los datos...");
+                }  
             }
         } else {
             // Reduces the nº of interactions, instead of every frame, every % of x
@@ -330,7 +367,7 @@ impl Game {
     }
 
 
-    // <--------------------------- HTTP GAME ZONE --------------------------------------->    
+    // <--------------------------- HTTP ZONE CONTROL --------------------------------------->    
 
     /// Creates a new HTTP Godot Node and insert it into a tree. When a url is specified, performs an HTTP request, and if `connect_to`
     /// parameter is specified, connect a signal to this class, that it's where the HTTP response comes.
@@ -348,38 +385,84 @@ impl Game {
             true, HTTPClient::METHOD_GET, "")
     }
 
-    //*! This method will work against our REST Api to check that players are not cheating OS time
-    // /// Retrieves the current real world time in Madrid GTM
-    // fn get_time_data(&self, owner: &Node2D) {
-    //     match self.new_http_node(owner, "https://worldtimeapi.org/api/timezone/Europe/Madrid", "_get_real_time_data_response")
-    //     {
-    //         Ok(response) => response,
-    //         Err(err) => godot_print!("Err => {:?}", err)
-    //     }
-    // }
-
-    // Retrieves the Sunset/Sunrise data from OpenWeather
-    fn get_sunrise_sunset_data(&self, owner: &Node2D) {
-        let openweather_url = 
-            "https://api.openweathermap.org/data/2.5/weather?q=santiago%20de%20compostela,es&lang=es&appid=".to_owned() +    
-            secret::OPENWEATHER_APPID;
-        match self.new_http_node(owner, &openweather_url[..], "_get_sunrise_sunset_data_response")
+    /// Retrieves all the external game data, like city's weather and game's sunrise and sunset hours
+    /// from our Java Spring backend server
+    fn get_external_game_data(&self, owner: &Node2D) {
+        let url: &'static str;
+        
+        if self.in_development { url = self.development_url } else { url = self.production_url }
+        
+        match self.new_http_node(owner, url, "_get_java_spring_backend_response")
         {
             Ok(response) => response,
             Err(err) => godot_print!("Err => {:?}", err)
         }
     }
 
-    /// Retrieves the weather data from OpenWeather
-    fn get_weather_data(&self, owner: &Node2D) {
-        let openweather_url = 
-            "https://api.openweathermap.org/data/2.5/weather?q=santiago%20de%20compostela,es&lang=es&appid=".to_owned() +    
-            secret::OPENWEATHER_APPID;
-        match self.new_http_node(owner, &openweather_url[..], "_get_weather_data_response")
-        {
-            Ok(response) => response,
-            Err(err) => godot_print!("Err => {:?}", err)
+    #[export]
+    /// The method that receives and Http Response with all the external game data
+    fn _get_java_spring_backend_response(&mut self, _owner: &Node2D, _result: Variant, _response_code: i64, _headers: Variant, body: ByteArray) {
+        godot_print!("Spring backend response code: {:?}", _response_code);
+        if _response_code == 200 {
+            self.game_external_data.spring_backend_response_code = _response_code;
+            godot_print!("Spring backend response code: {:?}", _response_code);
+            // ! Here comes the http response, parsed as a Variant<Dictionary>
+            let response = networking::http_body_to_string(body);
+
+            self.set_sunrise_sunset_hours(&response);
+            self.set_cities_weather(&response);
+           
+        } else {
+            self.game_external_data.spring_backend_response_code = _response_code;
+            godot_print!("FAILED to get backend information. Response code: {:?}", _response_code);
         }
+    }
+
+    // Encapsulates the process of sets the Sunrise/Sunset hours from the Http Response
+    fn set_sunrise_sunset_hours(&mut self, response: &Dictionary) {
+        let sunrise_hour = response.get("sunriseHour").to_string().parse::<i32>().unwrap();
+        self.game_external_data.todays_sunrise_time = utils::convert_from_unix_timestamp(
+            sunrise_hour + game_consts::UNIX_TIMESTAMP_OFFSET);
+
+        let sunset_hour = response.get("sunsetHour").to_string().parse::<i32>().unwrap();
+        self.game_external_data.todays_sunset_time = utils::convert_from_unix_timestamp(
+            sunset_hour + game_consts::UNIX_TIMESTAMP_OFFSET);
+    }
+
+    // Encapsulates the process of sets the weather of all the cities of the game
+    fn set_cities_weather(&mut self, response: &Dictionary) {
+        let current_weather = response.get("gameCities").to_array();
+
+        godot_print!("\nWEATHER: {:?}\n", &current_weather);
+
+        // Iterate all over the game cities / towns
+        let mut idx: i32 = 0;
+        // ! IMPORTANT: Our REST API always send the cities ordered by ID. The `self.game_cities` attribute stores cities created
+        // in base the order that the cities are hardcoded in the vector returned by the `GameCity::values()` associated fn.
+        // That order maps the ID of the cities on the JSON.
+        for location in self.game_cities.iter_mut() {
+            let current_idx_data = current_weather.get(idx).to_dictionary();
+            if location.get_name() == current_idx_data.get("name").to_string() {
+            
+                let external_weather_data = current_idx_data
+                        .get("weather")
+                        .to_dictionary();
+                
+                let location_weather_instance = CityWeather::new(
+                    external_weather_data.get("weatherIDCode").to_i64() as i32,
+                    external_weather_data.get("mainCode").to_string(),
+                    external_weather_data.get("description").to_string(),
+                    external_weather_data.get("icon").to_string()
+                );
+
+                location.set_weather(location_weather_instance);
+                idx += 1;
+                self.game_external_data.cities_weather_loaded = true;
+            } else {
+                godot_print!("Something went wrong retriving data and matching it with the correct city at a given index");
+            }
+        }
+        godot_print!("\n************\nCITIES: {:?}", &self.game_cities);
     }
 
     //*! When data arrives, should send back info to our REST Api indicating that the time hasn't been modified by the user
@@ -404,46 +487,6 @@ impl Game {
     //     self.game_external_data.todays_day_of_the_week = utils::integer_to_day_of_the_week(day_of_the_week);
     // }
 
-    #[export]
-    fn _get_sunrise_sunset_data_response(&mut self, _owner: &Node2D, _result: Variant, _response_code: i64, _headers: Variant, body: ByteArray) {
-        if _response_code == 429 {
-            self.game_external_data.weather_response_codes.0 = _response_code;
-            godot_print!("SS response code: {:?}", _response_code);
-        } else {
-            let response = networking::http_body_to_string(body);
-
-            let sunrise_hour = response.get("sys").to_dictionary().get("sunrise")
-                .to_string().parse::<i32>().unwrap();
-            self.game_external_data.todays_sunrise_time = utils::convert_from_unix_timestamp(
-                sunrise_hour + game_consts::UNIX_TIMESTAMP_OFFSET);
-
-            let sunset_hour = response.get("sys").to_dictionary().get("sunset")
-                .to_string().parse::<i32>().unwrap();
-            self.game_external_data.todays_sunset_time = utils::convert_from_unix_timestamp(
-                sunset_hour + game_consts::UNIX_TIMESTAMP_OFFSET);
-        }     
-    }
-
-    #[export]
-    fn _get_weather_data_response(&mut self, _owner: &Node2D, _result: Variant, _response_code: i64, _headers: Variant, body: ByteArray) {
-        if _response_code == 429 {
-            self.game_external_data.weather_response_codes.1 = _response_code;
-            godot_print!("WD response code: {:?}", _response_code);
-        } else {
-            let response = networking::http_body_to_string(body);
-
-            let current_weather = &response.get("weather").to_array().get(0).to_dictionary()
-                .get("main").to_string()[..];
-            self.game_external_data.current_weather = current_weather.to_string();
-
-            let current_weather_detail = &response.get("weather").to_array().get(0).to_dictionary()
-                .get("description").to_string()[..];
-            self.game_external_data.current_weather_detail = utils::uppercase_first_letter(current_weather_detail);
-        }
-
-        // HERE SHOULD GO THE MATCHING EVENT FOR THE ACTUAL WEATHER CONDITIONS...
-    }
-
     // <------------------------- WEATHER CONTROL ----------------------->
     #[export]
     fn rain(&mut self, owner: &Node2D) {
@@ -454,16 +497,15 @@ impl Game {
         }   
     }
 
- }
-
+}
 
 #[derive(Debug, Serialize, Deserialize)]
+#[derive(Clone)]
 pub struct GameExternalData {
     todays_date: String,
     todays_day_of_the_week: String,
-    current_weather: String,
-    current_weather_detail: String,
-    weather_response_codes: (i64, i64),
+    cities_weather_loaded: bool,
+    spring_backend_response_code: i64,
     todays_sunrise_time: String,
     todays_sunset_time: String,
     current_dn_cycle: DayNightCycle,
@@ -474,9 +516,8 @@ impl GameExternalData {
         Self {
             todays_date: "".to_string(),
             todays_day_of_the_week: "".to_string(),
-            current_weather: "".to_string(),
-            current_weather_detail: "".to_string(),
-            weather_response_codes: (200, 200),
+            cities_weather_loaded: false,
+            spring_backend_response_code: 200,
             todays_sunrise_time: "".to_string(),
             todays_sunset_time: "".to_string(),
             current_dn_cycle: DayNightCycle::NoData,
@@ -486,7 +527,7 @@ impl GameExternalData {
     /// Returns true if all of his attributes are not in the initial/default state, that means, when all the 
     /// REST Api calls to retrieve data are succesfully, and already stored data on this struct
     fn all_external_data_arrived(&self) -> bool {
-        if self.current_weather == "" || self.todays_sunrise_time == "" || self.todays_sunset_time == "" {
+        if !self.cities_weather_loaded || self.todays_sunrise_time == "" || self.todays_sunset_time == "" {
                 false
             } else { true }
     }
@@ -508,7 +549,7 @@ impl Default for CurrentSceneType {
 
 
 #[derive(PartialEq, Clone, Debug, ToVariant, Serialize, Deserialize)]
- pub enum Weather {
+pub enum Weather {
     Thunderstorm, // 2xx
     Drizzle, // 3xx
     Rain, // 5xx 
@@ -517,8 +558,48 @@ impl Default for CurrentSceneType {
     Clouds // 8xx
  }
 
- impl Default for Weather {
+impl Default for Weather {
     fn default() -> Self { Weather::Sun }
+}
+
+impl Weather {
+    // Returns a Vec<Weather> with all the Variants
+    fn values(&self) -> Vec<Weather> {
+        vec![Self::Thunderstorm, Self::Drizzle, Self::Rain, Self::Snow, Self::Sun, Self::Clouds]
+    }
+
+    fn to_string(&self) -> &'static str {
+        match self {
+            Self::Thunderstorm => "Thunderstorm",
+            Self::Drizzle => "Drizzle",
+            Self::Rain => "Rain",
+            Self::Snow => "Snow",
+            Self::Sun => "Sun",
+            Self::Clouds => "Clouds",
+        }
+    }
+
+    fn to_spanish_string(&self) -> &'static str {
+        match self {
+            Self::Thunderstorm => "Tormenta",
+            Self::Drizzle => "Granizo",
+            Self::Rain => "Lluvia",
+            Self::Snow => "Nieve",
+            Self::Sun => "Soleado",
+            Self::Clouds => "Nublado",
+        }
+    }
+
+    fn to_galician_string(&self) -> &'static str {
+        match self {
+            Self::Thunderstorm => "Tormenta",
+            Self::Drizzle => "Granizo",
+            Self::Rain => "Chuvia",
+            Self::Snow => "Neve",
+            Self::Sun => "Soleado",
+            Self::Clouds => "Nublado",
+        }
+    }
 }
 
 

@@ -177,11 +177,14 @@ pub fn get_player_direction() -> PlayerDirection {
 
 pub fn retrieve_game_data() -> Game {
     let (file, _) = open_json_file(GodotString::from_str("gamestate"), File::READ);
-    let json_game_data = &file.get_as_text().to_string()[..];
 
-    let game_data: Game = serde_json::from_str(&json_game_data).unwrap();
+    let json_game_data = file.get_as_text().to_string();
+    let my_str = json_game_data.as_str();
 
+    let game_data: Game = serde_json::from_str(my_str).unwrap();
+    
     return game_data;
+
 }
 
 pub fn save_game_data(player_data: &Game) {

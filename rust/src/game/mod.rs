@@ -1,4 +1,5 @@
 pub mod game;
+pub mod city;
 
 pub mod player;
 pub mod pokemon;
