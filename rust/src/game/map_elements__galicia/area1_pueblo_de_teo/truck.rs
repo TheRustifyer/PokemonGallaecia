@@ -41,6 +41,10 @@ impl Truck {
 
     #[export]
     /// Method that receives the signal that the player it's interacting, so this object can emit the text to print via signal.
+    ///
+    /// The content it's passed to the `Dialogue Box` struct via tuple to avoid corrupt the data
+    /// converting the struct fields to Variant data. When arrives to Dialogue Box, data gets parsed into the 
+    /// `DialogueElection<T>` struct, and finally gets ready to print and interact.
     fn emit_object_signal(&self, _owner: TRef<Sprite>) {
 
         let dialogue_data = (

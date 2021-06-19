@@ -1,16 +1,16 @@
 {
   "player_data": {
     "name": "",
-    "player_direction": "Upwards",
+    "player_direction": "Right",
     "player_position": {
-      "x": 1776.0,
-      "y": 446.97265625
+      "y": 852.7999877929688,
+      "x": 1840.0
     }
   },
   "received_signals": 2,
   "total_registered_signals": 2,
-  "number_of_process": 76,
-  "current_scene_type": "NoData",
+  "number_of_process": 691,
+  "current_scene_type": "Outdoors",
   "current_scene_path": "res://godot/Game/Map.tscn",
   "game_external_data": {
     "todays_date": "Sábado, 19-06-2021",

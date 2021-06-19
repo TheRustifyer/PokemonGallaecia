@@ -155,6 +155,7 @@ impl Game {
 
     #[export]
     fn _process(&mut self, owner: &Node2D, _delta: f64) {
+        // godot_print!("CURRENT SCENE TYPE FROM PROCESS: {:?}", &self.current_scene_type);
         // Updates the counter that help to reduce the amount of times that a function gets triggered by this _process callback
         self.number_of_process += 1;
         // Resets the counter when designed with an arbitrary value
@@ -176,7 +177,7 @@ impl Game {
             // godot_print!("GAME DATA: {:#?}", &game_data);
             if self.game_external_data.spring_backend_response_code != 200 {
                 godot_print!("OpenWeather API limit reached. Gonna use default data!");
-                self.current_weather = Weather::Rain; //*! DEBUG!! Spawned manually to check rain conditions
+                self.current_weather = Weather::Sun;
                 self.game_external_data.todays_sunrise_time = "08:00:00".to_string(); // Handcoded values now
                 self.game_external_data.todays_sunset_time = "21:32:50".to_string(); // IDEM
                 self.game_external_data.cities_weather_loaded = true;
@@ -192,12 +193,17 @@ impl Game {
                 self.control_day_phases(owner);
                 // Loads the correct scene from where the player was the last time that saved the game
                 self.load_initial_scene(owner, game_data.current_scene_path);
-                self.current_scene_type = game_data.current_scene_type;
+                // self.current_scene_type = game_data.current_scene_type;
                 // This is where the loading screen should be working!!!
                 unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(true) };
                 unsafe { owner.get_node_as::<Node2D>("Player").unwrap().set_visible(true) };
                 // All data loaded, change the flag to avoid enter this piece of code
                 self.full_data_retrieved = true;
+                self.current_weather = Weather::Rain; //*! DEBUG!! Spawned manually to check rain conditions
+                if self.current_weather == Weather::Rain {
+                    // Basic implementation, still on debug!!
+                    self.rain(owner)
+                }
             } else {
                 if self.number_of_process % 10 == 0 {
                     godot_print!("Aún no se han recuperado todos los datos...");
@@ -208,10 +214,7 @@ impl Game {
             if self.number_of_process % 100 == 0 {
                 // godot_print!("Number of process % 100: {:?}", &self.number_of_process); 
                 self.control_day_phases(owner);
-                if self.current_weather == Weather::Rain {
-                    // Basic implementation, still on debug!!
-                    self.rain(owner)
-                }
+                // The call to control the weather
             }       
         }
     } 
@@ -294,6 +297,8 @@ impl Game {
     /// Method for load the correct scene, based on last saved player Scene
     fn load_initial_scene(&mut self, owner: &Node2D, path: String) {
         if !path.ends_with("Map.tscn") {
+            self.current_scene_type = CurrentSceneType::Indoors;
+
             owner.remove_child(self.world_map_node.unwrap());
 
             // First load it as a resource
@@ -307,6 +312,8 @@ impl Game {
             // Insert it on the SceneTree, and set the order
             owner.add_child(self.current_scene.unwrap(), true);
             owner.move_child(self.current_scene.unwrap(), 0)
+        } else {
+            self.current_scene_type = CurrentSceneType::Outdoors;
         }
     }
 
@@ -324,17 +331,21 @@ impl Game {
 
         // Going from indoors to outdoors...
         if self.current_scene_path.ends_with("Map.tscn") {
+            self.current_scene_type = CurrentSceneType::Outdoors;
+
             scene_transition_animation.play("FadeToBlack", -1.0, 0.5, false);
 
             unsafe { owner.call_deferred("remove_child", &[self.current_scene.unwrap().to_variant()]) };
-
             unsafe { owner.call_deferred("add_child", &[self.world_map_node.unwrap().to_variant()]) };
             
-            self.current_scene_type = CurrentSceneType::Outdoors;
             scene_transition_animation.play("FadeToNormal", -1.0, 1.0, false);
         
         // Changing to an inside scene...
         } else {
+            //Sets what type of scene it's being player now
+            self.current_scene_type = CurrentSceneType::Indoors;
+            
+            // Plays the fade anim
             scene_transition_animation.play("FadeToBlack", -1.0, 0.5, false);
             
             // Now let's gonna remove the Map from the SceneTree
@@ -350,8 +361,7 @@ impl Game {
             
             // Finally we insert our new Node, setting Game as it's parent
             unsafe { owner.call_deferred("add_child", &[self.current_scene.unwrap().to_variant()]) };
-            //Sets what type of scene it's being player now
-            self.current_scene_type = CurrentSceneType::Indoors;
+            
             // Gets back the screen without fades
             scene_transition_animation.play("FadeToNormal", -1.0, 1.0, false);
             
@@ -468,9 +478,13 @@ impl Game {
     // <------------------------- WEATHER CONTROL ----------------------->
     #[export]
     fn rain(&mut self, owner: &Node2D) {
-        if self.current_scene_type != CurrentSceneType::Indoors {
-            if let Some(weather_node) = unsafe { owner.get_node_as::<Particles2D>("Map/CampoDePruebas/Weather/Rain") } {
-                weather_node.set_emitting(true)
+        if self.current_scene_type == CurrentSceneType::Outdoors {
+            for location in self.game_cities.iter_mut() {
+                godot_print!("City name as node path {:?}", &location.get_as_node_path());
+                let node_path = "Map/".to_owned() + location.get_as_node_path().as_str() + "/Weather" + "/Rain";
+                if let Some(weather_node) = unsafe { owner.get_node_as::<Particles2D>(node_path.as_str()) } {
+                    weather_node.set_emitting(true);
+                }
             }
         }   
     }

@@ -24,15 +24,16 @@ orbit_velocity_random = 0.0
 anim_offset_random = 0.4
 
 [node name="Weather" type="Node2D"]
+z_as_relative = false
 
 [node name="Rain" type="Particles2D" parent="."]
 material = SubResource( 1 )
 position = Vector2( 11.3265, 26.4285 )
-scale = Vector2( 0.75, 0.5 )
+z_index = 3
 amount = 10000
 lifetime = 5.0
 speed_scale = 0.5
-visibility_rect = Rect2( -100, -100, 200, 500 )
+visibility_rect = Rect2( -100, -100, 200, 854 )
 local_coords = false
 process_material = SubResource( 2 )
 texture = ExtResource( 1 )

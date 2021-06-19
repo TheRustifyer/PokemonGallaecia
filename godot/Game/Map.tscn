@@ -7,8 +7,8 @@
 [node name="Map" type="Node2D"]
 script = ExtResource( 2 )
 
-[node name="PuebloDeTeo" parent="." instance=ExtResource( 1 )]
-position = Vector2( -9.52448, 6.34961 )
-
 [node name="CampoDePruebas" parent="." instance=ExtResource( 3 )]
-position = Vector2( 1567.29, 175.708 )
+position = Vector2( 1888, 336 )
+
+[node name="PuebloDeTeo" parent="." instance=ExtResource( 1 )]
+position = Vector2( 336.402, 350.392 )

@@ -49,9 +49,7 @@ impl AreaSceneSwitcher {
     fn _ready(&mut self, owner: &Area2D) {
         //
         owner.add_to_group("save_game_data", false);
-        //
-        // owner.area_set
-        //
+        
         self.connect_signal_to_root_node(owner);
 
         //Name of the parent object that this Area2D is attached
@@ -62,8 +60,6 @@ impl AreaSceneSwitcher {
 
         // Sets the attribute that stores the final full path to the new scene based on what area the player have entered!
         self.set_path_to_scene_to_switch();
-
-        godot_print!("Path: {:?}", &self.owner_node);
     }
 
     fn set_path_to_scene_to_switch(&mut self) {

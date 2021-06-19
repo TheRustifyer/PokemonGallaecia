@@ -4,7 +4,6 @@
 [ext_resource path="res://godot/Game/SceneSwitcher.tscn" type="PackedScene" id=2]
 [ext_resource path="res://godot/Game/Ledge.tscn" type="PackedScene" id=3]
 [ext_resource path="res://godot/Game/TallGrass.tscn" type="PackedScene" id=4]
-[ext_resource path="res://godot/Game/Weather/Weather.tscn" type="PackedScene" id=5]
 [ext_resource path="res://godot/Game/ScriptsOfMapElements/PuebloDeTeo/Truck.gdns" type="Script" id=6]
 [ext_resource path="res://gfx/Tilemaps/Vehicles/Truck (cargo).png" type="Texture" id=7]
 [ext_resource path="res://gfx/Tilemaps/Buildings/Businesses/Pokemon Center.png" type="Texture" id=8]
@@ -14,6 +13,7 @@
 [ext_resource path="res://gfx/Tilemaps/Buildings/Houses/Apartment Building (medium).png" type="Texture" id=12]
 [ext_resource path="res://gfx/torchmap.png" type="Texture" id=13]
 [ext_resource path="res://gfx/Tilemaps/Buildings/Businesses/Air Traffic Control Tower.png" type="Texture" id=14]
+[ext_resource path="res://godot/Game/Weather/Weather.tscn" type="PackedScene" id=15]
 
 [sub_resource type="RectangleShape2D" id=1]
 extents = Vector2( 14, 10.25 )
@@ -83,38 +83,38 @@ color = Color( 0.0705882, 0.419608, 0.65098, 1 )
 shadow_enabled = true
 shadow_color = Color( 0.513726, 0.0823529, 0.0823529, 0 )
 
-[node name="PokemonCenterPuebloDeTeo" type="Sprite" parent="Buildings"]
+[node name="PokemonCenterCampoDePruebas" type="Sprite" parent="Buildings"]
 position = Vector2( 200, 392 )
 texture = ExtResource( 8 )
 __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Area2D" parent="Buildings/PokemonCenterPuebloDeTeo" instance=ExtResource( 2 )]
+[node name="Area2D" parent="Buildings/PokemonCenterCampoDePruebas" instance=ExtResource( 2 )]
 position = Vector2( 2.27625, 27.0933 )
 
-[node name="StaticBody2D" type="StaticBody2D" parent="Buildings/PokemonCenterPuebloDeTeo"]
+[node name="StaticBody2D" type="StaticBody2D" parent="Buildings/PokemonCenterCampoDePruebas"]
 position = Vector2( 2.22723, -0.445465 )
 collision_layer = 2
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Buildings/PokemonCenterPuebloDeTeo/StaticBody2D"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Buildings/PokemonCenterCampoDePruebas/StaticBody2D"]
 polygon = PoolVector2Array( -40.3241, 31.89, -41.215, -24.6821, -31.8605, -27.5775, 26.9388, -27.5775, 30.5024, -24.4594, 34.7341, -20.0049, 34.5114, 31.6672, 32.5069, 37.4581, 7.56174, 37.6807, 7.56174, 20.3082, -11.8153, 20.0855, -11.8153, 37.6807, -35.4241, 37.9035 )
 
-[node name="PokemonCenterPuebloDeTeo2" type="Sprite" parent="Buildings"]
+[node name="PokemonCenterCampoDePruebas2" type="Sprite" parent="Buildings"]
 position = Vector2( 24, 392 )
 texture = ExtResource( 8 )
 __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Area2D" parent="Buildings/PokemonCenterPuebloDeTeo2" instance=ExtResource( 2 )]
+[node name="Area2D" parent="Buildings/PokemonCenterCampoDePruebas2" instance=ExtResource( 2 )]
 position = Vector2( 2.27625, 27.0933 )
 
-[node name="StaticBody2D" type="StaticBody2D" parent="Buildings/PokemonCenterPuebloDeTeo2"]
+[node name="StaticBody2D" type="StaticBody2D" parent="Buildings/PokemonCenterCampoDePruebas2"]
 position = Vector2( 2.22723, -0.445465 )
 collision_layer = 2
 
-[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Buildings/PokemonCenterPuebloDeTeo2/StaticBody2D"]
+[node name="CollisionPolygon2D" type="CollisionPolygon2D" parent="Buildings/PokemonCenterCampoDePruebas2/StaticBody2D"]
 polygon = PoolVector2Array( -40.3241, 31.89, -41.215, -24.6821, -31.8605, -27.5775, 26.9388, -27.5775, 30.5024, -24.4594, 34.7341, -20.0049, 34.5114, 31.6672, 32.5069, 37.4581, 7.56174, 37.6807, 7.56174, 20.3082, -11.8153, 20.0855, -11.8153, 37.6807, -35.4241, 37.9035 )
 
 [node name="Apartment Building (medium)" type="Sprite" parent="Buildings"]
@@ -139,9 +139,6 @@ position = Vector2( 208, 528 )
 [node name="TallGrass4" parent="TallGrassNode" instance=ExtResource( 4 )]
 position = Vector2( 191.829, 527.266 )
 
-[node name="Weather" parent="." instance=ExtResource( 5 )]
-position = Vector2( 576, -8 )
-
-[editable path="Buildings/PokemonCenterPuebloDeTeo/Area2D"]
+[node name="Weather" parent="." instance=ExtResource( 15 )]
 
 [editable path="Weather"]
