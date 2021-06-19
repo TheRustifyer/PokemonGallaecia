@@ -3,23 +3,23 @@
     "name": "",
     "player_direction": "Upwards",
     "player_position": {
-      "y": 286.9726867675781,
-      "x": 208.0
+      "x": 1776.0,
+      "y": 446.97265625
     }
   },
   "received_signals": 2,
   "total_registered_signals": 2,
-  "number_of_process": 185,
+  "number_of_process": 76,
   "current_scene_type": "NoData",
   "current_scene_path": "res://godot/Game/Map.tscn",
   "game_external_data": {
-    "todays_date": "Viernes, 18-06-2021",
-    "todays_day_of_the_week": "Viernes",
-    "cities_weather_loaded": false,
+    "todays_date": "Sábado, 19-06-2021",
+    "todays_day_of_the_week": "Sábado",
+    "cities_weather_loaded": true,
     "spring_backend_response_code": 200,
-    "todays_sunrise_time": "",
-    "todays_sunset_time": "",
-    "current_dn_cycle": "NoData"
+    "todays_sunrise_time": "05:55:13",
+    "todays_sunset_time": "21:15:53",
+    "current_dn_cycle": "Day"
   },
   "current_time": "00:00:00"
 }

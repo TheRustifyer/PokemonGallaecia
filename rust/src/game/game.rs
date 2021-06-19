@@ -59,7 +59,7 @@ pub struct Game {
 
     // The current real time in GTM + 1. When game it's saved, stores the time when game has succesfully saved.
     current_time: NaiveTime,
-    // Tracks the current weather when data comes from the OpenWeather Rest API
+    // Tracks the current weather in the place that the player is
     #[serde(skip)]
     current_weather: Weather,
     
@@ -405,7 +405,7 @@ impl Game {
         godot_print!("Spring backend response code: {:?}", _response_code);
         if _response_code == 200 {
             self.game_external_data.spring_backend_response_code = _response_code;
-            godot_print!("Spring backend response code: {:?}", _response_code);
+
             // ! Here comes the http response, parsed as a Variant<Dictionary>
             let response = networking::http_body_to_string(body);
 
@@ -465,33 +465,11 @@ impl Game {
         godot_print!("\n************\nCITIES: {:?}", &self.game_cities);
     }
 
-    //*! When data arrives, should send back info to our REST Api indicating that the time hasn't been modified by the user
-    // // <-------------------- HTTP METHODS where signals send the data with the requested RESPONSES ------------------------->
-    // #[export]
-    // fn _get_real_time_data_response(&mut self, _owner: &Node2D, _result: Variant, _response_code: i64, _headers: Variant, body: ByteArray) {
-    //     // Reads the incoming HTTP response as a String
-    //     let response = networking::http_body_to_string(body);
-        
-    //     // Sets the current time at the moment that this method gets triggered
-    //     let time = DateTime::parse_from_str(
-    //         &response.get("datetime").to_string()[..],"%+").unwrap().format("%H:%M:%S").to_string();
-    //     self.game_external_data.real_time_when_game_starts = time.to_owned();
-
-    //     // Sets the current date of today
-    //     let date = DateTime::parse_from_str(
-    //         &response.get("datetime").to_string()[..],"%+").unwrap().format("%e %B %Y").to_string();
-    //     self.game_external_data.todays_date = date.to_owned();
-        
-    //     // Sets the day of the week, parsing an String with a integer, to an integer value and gets back a "Day of the week" human-readable.
-    //     let day_of_the_week =  response.get("day_of_week").to_string().parse::<i32>().unwrap();
-    //     self.game_external_data.todays_day_of_the_week = utils::integer_to_day_of_the_week(day_of_the_week);
-    // }
-
     // <------------------------- WEATHER CONTROL ----------------------->
     #[export]
     fn rain(&mut self, owner: &Node2D) {
         if self.current_scene_type != CurrentSceneType::Indoors {
-            if let Some(weather_node) = unsafe { owner.get_node_as::<Particles2D>("Map/CampoDePruebas/Rain") } {
+            if let Some(weather_node) = unsafe { owner.get_node_as::<Particles2D>("Map/CampoDePruebas/Weather/Rain") } {
                 weather_node.set_emitting(true)
             }
         }   

@@ -23,7 +23,9 @@ orbit_velocity = 0.0
 orbit_velocity_random = 0.0
 anim_offset_random = 0.4
 
-[node name="Rain" type="Particles2D"]
+[node name="Weather" type="Node2D"]
+
+[node name="Rain" type="Particles2D" parent="."]
 material = SubResource( 1 )
 position = Vector2( 11.3265, 26.4285 )
 scale = Vector2( 0.75, 0.5 )

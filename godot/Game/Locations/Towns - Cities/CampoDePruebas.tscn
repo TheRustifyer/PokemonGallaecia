@@ -4,7 +4,7 @@
 [ext_resource path="res://godot/Game/SceneSwitcher.tscn" type="PackedScene" id=2]
 [ext_resource path="res://godot/Game/Ledge.tscn" type="PackedScene" id=3]
 [ext_resource path="res://godot/Game/TallGrass.tscn" type="PackedScene" id=4]
-[ext_resource path="res://godot/Game/Weather/Rain.tscn" type="PackedScene" id=5]
+[ext_resource path="res://godot/Game/Weather/Weather.tscn" type="PackedScene" id=5]
 [ext_resource path="res://godot/Game/ScriptsOfMapElements/PuebloDeTeo/Truck.gdns" type="Script" id=6]
 [ext_resource path="res://gfx/Tilemaps/Vehicles/Truck (cargo).png" type="Texture" id=7]
 [ext_resource path="res://gfx/Tilemaps/Buildings/Businesses/Pokemon Center.png" type="Texture" id=8]
@@ -125,8 +125,6 @@ texture = ExtResource( 12 )
 position = Vector2( 283.445, 128.606 )
 texture = ExtResource( 11 )
 
-[node name="Rain" parent="." instance=ExtResource( 5 )]
-
 [node name="TallGrassNode" type="Node2D" parent="."]
 
 [node name="TallGrass" parent="TallGrassNode" instance=ExtResource( 4 )]
@@ -141,4 +139,9 @@ position = Vector2( 208, 528 )
 [node name="TallGrass4" parent="TallGrassNode" instance=ExtResource( 4 )]
 position = Vector2( 191.829, 527.266 )
 
+[node name="Weather" parent="." instance=ExtResource( 5 )]
+position = Vector2( 576, -8 )
+
 [editable path="Buildings/PokemonCenterPuebloDeTeo/Area2D"]
+
+[editable path="Weather"]

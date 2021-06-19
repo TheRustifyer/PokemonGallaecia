@@ -34,6 +34,9 @@ pub struct DialogueBox {
     timer: f64,
 
     dialogue_election: Option<DialogueElection<String>>,
+    election_menu: Option<TRef<'static, NinePatchRect>>,
+    menu_selector_arrow: Option<TRef<'static, Node2D>>,
+    menu_selector_arrow_initial_position: Vector2,
 
     text_to_print: String,
     text_container: Vec<String>,
@@ -89,6 +92,9 @@ impl DialogueBox {
             timer: 0.0,
 
             dialogue_election: None,
+            election_menu: None,
+            menu_selector_arrow: None,
+            menu_selector_arrow_initial_position: Vector2::new(0.0, 0.0),
 
             text_to_print: Default::default(),
             text_container: Default::default(),
@@ -128,6 +134,13 @@ impl DialogueBox {
 
         // The **lines** of the text that will be printed
         self.total_lines = unsafe {self.dialogue_text_label.unwrap().assume_safe().get_line_count() as i32};
+
+        // Decision menu and pointer
+        self.election_menu = Some(unsafe { owner.get_node("ElectionMenu")
+            .unwrap().assume_safe().cast::<NinePatchRect>().unwrap() });
+        self.menu_selector_arrow = Some(unsafe { self.election_menu.unwrap().get_node("MenuSelector")
+            .unwrap().assume_safe().cast::<Node2D>().unwrap() });
+        self.menu_selector_arrow_initial_position = self.menu_selector_arrow.unwrap().position();
     }
 
     #[export]
@@ -139,7 +152,7 @@ impl DialogueBox {
 
             // Checks if there are elections in the current NPC dialogue
             if self.dialogue_election.as_ref().unwrap().get_number_of_decisions() > 0 && self.selection_enabled {
-                self.enable_elections_on_interactive_dialogue(_owner, self.selection_enabled);
+                self.enable_elections_on_interactive_dialogue(self.selection_enabled);
             }
             
             // Constant there acts algo as a barrier to trigger the print event
@@ -163,7 +176,7 @@ impl DialogueBox {
                 if self.current_char < self.text_to_print.len() as i32 {
 
                     self.selection_enabled = false;
-                    self.enable_elections_on_interactive_dialogue(_owner, self.selection_enabled);
+                    self.enable_elections_on_interactive_dialogue(self.selection_enabled);
 
                     if self.current_line < self.current_line_bound {
                         self.printer(&dialogue_text_label);
@@ -190,17 +203,17 @@ impl DialogueBox {
                             self.selection_enabled = false;
                             self.number_of_decisions -= 1;
 
-                            self.set_empty_dialogue_box(&dialogue_text_label);
-
                             // Sets the response based on what the player has choosed
                             // The Vec<String> with all the text maps the next characteristics:
                             // ! Index 0: Base text
                             // ! Index 1: Affirmative response / response that maps the selection nº 1
                             // ! Index 2: Negative response / response that maps the selection nº 2
                             // ! Index 3 and so forth...: Next response / response that maps the selection nº 3 and so forth...
-                            self.current_text_container_position += self.decision_selected;
+                            self.current_text_container_position = self.decision_selected;
                                 
                             self.text_to_print = dialogue_election.get_text_to_print()[self.current_text_container_position as usize].to_owned();
+
+                            self.set_empty_dialogue_box(&dialogue_text_label);
                             self.printer(&dialogue_text_label);
 
                         } else {
@@ -213,13 +226,11 @@ impl DialogueBox {
         }
     }
 
-    fn enable_elections_on_interactive_dialogue(&mut self, owner: &NinePatchRect, visible: bool) {
+    fn enable_elections_on_interactive_dialogue(&mut self, visible: bool) {
         // Pop up election menu
-        let election_menu = unsafe { owner.get_node("ElectionMenu")
-            .unwrap().assume_safe().cast::<NinePatchRect>().unwrap() };
+        let election_menu = self.election_menu.unwrap();
         election_menu.set_visible(visible);
-        let menu_selector_arrow = unsafe { election_menu.get_node("MenuSelector")
-            .unwrap().assume_safe().cast::<Node2D>().unwrap() };
+        let menu_selector_arrow = self.menu_selector_arrow.unwrap();
         let n_av_decisions = self.dialogue_election.as_ref().unwrap().get_availiable_decisions().len() as f32;
 
         if Input::is_action_just_pressed(&self.input, "Menu_Up") && self.current_char == self.text_to_print.len() as i32 {
@@ -241,6 +252,7 @@ impl DialogueBox {
         }
 
         if Input::is_action_just_pressed(&self.input, "Menu_Down") && self.current_char == self.text_to_print.len() as i32 {
+            
             if self.decision_selected == n_av_decisions as i32{
                 self.decision_selected = 1;
                 menu_selector_arrow.set_position(
@@ -328,6 +340,7 @@ impl DialogueBox {
         self.current_line_bound = 3;
         self.current_text_container_position = 0;
         self.decision_selected = 1;
+        self.menu_selector_arrow.unwrap().set_position(self.menu_selector_arrow_initial_position);
     }
 
     #[export]
