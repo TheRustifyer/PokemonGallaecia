@@ -10,7 +10,7 @@ pub struct Truck {
     times_signal_emitted: i32,
 }
 
-// Default impl
+// Implements the necesary methods that make this struct able to print text on screen.
 impl DialogueBoxActions for Truck { }
 
 impl RegisterSignal<Self> for Truck {

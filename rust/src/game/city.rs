@@ -1,7 +1,11 @@
+use std::ffi::OsStr;
+
 use gdnative::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::utils::utils;
+
+use super::game::Weather;
 
 #[derive(PartialEq, Clone, Debug, ToVariant, Serialize, Deserialize)]
 pub enum GameCity {
@@ -38,6 +42,7 @@ pub struct City {
 impl City {
     pub fn new(name: &'static str, weather: Option<CityWeather>) -> Self { Self { name, weather } }
 
+    // Convert the name of the cities that has lower case prepositions
     pub fn get_as_node_path(&self) -> String {
         let mut location_name_to_node_path: String = String::new();
         
@@ -86,4 +91,24 @@ impl CityWeather {
             description: description, 
             icon: icon } 
         }
+
+    pub fn get_weather_id_code(&self) -> i32 {
+        self.weather_id_code
+    }
+
+    pub fn get_main_code(&'static self) -> &'static str {
+        self.main_code.as_str()
+    }
+
+    pub fn get_main_code_as_weather_variant(&self) -> Weather {
+        Weather::from_string(self.main_code.as_str())
+    }
+
+    pub fn get_description(&'static self) -> &'static str {
+        self.description.as_str()
+    }
+
+    pub fn get_icon(&'static self) -> &'static str {
+        self.icon.as_str()
+    }
 }

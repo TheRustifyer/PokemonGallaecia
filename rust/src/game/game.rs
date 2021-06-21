@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use gdnative::{api::CanvasModulate, prelude::*};
 use gdnative::api::{AnimationPlayer, Particles2D};
 use gdnative::api::{HTTPClient, HTTPRequest};
@@ -7,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::utils::{consts::game_consts, networking, utils};
 use crate::game::player::{PlayerData, PlayerDirection};
 
-use chrono::NaiveTime;
+use chrono::{Duration, NaiveTime};
 
 use super::code_abstractions::database::Database;
 use super::city::{GameCity, City, CityWeather};
@@ -46,6 +48,8 @@ pub struct Game {
 
     // Game real time when the game starts
     game_external_data: GameExternalData,
+    // When the game will ask for new data, updating the old one to the REST API
+    next_api_call: NaiveTime,
 
     //References to the most important nodes of the game
     #[serde(skip)]
@@ -63,7 +67,7 @@ pub struct Game {
     #[serde(skip)]
     current_weather: Weather,
     
-    //Flag for control when all external data (from IoT) are fully loaded into `game_external_data: GameExternalData` object
+    //Flag for control when all external data are fully loaded into `game_external_data: GameExternalData` object
     #[serde(skip)]
     full_data_retrieved: bool,
     
@@ -90,6 +94,8 @@ impl Game {
             player_data: PlayerData::new(),
             // Locations
             game_cities: Vec::new(),
+            // Next API call
+            next_api_call: NaiveTime::from_hms(0, 0, 0),
             // Counters that sync arriving times of different signals
             received_signals: 0,
             total_registered_signals: 2,
@@ -174,7 +180,7 @@ impl Game {
         
         if !self.full_data_retrieved {
             let game_data = utils::retrieve_game_data();
-            // godot_print!("GAME DATA: {:#?}", &game_data);
+            // ! This should be enable on development only!
             if self.game_external_data.spring_backend_response_code != 200 {
                 godot_print!("OpenWeather API limit reached. Gonna use default data!");
                 self.current_weather = Weather::Sun;
@@ -200,10 +206,8 @@ impl Game {
                 // All data loaded, change the flag to avoid enter this piece of code
                 self.full_data_retrieved = true;
                 self.current_weather = Weather::Rain; //*! DEBUG!! Spawned manually to check rain conditions
-                if self.current_weather == Weather::Rain {
-                    // Basic implementation, still on debug!!
-                    self.rain(owner)
-                }
+                self.weather_control(owner);
+                self.next_api_call = NaiveTime::from(utils::get_current_time().overflowing_add_signed(Duration::minutes(15)).0);
             } else {
                 if self.number_of_process % 10 == 0 {
                     godot_print!("Aún no se han recuperado todos los datos...");
@@ -212,10 +216,11 @@ impl Game {
         } else {
             // Reduces the nº of interactions, instead of every frame, every % of x
             if self.number_of_process % 100 == 0 {
-                // godot_print!("Number of process % 100: {:?}", &self.number_of_process); 
                 self.control_day_phases(owner);
-                // The call to control the weather
-            }       
+                if utils::get_current_time() > self.next_api_call {
+                    self.weather_control(owner)
+                }
+            }
         }
     } 
 
@@ -472,16 +477,27 @@ impl Game {
                 godot_print!("Something went wrong retriving data and matching it with the correct city at a given index");
             }
         }
-        godot_print!("\n************\nCITIES: {:?}", &self.game_cities);
+        godot_print!("\n************\nGAME CITIES and it's data: {:?}", &self.game_cities);
     }
 
     // <------------------------- WEATHER CONTROL ----------------------->
     #[export]
-    fn rain(&mut self, owner: &Node2D) {
+    fn weather_control(&mut self, owner: &Node2D) {
         if self.current_scene_type == CurrentSceneType::Outdoors {
             for location in self.game_cities.iter_mut() {
                 godot_print!("City name as node path {:?}", &location.get_as_node_path());
-                let node_path = "Map/".to_owned() + location.get_as_node_path().as_str() + "/Weather" + "/Rain";
+                
+                let mut node_path: String = "Map/".to_owned() + location.get_as_node_path().as_str() + "/Weather";
+                godot_print!("Full final node path {:?}", &node_path);
+                match location.get_weather().as_ref().unwrap().get_main_code_as_weather_variant() {
+                    Weather::Thunderstorm => node_path.push_str("/Thunderstorm"),
+                    Weather::Drizzle => node_path.push_str("/Drizzle"),
+                    Weather::Rain => node_path.push_str("/Rain"),
+                    Weather::Snow => node_path.push_str("/Snow"),
+                    Weather::Sun => node_path.push_str("/Sun"),
+                    Weather::Clouds => node_path.push_str("/Clouds"),
+                };
+                
                 if let Some(weather_node) = unsafe { owner.get_node_as::<Particles2D>(node_path.as_str()) } {
                     weather_node.set_emitting(true);
                 }
@@ -560,7 +576,21 @@ impl Weather {
         vec![Self::Thunderstorm, Self::Drizzle, Self::Rain, Self::Snow, Self::Sun, Self::Clouds]
     }
 
-    fn to_string(&self) -> &'static str {
+    // Associated fn that converts any weather as string to his equivalent Weather counterpart
+    pub fn from_string<S: AsRef<str> + Into<String> + Display>(string: S) -> Weather {
+        match string.as_ref() {
+            "Thunderstorm" => Self::Thunderstorm,
+            "Drizzle" => Self::Drizzle,
+            "Rain" => Self::Rain,
+            "Snow" => Self::Snow,
+            "Sun" => Self::Sun,
+            "Clouds" => Self::Clouds,
+            _ => Default::default()
+        }
+    }
+
+    // Given a Weather, returns his variant name as `&'static str`.
+    pub fn to_str_slice(&self) -> &'static str {
         match self {
             Self::Thunderstorm => "Thunderstorm",
             Self::Drizzle => "Drizzle",
@@ -571,7 +601,8 @@ impl Weather {
         }
     }
 
-    fn to_spanish_string(&self) -> &'static str {
+    // Returns the weather's main code as a str slice with the weather's name translated into spanish
+    pub fn to_spanish_str(&self) -> &'static str {
         match self {
             Self::Thunderstorm => "Tormenta",
             Self::Drizzle => "Granizo",
@@ -582,7 +613,8 @@ impl Weather {
         }
     }
 
-    fn to_galician_string(&self) -> &'static str {
+    // Returns the weather's main code as a str slice with the weather's name translated into galician
+    pub fn to_galician_str(&self) -> &'static str {
         match self {
             Self::Thunderstorm => "Tormenta",
             Self::Drizzle => "Granizo",
