@@ -1,5 +1,3 @@
-use std::ffi::OsStr;
-
 use gdnative::prelude::*;
 use serde::{Deserialize, Serialize};
 
