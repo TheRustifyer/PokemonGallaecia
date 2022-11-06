@@ -6,7 +6,7 @@ use gdnative::api::AnimatedSprite;
 #[derive(Debug)]
 pub struct LandingDustEffect;
 
-#[gdnative::methods]
+#[methods]
 impl LandingDustEffect {
     pub fn new(_owner: &AnimatedSprite) -> Self { 
         Self { }

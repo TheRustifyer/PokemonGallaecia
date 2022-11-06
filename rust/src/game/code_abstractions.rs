@@ -79,7 +79,7 @@ pub mod database {
             let pokemon_table = unsafe { database.get_child(0).unwrap().assume_safe() };
             for num in 0..pokemon_table.get_child_count() {
                 godot_print!("Pokémon row NODE name: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().name() });
-                godot_print!("Pokémon ID: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().get("id").to_i64() })
+                godot_print!("Pokémon ID: {:?}", unsafe { pokemon_table.get_child(num).unwrap().assume_safe().get("id").to::<i64>() })
             }
         }
     }

@@ -35,10 +35,8 @@ tracks/0/keys = {
 "values": [ Color( 0, 0, 0, 1 ), Color( 0, 0, 0, 0 ) ]
 }
 
-[node name="Game" type="Node2D" groups=[
-"save_game_data",
-]]
-position = Vector2( 0.0793457, -1.02731 )
+[node name="Game" type="Node2D" groups=["save_game_data"]]
+position = Vector2( 0.0793457, 3.97269 )
 script = ExtResource( 4 )
 
 [node name="Map" parent="." instance=ExtResource( 2 )]

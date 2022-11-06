@@ -56,7 +56,7 @@ impl PlayerData {
 #[derive(Serialize, Deserialize)]
 pub struct PlayerCharacter {
     #[serde(skip)]
-    #[export]
+    // #[property]  // TODO Check this out
     player_status: PlayerStatus,
     #[serde(skip)]
     menu_status: MenuStatus,
@@ -96,36 +96,21 @@ pub struct PlayerCharacter {
 impl RegisterSignal<Self> for PlayerCharacter {
     fn register_signal(builder: &ClassBuilder<Self>) {
         // Indicates that the Player is moving
-        builder.add_signal( Signal {
-            name: "animate",
-            args: &[ SignalArgument {
-                name: "motion",
-                default: Variant::from_vector2(&Vector2::new(0.0, 0.0)),
-                export_info: ExportInfo::new(VariantType::Vector2),
-                usage: PropertyUsage::DEFAULT,
-            }],
-        });
+        builder.signal( "animate")
+            .with_param_custom(
+                SignalParam { 
+                    name: GodotString::from_str("motion"),
+                    default: Variant::new(&Vector2::new(0.0, 0.0)),
+                    export_info: ExportInfo::new(VariantType::Vector2),
+                    usage: PropertyUsage::DEFAULT,
+                },
+            ).done();
 
         // Indicates that the Player is interacting
-        builder.add_signal( Signal {
-            name: "player_interacting",
-            args: &[],
-        });
-
-        builder.add_signal( Signal {
-            name: "player_position",
-            args: &[]
-        });
-
-        builder.add_signal( Signal {
-            name: "player_moving",
-            args: &[]
-        });
-
-        builder.add_signal( Signal {
-            name: "player_stopped",
-            args: &[]
-        });
+        builder.signal( "player_interacting").done();
+        builder.signal( "player_position").done();
+        builder.signal( "player_moving").done();
+        builder.signal("player_stopped").done();
     }
 }
 
@@ -134,18 +119,18 @@ impl CharacterTileMovement<KinematicBody2D, Input> for PlayerCharacter {
     /// which represents the current variant of the player different status and behaviours. 
     fn process_player_input(&mut self, owner: &KinematicBody2D, input: &Input) {
         if self.input_direction.y == 0.0 {
-            self.input_direction.x = Input::is_action_pressed(&input, "Right") as i32 as f32 - Input::is_action_pressed(&input, "Left") as i32 as f32; 
+            self.input_direction.x = Input::is_action_pressed(&input, "Right", false) as i32 as f32 - Input::is_action_pressed(&input, "Left", false) as i32 as f32; 
         }
         if self.input_direction.x == 0.0 {
-            self.input_direction.y = Input::is_action_pressed(&input, "Down") as i32 as f32 - Input::is_action_pressed(&input, "Up") as i32 as f32;
+            self.input_direction.y = Input::is_action_pressed(&input, "Down", false) as i32 as f32 - Input::is_action_pressed(&input, "Up", false) as i32 as f32;
         }
-        if self.input_direction != Vector2::zero() {
+        if self.input_direction != Vector2::default() {
             self.initial_position = owner.global_position();
             self.is_moving = true;
         }
         // Check when the player press the `space bar` == "Interact" key binding. If the player isn't interacting with anything else
         // calls the `interact method`.
-        if Input::is_action_just_pressed(self.input.unwrap(), "Interact") {
+        if Input::is_action_just_pressed(self.input.unwrap(), "Interact", false) {
             if self.player_status != PlayerStatus::Interacting {
                 if let Some(collider) = self.blocking_raycast.unwrap().get_collider() {
                     if let Some(interaction) = unsafe { collider.assume_safe().cast::<Node>() } {
@@ -239,7 +224,7 @@ impl CharacterJump<KinematicBody2D, Input> for PlayerCharacter {
 }
 
 
-#[gdnative::methods]
+#[methods]
 impl PlayerCharacter {  
 
     /// The `PlayerCharacter` constructor
@@ -299,7 +284,7 @@ impl PlayerCharacter {
             // Moving the player when an input is detected
             if self.is_moving == false {
                 self.process_player_input(owner, self.input.unwrap())
-            } else if self.input_direction != Vector2::zero() {
+            } else if self.input_direction != Vector2::default() {
                 self.tilemove_or_collide(owner, delta);
             } else {
                 self.is_moving = false;
@@ -308,7 +293,7 @@ impl PlayerCharacter {
             self.animate_character(&owner);
         } else {
             // If player it's interacting, set the movement to zero...
-            self.input_direction = Vector2::zero();
+            self.input_direction = Vector2::default();
             // Notifies the PlayerAnimation class that we are IDLE 'cause interaction
             self.animate_character(&owner); // <- Player interacting
         }
@@ -378,7 +363,8 @@ impl PlayerCharacter {
 
     /// If the player character is moving, should be an animated representation.
     ///
-    /// Emit the signal "animate" and send the current player motion data for the receivers 
+    /// Emit the signal "animate" and send the current player motion data for the receivers
+    #[export]
     fn animate_character(&self, owner: &KinematicBody2D) {
         owner.emit_signal("animate", &[self.input_direction.to_variant()]);
     }
@@ -409,14 +395,11 @@ pub struct PlayerAnimation {
 impl RegisterSignal<Self> for PlayerAnimation {
     fn register_signal(builder: &ClassBuilder<Self>) {
         // Indicates that the Player is moving
-        builder.add_signal( Signal {
-            name: "player_direction",
-            args: &[],
-        });
+        builder.signal("player_direction").done();
     }
 }
 
-#[gdnative::methods]
+#[methods]
 impl PlayerAnimation {
     fn new(_owner: &AnimatedSprite) -> Self {
         Self {
@@ -426,28 +409,28 @@ impl PlayerAnimation {
         }
     }
 
-    #[export]
-    fn _ready(&mut self, owner: &AnimatedSprite) {
+    #[method]
+    fn _ready(&mut self, #[base] base: &AnimatedSprite) {
         // Adds the PlayerCharacter Node to the group that takes care about data persistence
-        owner.add_to_group("save_game_data", false);
+        base.add_to_group("save_game_data", false);
 
         self.idle_player_direction = utils::get_player_direction();
 
         match self.idle_player_direction {
-            PlayerDirection::Downwards => { owner.play("idle front", false); }
-            PlayerDirection::Upwards => { owner.play("idle back", false); }
-            PlayerDirection::Left => { owner.play("idle left", false); }
-            PlayerDirection::Right => { owner.play("idle right", false); }
+            PlayerDirection::Downwards => { base.play("idle front", false); }
+            PlayerDirection::Upwards => { base.play("idle back", false); }
+            PlayerDirection::Left => { base.play("idle left", false); }
+            PlayerDirection::Right => { base.play("idle right", false); }
         };
 
         // Connects with the Game class
-        self.connect_to_game_data(owner);
+        self.connect_to_game_data(base);
     }
 
-    #[export]
-    fn _on_player_animate(&mut self, _owner: &AnimatedSprite, _motion: Vector2) {
+    #[method]
+    fn _on_player_animate(&mut self, #[base] base: &AnimatedSprite, _motion: Vector2) {
         
-        let character_animated_sprite = unsafe { _owner.get_node_as::<AnimatedSprite>( ".") }.unwrap();
+        let character_animated_sprite = unsafe { base.get_node_as::<AnimatedSprite>( ".") }.unwrap();
 
         match _motion {
             x if x.x > 0.0 => 
@@ -499,9 +482,9 @@ impl PlayerAnimation {
             "_save_player_direction", VariantArray::new_shared(), 0).unwrap();
     }
 
-    #[export]
-    fn save_game_data(&self, owner: &AnimatedSprite) {
-        owner.emit_signal("player_direction", &[self.idle_player_direction.to_variant()]);
+    #[method]
+    fn save_game_data(&self, #[base] base: &AnimatedSprite) {
+        base.emit_signal("player_direction", &[self.idle_player_direction.to_variant()]);
     }
 }
 

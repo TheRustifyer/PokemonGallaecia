@@ -20,7 +20,7 @@ pub struct PokemonSpecie {
     pokedex_description: String,
 }
 
-#[gdnative::methods]
+#[methods]
 impl PokemonSpecie {
     // The mandatory constructor needed by `Godot - Rust `
     pub fn new(_owner: &Node2D) -> Self { 

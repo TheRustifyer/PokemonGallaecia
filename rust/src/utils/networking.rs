@@ -14,5 +14,5 @@ pub fn http_body_to_string(body: ByteArray) -> Dictionary {
     // Converts the bytes to a human-readable version
     let final_vec = std::str::from_utf8(&vector).unwrap();
     // Returns the result as a Rust String
-    unsafe { json.parse(final_vec).unwrap().assume_safe().result().to_dictionary() }
+    unsafe { json.parse(final_vec).unwrap().assume_safe().result().to::<Dictionary>().unwrap() }
 }

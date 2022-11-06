@@ -73,7 +73,7 @@ impl City {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct CityWeather {
     weather_id_code: i32,
     main_code: String,
@@ -85,10 +85,11 @@ impl CityWeather {
     pub fn new(weather_id_code: i32, main_code: String, description: String, icon: String) -> Self { 
         Self { 
             weather_id_code, 
-            main_code: main_code, 
-            description: description, 
-            icon: icon } 
-        }
+            main_code, 
+            description, 
+            icon
+        } 
+    }
 
     pub fn get_weather_id_code(&self) -> i32 {
         self.weather_id_code

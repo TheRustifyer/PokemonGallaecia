@@ -10,7 +10,7 @@ pub struct LoginScreen {
     gamer: Option<Gamer>,
 }
 
-#[gdnative::methods]
+#[methods]
 impl LoginScreen {
 
     // The "constructor of the class"

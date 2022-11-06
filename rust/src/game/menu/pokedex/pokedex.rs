@@ -29,7 +29,7 @@ pub struct Pokedex {
     times_pressed: f64,
 }
 
-#[gdnative::methods]
+#[methods]
 impl Pokedex {
     fn new(_owner: &Control) -> Self {
         Self {
@@ -89,11 +89,11 @@ impl Pokedex {
         };
 
         // Moves the PokédexEntries all along the screen, acting as an scrollable
-        if Input::is_action_pressed(&input, "ui_up") || Input::is_action_pressed(&input, "ui_down") {
+        if Input::is_action_pressed(&input, "ui_up", false) || Input::is_action_pressed(&input, "ui_down", false) {
             self.times_pressed += delta;
             godot_print!("SEl. gl. : {:?}", self.current_pokedex_entry_selected);
             if self.times_pressed > 0.3 {
-                if Input::is_action_pressed(&input, "ui_up") {
+                if Input::is_action_pressed(&input, "ui_up", false) {
                     if self.current_pokedex_entry_selected > 1 && self.current_pokedex_entry_selected <= 148 {
                         self.current_pokedex_entry_selected -= 1;
                         pokedex_entry_node.set_global_position(
@@ -106,7 +106,7 @@ impl Pokedex {
                             Vector2::new(0.0, 150.0), false)
                     }
                 }
-                else if Input::is_action_pressed(&input, "ui_down") {
+                else if Input::is_action_pressed(&input, "ui_down", false) {
                     if self.current_pokedex_entry_selected >= 1 && self.current_pokedex_entry_selected < 148 {
                         self.current_pokedex_entry_selected += 1;
                         pokedex_entry_node.set_global_position(
@@ -120,7 +120,7 @@ impl Pokedex {
                     }
                 } 
             } else {
-                if Input::is_action_just_pressed(&input, "ui_up") {
+                if Input::is_action_just_pressed(&input, "ui_up", false) {
                     if self.current_pokedex_entry_selected > 1 && self.current_pokedex_entry_selected <= 148 {
                         self.current_pokedex_entry_selected -= 1;
                         pokedex_entry_node.set_global_position(
@@ -133,7 +133,7 @@ impl Pokedex {
                             Vector2::new(0.0, 150.0), false)
                     }
                 }
-                else if Input::is_action_just_pressed(&input, "ui_down") {
+                else if Input::is_action_just_pressed(&input, "ui_down", false) {
                     if self.current_pokedex_entry_selected >= 1 && self.current_pokedex_entry_selected < 148 {
                         self.current_pokedex_entry_selected += 1;
                         pokedex_entry_node.set_global_position(
@@ -147,12 +147,12 @@ impl Pokedex {
                     }
                 }
             }
-        } else if Input::is_action_just_released(&input, "ui_up") || Input::is_action_just_released(&input, "ui_down") {
+        } else if Input::is_action_just_released(&input, "ui_up", false) || Input::is_action_just_released(&input, "ui_down", false) {
             self.times_pressed = 0.0;
         }
 
         // Exits the Pokédex scene and goes back to the Game
-        if Input::is_action_just_pressed(&input, "Exit") {
+        if Input::is_action_just_pressed(&input, "Exit", false) {
             utils::change_scene(owner, "res://godot/Game/Game.tscn".to_string())
         }
     }
@@ -177,7 +177,6 @@ impl Pokedex {
     ///
     /// Quite large and complicated? method that in the end just creates a new PokedexEntry.
     fn create_new_pokedex_entry(&self, pokemon: &PokedexEntry, _pokecounter: i32) {
-        
         // This marvelous one is the responsable of instanciate a new NinePatchRect, that will contains labels
         // with the Pokédex data of every Pokémon availiable in the game, acting as a kind of graphical container.
         let pokedex_item_box = unsafe { 
@@ -197,7 +196,8 @@ impl Pokedex {
         // Given a position of every new box, place it on screen with the previous modificated `y` coord
         pokedex_item_box.set_global_position(
             Vector2::new(self.x_entry_position as f32, self.y_entry_position as f32), 
-            false);
+            false
+        );
 
         // For every new instance, we should get the new labels inside of the instace and pass it the info
         // NOTE: Those labels are placed as a child inside the Godot's graphical interface. A mode coherente desing w'd be probably

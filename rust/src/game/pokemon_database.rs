@@ -27,7 +27,7 @@ pub struct PokemonDB {
     items_table: TRef<'static, Node2D>,
 }
 
-#[gdnative::methods]
+#[methods]
 impl PokemonDB {
     pub fn new(_owner: &Node2D) -> Self { 
         Self {
