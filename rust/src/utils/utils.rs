@@ -138,13 +138,13 @@ pub fn change_scene(_owner: &Node, next_scene_path: String) -> () {
 pub fn get_player_absolute_position() -> (f32, f32) {
     let (file, json) = open_json_file(GodotString::from_str("gamestate"), File::READ);
 
-    let my_data = json.parse(file.get_as_text()).expect("SI, error parseando el JSON");
-    let my_json = unsafe { &my_data.assume_safe().result().to_dictionary() }; 
-    let player_position = my_json.get("player_data").to_dictionary()
-        .get("player_position").to_dictionary();
+    let my_data = json.parse(file.get_as_text(false)).expect("SI, error parseando el JSON");
+    let my_json = unsafe { &my_data.assume_safe().result().to::<Dictionary>().unwrap() }; 
+    let player_position = my_json.get("player_data").unwrap().to::<Dictionary>().unwrap()
+        .get("player_position").unwrap().to::<Dictionary>().unwrap();
 
-    let player_x = player_position.get("x").to_f64() as f32;
-    let player_y = player_position.get("y").to_f64() as f32;
+    let player_x = player_position.get("x").unwrap().to::<f32>().unwrap();
+    let player_y = player_position.get("y").unwrap().to::<f32>().unwrap();
 
     //*! REMEBER TO CLOSE THE OPENED FILE HERE
     file.close();
@@ -154,10 +154,10 @@ pub fn get_player_absolute_position() -> (f32, f32) {
 pub fn get_player_direction() -> PlayerDirection {
     let (file, json) = open_json_file(GodotString::from_str("gamestate"), File::READ);
 
-    let my_data = json.parse(file.get_as_text()).expect("SI, error parseando el JSON");
-    let my_json = unsafe { &my_data.assume_safe().result().to_dictionary() }; 
+    let my_data = json.parse(file.get_as_text(false)).expect("Error getting the player direction");
+    let my_json = unsafe { &my_data.assume_safe().result().to::<Dictionary>().unwrap() }; 
     
-    let player_direction = my_json.get("player_data").to_dictionary().get("player_direction").to_string();
+    let player_direction = my_json.get("player_data").unwrap().to::<Dictionary>().unwrap().get("player_direction").unwrap().to_string();
 
     //*! REMEBER TO CLOSE THE OPENED FILE HERE
     file.close();
@@ -178,7 +178,7 @@ pub fn get_player_direction() -> PlayerDirection {
 pub fn retrieve_game_data() -> Game {
     let (file, _) = open_json_file(GodotString::from_str("gamestate"), File::READ);
 
-    let json_game_data = file.get_as_text().to_string();
+    let json_game_data = file.get_as_text(false).to_string();
     let my_str = json_game_data.as_str();
 
     let game_data: Game = serde_json::from_str(my_str).unwrap();

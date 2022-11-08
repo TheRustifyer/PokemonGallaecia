@@ -1,15 +1,18 @@
 import subprocess
 import os
 
+
 def compile_rust(prev_path, desired_path):
+    """ Compiles the Rust gdnative library with the
+        godot-rust bindings"""
     os.chdir(desired_path)
 
     process = subprocess.Popen(
-            'cargo build', 
-            shell=True, 
-            stdout=subprocess.PIPE,
-            # stderr=subprocess.PIPE
-        )
+        'cargo build',
+        shell=True,
+        stdout=subprocess.PIPE,
+        # stderr=subprocess.PIPE
+    )
 
     '''NOTE: Cargo build command gives his output always on stderr,
     regardless of whether the program compiled successfully or not, 
@@ -28,4 +31,3 @@ def compile_rust(prev_path, desired_path):
     subprocess.call(['exit'], shell=True)
 
     os.chdir(prev_path)
-

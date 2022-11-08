@@ -26,14 +26,11 @@ pub struct AreaSceneSwitcher {
 
 impl RegisterSignal<Self> for AreaSceneSwitcher {
     fn register_signal(_builder: &ClassBuilder<Self>) {
-        _builder.add_signal( Signal {
-            name: "scene_change",
-            args: &[],
-        });
+        _builder.signal( "scene_change").done();
     }
 }
 
-#[gdnative::methods]
+#[methods]
 impl AreaSceneSwitcher {
     
     fn new(_owner: &Area2D) -> Self {
@@ -45,18 +42,18 @@ impl AreaSceneSwitcher {
         }
     }
 
-    #[export]
-    fn _ready(&mut self, owner: &Area2D) {
+    #[method]
+    fn _ready(&mut self, #[base] base: &Area2D) {
         //
-        owner.add_to_group("save_game_data", false);
+        base.add_to_group("save_game_data", false);
         
-        self.connect_signal_to_root_node(owner);
+        self.connect_signal_to_root_node(base);
 
         //Name of the parent object that this Area2D is attached
-        self.parent_name = unsafe { owner.get_parent().unwrap().assume_safe().name().to_string() };
+        self.parent_name = unsafe { base.get_parent().unwrap().assume_safe().name().to_string() };
 
         // Name of the root node inside the scene where 'onwer' has been created!
-        self.owner_node = unsafe { owner.owner().unwrap().assume_safe().name().to_string() };
+        self.owner_node = unsafe { base.owner().unwrap().assume_safe().name().to_string() };
 
         // Sets the attribute that stores the final full path to the new scene based on what area the player have entered!
         self.set_path_to_scene_to_switch();
@@ -71,17 +68,17 @@ impl AreaSceneSwitcher {
         } 
     }
 
-    #[export]
+    #[method]
     // Receives the on_area2d_body_entered signal, connected on the Godot GUI
-    fn _on_area2d_body_entered(&self, owner: &Area2D, _body: Variant) {
-        owner.emit_signal("scene_change", &[self.scene_to_switch.to_owned().to_variant()]);
+    fn _on_area2d_body_entered(&self, #[base] base: &Area2D, _body: Variant) {
+        base.emit_signal("scene_change", &[self.scene_to_switch.to_owned().to_variant()]);
     }
 
-    #[export]
+    #[method]
     /// Connects the game data signal with the Game Node
-    fn connect_signal_to_root_node(&self, owner: &Area2D) {
-        let game = unsafe { owner.get_node("/root/Game").unwrap().assume_safe() };
-        owner.connect("scene_change", game, "change_world_scene",
+    fn connect_signal_to_root_node(&self, #[base] base: &Area2D) {
+        let game = unsafe { base.get_node("/root/Game").unwrap().assume_safe() };
+        base.connect("scene_change", game, "change_world_scene",
             VariantArray::new_shared(), 0).unwrap();
     }
 }

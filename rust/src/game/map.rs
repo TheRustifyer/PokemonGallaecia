@@ -8,7 +8,7 @@ use gdnative::prelude::*;
 pub struct Map;
 
 
-#[gdnative::methods]
+#[methods]
 impl Map {
     
     fn new(_owner: &Node2D) -> Self {       

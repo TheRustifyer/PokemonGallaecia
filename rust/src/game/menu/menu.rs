@@ -55,14 +55,8 @@ pub struct Menu {
 
 impl RegisterSignal<Self> for Menu {
     fn register_signal(_builder: &ClassBuilder<Self>) {
-        _builder.add_signal( Signal {
-            name: "menu_opened",
-            args: &[],
-        });
-        _builder.add_signal( Signal {
-            name: "menu_closed",
-            args: &[],
-        });
+        _builder.signal("menu_opened").done();
+        _builder.signal("menu_closed").done();
     }
 }
 
@@ -78,7 +72,7 @@ impl NodeReferences<NinePatchRect> for Menu {
     }
 }
 
-#[gdnative::methods]
+#[methods]
 impl Menu {
     fn new(_owner: &NinePatchRect) -> Self {
         Self {
@@ -110,7 +104,7 @@ impl Menu {
         // Call the function that connect the signals of this struct with the player character
         self.connect_to_player(owner);
 
-        // Sets a reference to the cursor sprite
+        // Sets#[method] a reference to the cursor sprite
         self.cursor_pointer = self.get_node_reference_from_root(&owner,"Game/Player/Camera2D/CanvasLayer/Menu/Arrow");
         self.cursor_pointer_update(&owner);
     }
@@ -126,29 +120,30 @@ impl Menu {
         let input: &Input = Input::godot_singleton();
 
         // This block of code matches a keyboard input event with the actions over the menu
-        if Input::is_action_just_pressed(&input, "Menu") {
+        if Input::is_action_just_pressed(&input, "Menu", false) {
             if self.menu_status == MenuStatus::Closed {
-                owner.emit_signal("menu_opened", &[Variant::from_str("menu_active")]);
+                owner.emit_signal("menu_opened", &[Variant::new("menu_active")]);
                 self.open_menu(owner);
                 self.player_current_abs_position = utils::get_player_absolute_position();
             } else {
-                owner.emit_signal("menu_closed", &[Variant::from_str("")]);
+                owner.emit_signal("menu_closed", &[Variant::new("")]);
                 self.close_menu(owner)
             }  
-        } else if Input::is_action_just_pressed(&input, "Menu_Up") {
+        } else if Input::is_action_just_pressed(&input, "Menu_Up", false) {
             match self.current_menu_option {
                 x if x == 0 => self.current_menu_option = self.menu_labels.len() - 1,
                 _ => self.current_menu_option -= 1
             }
             self.cursor_pointer_update(owner);
-        } else if Input::is_action_just_pressed(&input, "Menu_Down") {
+        } else if Input::is_action_just_pressed(&input, "Menu_Down", false) {
             match self.current_menu_option {
                 x if x == self.menu_labels.len() - 1 => self.current_menu_option = 0,
                 _ => self.current_menu_option += 1
             }
             self.cursor_pointer_update(owner);
-        } else if Input::is_action_just_pressed(&input, "Interact") && self.menu_status == MenuStatus::Open 
-                || Input::is_action_just_pressed(&input, "Enter") && self.menu_status == MenuStatus::Open {
+        } else if Input::is_action_just_pressed(&input, "Interact", false) && self.menu_status == MenuStatus::Open 
+                || Input::is_action_just_pressed(&input, "Enter", false) && self.menu_status == MenuStatus::Open
+        {
             godot_print!("Option nº {}, {:?} has been selected!",
             self.current_menu_option + 1, self.menu_labels.get(self.current_menu_option));
             // Method that handles the next scene given a choice on the menu
@@ -159,7 +154,7 @@ impl Menu {
                 .unwrap().assume_safe() };
             godot_print!("Current Scene, selected from Menú: {:?}", SceneTree::current_scene(&scene_tree_ref));
         }
-        else if Input::is_action_pressed(&input, "Exit") && self.menu_status == MenuStatus::Open{
+        else if Input::is_action_pressed(&input, "Exit", false) && self.menu_status == MenuStatus::Open{
             owner.emit_signal("menu_closed", &[]);
             self.close_menu(owner)
         }
@@ -219,5 +214,4 @@ impl Menu {
             _ => godot_print!("Menu option implemented yet!")
         }
     }
-
 }

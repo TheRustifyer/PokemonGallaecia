@@ -20,7 +20,7 @@ pub struct Pokemon {
     // description: String,
 }
 
-#[gdnative::methods]
+#[methods]
 impl Pokemon {
     pub fn new(_owner: &Node2D) -> Self { 
             Self { 

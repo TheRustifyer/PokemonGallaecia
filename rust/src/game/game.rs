@@ -80,9 +80,8 @@ pub struct Game {
 // Impl of database will use the "default implementation of the trait methods"
 impl Database for Game {}
 
-#[gdnative::methods]
+#[methods]
 impl Game {
-    
     fn new(_owner: &Node2D) -> Self {
         Self {
             // Development or production flag
@@ -124,20 +123,20 @@ impl Game {
         }
     }
 
-    #[export]
-    fn _ready(&mut self, owner: &Node2D) {
-        owner.set_process(true);
-        owner.add_to_group("save_game_data", false);
+    #[method]
+    fn _ready(&mut self, #[base] base: &Node2D) {
+        base.set_process(true);
+        base.add_to_group("save_game_data", false);
 
         // Load the database and add it as a node
         let database = self.database.unwrap();
-        owner.add_child(database, true);
+        base.add_child(database, true);
         // Print the Database status, with tables, rows... Debug only
         self.debug_database_info(database);
 
         // Gets references to the core nodes of the game
-        self.game_node = owner.get_node(".");
-        self.world_map_node = owner.get_node("Map");
+        self.game_node = base.get_node(".");
+        self.world_map_node = base.get_node("Map");
 
         // While the new values are coming, load the most recent saved (last one stored), avoiding nulling data
         let todays_date = utils::get_todays_date();
@@ -147,7 +146,7 @@ impl Game {
         // Deactivate de main game nodes when data isn't still retrieved from the REST Api's
         // Should this one better just as a grey or loading screen??
         unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(false) };
-        unsafe { owner.get_node_as::<Node2D>("Player").unwrap().set_visible(false) };
+        unsafe { base.get_node_as::<Node2D>("Player").unwrap().set_visible(false) };
 
         // Loads all the availiable cities/towns in the game
         for game_city in GameCity::values() {
@@ -155,12 +154,12 @@ impl Game {
             self.game_cities.append(&mut vec![place]);
         }
 
-        // Calls our Java Spring backend to retrieve the real tiem information
-        self.get_external_game_data(owner);
+        // Calls our Java Spring backend to retrieve the real time information
+        self.get_external_game_data(base);
     }
 
-    #[export]
-    fn _process(&mut self, owner: &Node2D, _delta: f64) {
+    #[method]
+    fn _process(&mut self, #[base] base: &Node2D, _delta: f64) {
         // godot_print!("CURRENT SCENE TYPE FROM PROCESS: {:?}", &self.current_scene_type);
         // Updates the counter that help to reduce the amount of times that a function gets triggered by this _process callback
         self.number_of_process += 1;
@@ -170,8 +169,8 @@ impl Game {
         }
         
         // 1º -> Notifies all the node that had info to persist that it's time to save that data
-        if Input::is_action_just_pressed(&self.input.unwrap(), "Menu") {
-            self.call_save_game_data_group(owner);
+        if Input::is_action_just_pressed(&self.input.unwrap(), "Menu", false) {
+            self.call_save_game_data_group(base);
         }
         // 2º -> When all signals are safetly stored in the class attributes, just call the data persistence method
         if self.received_signals == self.total_registered_signals {
@@ -193,20 +192,20 @@ impl Game {
                 }
             }
 
-            // When data finally arrives after the above callbacks...
+            // When data finally arrives after the above calls...
             if self.game_external_data.all_external_data_arrived() {
                 // Sets the initial luminic and weather conditions
-                self.control_day_phases(owner);
+                self.control_day_phases(base);
                 // Loads the correct scene from where the player was the last time that saved the game
-                self.load_initial_scene(owner, game_data.current_scene_path);
+                self.load_initial_scene(base, game_data.current_scene_path);
                 // self.current_scene_type = game_data.current_scene_type;
                 // This is where the loading screen should be working!!!
                 unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(true) };
-                unsafe { owner.get_node_as::<Node2D>("Player").unwrap().set_visible(true) };
+                unsafe { base.get_node_as::<Node2D>("Player").unwrap().set_visible(true) };
                 // All data loaded, change the flag to avoid enter this piece of code
                 self.full_data_retrieved = true;
                 self.current_weather = Weather::Rain; //*! DEBUG!! Spawned manually to check rain conditions
-                self.weather_control(owner);
+                self.weather_control(base);
                 self.next_api_call = NaiveTime::from(utils::get_current_time().overflowing_add_signed(Duration::minutes(15)).0);
             } else {
                 if self.number_of_process % 10 == 0 {
@@ -216,19 +215,19 @@ impl Game {
         } else {
             // Reduces the nº of interactions, instead of every frame, every % of x
             if self.number_of_process % 100 == 0 {
-                self.control_day_phases(owner);
+                self.control_day_phases(base);
                 if utils::get_current_time() > self.next_api_call {
-                    self.weather_control(owner)
+                    self.weather_control(base)
                 }
             }
         }
     } 
 
     #[export]
-    fn control_day_phases(&mut self, owner: &Node2D) {
+    fn control_day_phases(&mut self, #[base] base: &Node2D) {
         if unsafe { self.world_map_node.unwrap().assume_safe().is_inside_tree() } {
             // Get's a reference to the CanvasModulate Day-Night simulator
-            let day_night_node: TRef<CanvasModulate> = unsafe { owner.get_node_as::<CanvasModulate>("./Map/DayNight").unwrap() };
+            let day_night_node: TRef<CanvasModulate> = unsafe { base.get_node_as::<CanvasModulate>("./Map/DayNight").unwrap() };
 
             // Current time
             let ctime: NaiveTime = utils::get_current_time();
@@ -262,15 +261,15 @@ impl Game {
     }
 
 
-    #[export]
-    fn _save_player_position(&mut self, _owner: &Node2D, player_current_position: VariantArray) {
-        let player_current_position: (f64, f64) = (player_current_position.get(0).to_f64(), player_current_position.get(1).to_f64());
+    #[method]
+    fn _save_player_position(&mut self, player_current_position: VariantArray) {
+        let player_current_position: (f64, f64) = (player_current_position.get(0).to::<f64>().unwrap(), player_current_position.get(1).to::<f64>().unwrap());
         self.player_data.set_player_position(player_current_position.0, player_current_position.1);
         self.received_signals += 1;
     }
 
-    #[export]
-    fn _save_player_direction(&mut self, _owner: &Node2D, player_current_direction: Variant) {
+    #[method]
+    fn _save_player_direction(&mut self, player_current_direction: Variant) {
         let player_current_direction = player_current_direction.to_string();
         let slice = &player_current_direction[1..player_current_direction.len() - 4];
         match slice {
@@ -290,8 +289,7 @@ impl Game {
         "save_game_data", "save_game_data", &[]) };
     }
 
-    /// ### Method that persist the data stores in the class attributes
-    ///
+    /// Method that persist the data stored in the class attributes
     fn save_game(&mut self) {
         //! Calls the function who takes care about all IO operations to persist the retrieved data.
         utils::save_game_data(self);
@@ -322,12 +320,12 @@ impl Game {
         }
     }
 
-    #[export]
+    #[method]
     /// This method it's the receiver of the signal that notifies that the game detected the player on an area designed to switch him
     /// from the outside world to a building interior, and VICEVERSA
-    fn change_world_scene(&mut self, owner: &Node2D, path: Variant) {
+    fn change_world_scene(&mut self, #[base] base: &Node2D, path: Variant) {
         // Gets a TRef to the Node that makes the transition between scenes animation
-        let scene_transition_animation = unsafe { owner.get_node_as::<CanvasLayer>("SceneTransition")
+        let scene_transition_animation = unsafe { base.get_node_as::<CanvasLayer>("SceneTransition")
             .unwrap().get_node("AnimationPlayer").unwrap().assume_safe().cast::<AnimationPlayer>().unwrap()
         };
 
@@ -340,8 +338,8 @@ impl Game {
 
             scene_transition_animation.play("FadeToBlack", -1.0, 0.5, false);
 
-            unsafe { owner.call_deferred("remove_child", &[self.current_scene.unwrap().to_variant()]) };
-            unsafe { owner.call_deferred("add_child", &[self.world_map_node.unwrap().to_variant()]) };
+            unsafe { base.call_deferred("remove_child", &[self.current_scene.unwrap().to_variant()]) };
+            unsafe { base.call_deferred("add_child", &[self.world_map_node.unwrap().to_variant()]) };
             
             scene_transition_animation.play("FadeToNormal", -1.0, 1.0, false);
         
@@ -354,7 +352,7 @@ impl Game {
             scene_transition_animation.play("FadeToBlack", -1.0, 0.5, false);
             
             // Now let's gonna remove the Map from the SceneTree
-            unsafe { owner.call_deferred("remove_child", &[self.world_map_node.unwrap().to_variant()]) };
+            unsafe { base.call_deferred("remove_child", &[self.world_map_node.unwrap().to_variant()]) };
 
             // In order to go to a new scene, we must first load it as a resource
             let new_scene = ResourceLoader::godot_singleton()
@@ -365,7 +363,7 @@ impl Game {
                 new_scene.assume_safe().cast::<PackedScene>().unwrap().instance(0) };
             
             // Finally we insert our new Node, setting Game as it's parent
-            unsafe { owner.call_deferred("add_child", &[self.current_scene.unwrap().to_variant()]) };
+            unsafe { base.call_deferred("add_child", &[self.current_scene.unwrap().to_variant()]) };
             
             // Gets back the screen without fades
             scene_transition_animation.play("FadeToNormal", -1.0, 1.0, false);
@@ -373,7 +371,7 @@ impl Game {
             // ! Normalize node position, relative to player. Here, for every new indoors scene that it's being player, 
             // automatically moves it (set it's position) taking the player position as reference and then modifing with certain offset.
             // Indoors scenes in Pokémon usually starts on a red carpet, spawing the player there, so basically we are moving the scene to fit that condition.
-            let player_pos = unsafe { owner.get_node("Player").unwrap().assume_safe().cast::<KinematicBody2D>().unwrap().position() };
+            let player_pos = unsafe { base.get_node("Player").unwrap().assume_safe().cast::<KinematicBody2D>().unwrap().position() };
             unsafe { self.current_scene.unwrap().assume_safe().cast::<Node2D>().unwrap().set_position(
                 player_pos - Vector2::new(192.5, 422.0)
             ) };
@@ -396,7 +394,7 @@ impl Game {
             VariantArray::new_shared(), 0).unwrap();
 
         // Performs an http request, returning Result<(), GodotError>
-        http_request.request(url, TypedArray::new(),
+        http_request.request(url, PoolArray::new(),
             true, HTTPClient::METHOD_GET, "")
     }
 
@@ -414,9 +412,9 @@ impl Game {
         }
     }
 
-    #[export]
+    #[method]
     /// The method that receives and Http Response with all the external game data
-    fn _get_java_spring_backend_response(&mut self, _owner: &Node2D, _result: Variant, _response_code: i64, _headers: Variant, body: ByteArray) {
+    fn _get_java_spring_backend_response(&mut self, _result: Variant, _response_code: i64, _headers: Variant, body: ByteArray) {
         godot_print!("Spring backend response code: {:?}", _response_code);
         if _response_code == 200 {
             self.game_external_data.spring_backend_response_code = _response_code;
@@ -435,18 +433,21 @@ impl Game {
 
     // Encapsulates the process of sets the Sunrise/Sunset hours from the Http Response
     fn set_sunrise_sunset_hours(&mut self, response: &Dictionary) {
-        let sunrise_hour = response.get("sunriseHour").to_string().parse::<i32>().unwrap();
+        let sunrise_hour = response.get("sunriseHour").unwrap().to::<String>().unwrap().parse::<i32>().unwrap();
         self.game_external_data.todays_sunrise_time = utils::convert_from_unix_timestamp(
             sunrise_hour + game_consts::UNIX_TIMESTAMP_OFFSET);
 
-        let sunset_hour = response.get("sunsetHour").to_string().parse::<i32>().unwrap();
+        let sunset_hour = response.get("sunsetHour").unwrap().to::<String>().unwrap().parse::<i32>().unwrap();
         self.game_external_data.todays_sunset_time = utils::convert_from_unix_timestamp(
             sunset_hour + game_consts::UNIX_TIMESTAMP_OFFSET);
     }
 
     // Encapsulates the process of sets the weather of all the cities of the game
     fn set_cities_weather(&mut self, response: &Dictionary) {
-        let current_weather = response.get("gameCities").to_array();
+        let current_weather = response.get("gameCities")
+            .expect("No gameCities entry")
+            .to::<VariantArray>()
+            .expect("Panic converting the gameCities entry to VariantArray");
 
         godot_print!("\nWEATHER: {:?}\n", &current_weather);
 
@@ -456,22 +457,29 @@ impl Game {
         // in base the order that the cities are hardcoded in the vector returned by the `GameCity::values()` associated fn.
         // That order maps the ID of the cities on the JSON.
         for location in self.game_cities.iter_mut() {
-            let current_idx_data = current_weather.get(idx).to_dictionary();
-            if location.get_name() == current_idx_data.get("name").to_string() {
+            let current_idx_data = current_weather.get(idx)
+                .to::<Dictionary>()
+                .expect("Fail to get the current_idx_data");
+            if location.get_name() == current_idx_data.get("name")
+                .unwrap()
+                .to_string() {
             
                 let external_weather_data = current_idx_data
                         .get("weather")
-                        .to_dictionary();
+                        .unwrap()
+                        .to::<Dictionary>()
+                        .unwrap();
                 
                 let location_weather_instance = CityWeather::new(
-                    external_weather_data.get("weatherIDCode").to_i64() as i32,
-                    external_weather_data.get("mainCode").to_string(),
-                    external_weather_data.get("description").to_string(),
-                    external_weather_data.get("icon").to_string()
+                    external_weather_data.get("weatherIDCode").unwrap().to::<i32>().unwrap(),
+                    external_weather_data.get("mainCode").unwrap().to::<String>().unwrap(),
+                    external_weather_data.get("description").unwrap().to::<String>().unwrap(),
+                    external_weather_data.get("icon").unwrap().to::<String>().unwrap()
                 );
 
                 location.set_weather(location_weather_instance);
                 idx += 1;
+
                 self.game_external_data.cities_weather_loaded = true;
             } else {
                 godot_print!("Something went wrong retriving data and matching it with the correct city at a given index");
@@ -481,15 +489,16 @@ impl Game {
     }
 
     // <------------------------- WEATHER CONTROL ----------------------->
-    #[export]
-    fn weather_control(&mut self, owner: &Node2D) {
+    #[method]
+    fn weather_control(&self, #[base] base: &Node2D) {
         if self.current_scene_type == CurrentSceneType::Outdoors {
-            for location in self.game_cities.iter_mut() {
+            for location in self.game_cities.iter() {
                 godot_print!("City name as node path {:?}", &location.get_as_node_path());
                 
                 let mut node_path: String = "Map/".to_owned() + location.get_as_node_path().as_str() + "/Weather";
                 godot_print!("Full final node path {:?}", &node_path);
-                match location.get_weather().as_ref().unwrap().get_main_code_as_weather_variant() {
+                
+                match location.get_weather().as_ref().unwrap_or(&CityWeather::default()).get_main_code_as_weather_variant() {
                     Weather::Thunderstorm => node_path.push_str("/Thunderstorm"),
                     Weather::Drizzle => node_path.push_str("/Drizzle"),
                     Weather::Rain => node_path.push_str("/Rain"),
@@ -498,7 +507,7 @@ impl Game {
                     Weather::Clouds => node_path.push_str("/Clouds"),
                 };
                 
-                if let Some(weather_node) = unsafe { owner.get_node_as::<Particles2D>(node_path.as_str()) } {
+                if let Some(weather_node) = unsafe { base.get_node_as::<Particles2D>(node_path.as_str()) } {
                     weather_node.set_emitting(true);
                 }
             }
