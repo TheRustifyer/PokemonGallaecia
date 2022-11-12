@@ -11,7 +11,7 @@ def compile_rust(prev_path, desired_path):
         'cargo build',
         shell=True,
         stdout=subprocess.PIPE,
-        # stderr=subprocess.PIPE
+        stderr=subprocess.PIPE
     )
 
     '''NOTE: Cargo build command gives his output always on stderr,

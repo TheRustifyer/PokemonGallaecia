@@ -5,16 +5,13 @@
 pub mod character {
     pub trait CharacterTileMovement<O, I> {
         fn process_player_input(&mut self, owner: &O, input: &I);
-
         fn tilemove_or_collide(&mut self, owner: &O, delta: f32);
-        
         fn move_character(&mut self, _owner: &O, delta: f32);
     }
 
     // Supertrait. Child of CharacterTileMovement. A Pokémon jump it's usually 2 tiles
     pub trait CharacterJump<O, I>: CharacterTileMovement<O, I> {
         fn jump_over_ledge(&mut self, owner: &O, delta: f32);
-
         fn landing_dust_effect(&mut self, owner: &O);
     }
 }
@@ -41,7 +38,6 @@ pub mod signals {
 }
 
 pub mod node_operations {
-
     use gdnative::prelude::*;
     
     pub trait NodeReferences<T> {

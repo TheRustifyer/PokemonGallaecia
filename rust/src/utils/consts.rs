@@ -1,5 +1,7 @@
 pub mod game_consts {
     pub const UNIX_TIMESTAMP_OFFSET: i32 = 3600;
+    pub const DEVELOPMENT_URL: &'static str = "http://localhost:8080/api/Game";
+    pub const PRODUCTION_URL: &'static str = "";
 }
 
 pub mod in_game_constant {
@@ -33,12 +35,10 @@ pub mod line_edit {
 }
 
 pub mod scenes {
-    // pub const MAIN_SCENE: &str =
-    //     "";
-    // pub const PLAYER_AS_SCENE: &str =
-    //     "res://godot/Player.tscn";
-
     pub const LEVEL_1: &str =
         "res://godot/Levels/Level_1.tscn";
+
+    pub const MAP_SCENE: &str =
+        "res://godot/Game/Map.tscn";
 }
 

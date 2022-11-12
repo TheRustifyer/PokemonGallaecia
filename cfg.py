@@ -55,7 +55,7 @@ library = candidates[0]
 
 # The final path of the desired dynamic lib
 rust_dll_path = rust_compiling_folder + '\\' + library if OS == 'Windows' \
-    else rust_compiling_folder + '/'
+    else rust_compiling_folder + '/' + library
 
 # Setting our base commands, flags and paths
 subprocess_args = [command, rust_dll_path, godot_dir]

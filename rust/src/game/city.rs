@@ -71,8 +71,61 @@ impl City {
     pub fn set_weather(&mut self, weather: CityWeather) {
         self.weather = Some(weather);
     }
+
+    /// Utilery function that ncapsulates the process of set the weather
+    /// for all the cities of the game, given a container with the already
+    /// generated instances of [`City`]
+    pub fn set_cities_weather(
+        game_cities: std::slice::IterMut<'_, City>,
+        response: &Dictionary
+    ) -> bool {
+        let current_weather = response.get("gameCities")
+            .expect("No gameCities entry")
+            .to::<VariantArray>()
+            .expect("Panic converting the gameCities entry to VariantArray");
+
+        godot_print!("\nWEATHER: {:?}\n", &current_weather);
+
+        // Iterate all over the game cities / towns
+        let mut idx: i32 = 0;
+        // ! IMPORTANT: Our REST API always send the cities ordered by ID. The `self.game_cities` attribute stores cities created
+        // in base the order that the cities are hardcoded in the vector returned by the `GameCity::values()` associated fn.
+        // That order maps the ID of the cities on the JSON.
+        for location in game_cities {
+            let current_idx_data = current_weather.get(idx)
+                .to::<Dictionary>()
+                .expect("Fail to get the current_idx_data");
+            if location.get_name() == current_idx_data.get("name")
+                .unwrap()
+                .to_string() {
+            
+                let external_weather_data = current_idx_data
+                    .get("weather")
+                    .unwrap()
+                    .to::<Dictionary>()
+                    .unwrap();
+                
+                let location_weather_instance = CityWeather::new(
+                    external_weather_data.get("weatherIDCode").unwrap().to::<i32>().unwrap(),
+                    external_weather_data.get("mainCode").unwrap().to::<String>().unwrap(),
+                    external_weather_data.get("description").unwrap().to::<String>().unwrap(),
+                    external_weather_data.get("icon").unwrap().to::<String>().unwrap()
+                );
+
+                location.set_weather(location_weather_instance);
+                return true;
+            } else {
+                godot_print!("Something went wrong retriving data and matching it with the correct city at a given index");
+            }
+
+            idx += 1;
+        }
+
+        return false;
+    }
 }
 
+/// Data model for store the weather data received for a city
 #[derive(Debug, Clone, Default)]
 pub struct CityWeather {
     weather_id_code: i32,

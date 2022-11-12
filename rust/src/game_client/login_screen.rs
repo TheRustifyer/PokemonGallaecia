@@ -25,24 +25,24 @@ impl LoginScreen {
         self.gamer = player;
     }
 
-    #[export]
-    fn _ready(&mut self, _owner: &Node) {
+    #[method]
+    fn _ready(&mut self, #[base] base: &Node) {
         //Setting the intro of the app :)
-        utils::set_label_text(_owner, 
+        utils::set_label_text(base, 
             &labels::APP_TITLE_LABEL_PATH.to_string(), 
             &labels::APP_TITLE_LABEL.to_string()
             );
     }
 
     /// Gets the inputed credentials on the Login Screen Line Edits
-    fn retrieve_credentials(&self, _owner: &Node) -> (String, String){
+    fn retrieve_credentials(&self, base: &Node) -> (String, String){
         let get_username_on_input = unsafe 
-            { _owner.get_node_as::<LineEdit>(
+            { base.get_node_as::<LineEdit>(
                 &line_edit::USERNAME_LINE_EDIT_PATH) }
             .unwrap()
             .text();
         let get_password_on_input = unsafe 
-            { _owner.get_node_as::<LineEdit>(
+            { base.get_node_as::<LineEdit>(
                 &line_edit::PASSWORD_LINE_EDIT_PATH) }
             .unwrap()
             .text();
@@ -51,11 +51,11 @@ impl LoginScreen {
         Gamer::credentials_to_rust_string((get_username_on_input, get_password_on_input))
     }
 
-    #[export]
+    #[method]
     /// The receiver of the signal from Godot when the login button gets pressed
-    fn _on_login_button_pressed(&mut self, _owner: &Node) {
+    fn _on_login_button_pressed(&mut self, #[base] base: &Node) {
 
-        let (username, password): (String, String) = self.retrieve_credentials(_owner);
+        let (username, password): (String, String) = self.retrieve_credentials(base);
 
         let credentials_status = 
             Gamer::check_credentials(
@@ -73,7 +73,7 @@ impl LoginScreen {
                 &mut self.set_player(Some(new_player));
                 
                 // Finally, with the new player creaded we can move to the main scene
-                utils::change_scene(_owner, scenes::LEVEL_1.to_string());
+                utils::change_scene(base, scenes::LEVEL_1.to_string());
             },
             // This should be changed for on screen labels on the future. Fine for now ;)
             (true, false) => godot_print!("Wrong password. Try again."),

@@ -6,6 +6,7 @@ use gdnative::api::{HTTPClient, HTTPRequest};
 
 use serde::{Deserialize, Serialize};
 
+use crate::utils::consts::scenes;
 use crate::utils::{consts::game_consts, networking, utils};
 use crate::game::player::{PlayerData, PlayerDirection};
 
@@ -14,20 +15,30 @@ use chrono::{Duration, NaiveTime};
 use super::code_abstractions::database::Database;
 use super::city::{GameCity, City, CityWeather};
 
+#[derive(Default)]
+struct GameConfig {
+    // Flag to quickly control if we are working on development or in production
+    in_development: bool,
+}
+
+#[derive(Default)]
+struct GameStatus {
+
+}
+
+// #[derive(Default)]
+// struct Game {
+
+// }
+
 #[derive(NativeClass)]
 #[inherit(Node2D)]
-#[derive(Debug, Serialize, Deserialize)]
-#[derive(Clone)]
+#[derive(Serialize, Deserialize)]
 pub struct Game {
-    // Flag to quickly control if we are working on development or in production
     #[serde(skip)]
-    in_development: bool,
-
-    // Urls of dev and production backends
+    game_config: GameConfig,
     #[serde(skip)]
-    development_url: &'static str,
-    #[serde(skip)]
-    production_url: &'static str,
+    game_status: GameStatus,
 
     // The struct that will hold all necesary Player Data
     player_data: PlayerData,
@@ -84,13 +95,10 @@ impl Database for Game {}
 impl Game {
     fn new(_owner: &Node2D) -> Self {
         Self {
-            // Development or production flag
-            in_development: true,
-            // Backend server addresses
-            development_url: "http://localhost:8080/api/Game",
-            production_url: "",
+            game_config: GameConfig { in_development: true },
+            game_status: GameStatus { },
             // Initializes a new `PlayerData` struct 
-            player_data: PlayerData::new(),
+            player_data: PlayerData::new(), 
             // Locations
             game_cities: Vec::new(),
             // Next API call
@@ -103,7 +111,7 @@ impl Game {
             // User define enum to represent in which type of world scene the player is
             current_scene_type: Default::default(),
             // Default path of the game
-            current_scene_path: "res://godot/Game/Map.tscn".to_string(),
+            current_scene_path: scenes::MAP_SCENE.to_string(),
             // Core nodes to track
             game_node: None,
             world_map_node: None,
@@ -127,7 +135,7 @@ impl Game {
     fn _ready(&mut self, #[base] base: &Node2D) {
         base.set_process(true);
         base.add_to_group("save_game_data", false);
-
+        
         // Load the database and add it as a node
         let database = self.database.unwrap();
         base.add_child(database, true);
@@ -197,7 +205,7 @@ impl Game {
                 // Sets the initial luminic and weather conditions
                 self.control_day_phases(base);
                 // Loads the correct scene from where the player was the last time that saved the game
-                self.load_initial_scene(base, game_data.current_scene_path);
+                self.load_initial_scene(base, &game_data.current_scene_path);
                 // self.current_scene_type = game_data.current_scene_type;
                 // This is where the loading screen should be working!!!
                 unsafe { self.world_map_node.unwrap().assume_safe().cast::<Node2D>().unwrap().set_visible(true) };
@@ -219,11 +227,13 @@ impl Game {
                 if utils::get_current_time() > self.next_api_call {
                     self.weather_control(base)
                 }
+                // TODO Control next api call time
+                // Generate the call to the cities weather here?
             }
         }
     } 
 
-    #[export]
+    #[method]
     fn control_day_phases(&mut self, #[base] base: &Node2D) {
         if unsafe { self.world_map_node.unwrap().assume_safe().is_inside_tree() } {
             // Get's a reference to the CanvasModulate Day-Night simulator
@@ -298,15 +308,15 @@ impl Game {
     }
 
     /// Method for load the correct scene, based on last saved player Scene
-    fn load_initial_scene(&mut self, owner: &Node2D, path: String) {
-        if !path.ends_with("Map.tscn") {
+    fn load_initial_scene(&mut self, owner: &Node2D, path: &dyn AsRef<str>) {
+        if !path.as_ref().to_string().ends_with("Map.tscn") {
             self.current_scene_type = CurrentSceneType::Indoors;
 
             owner.remove_child(self.world_map_node.unwrap());
 
             // First load it as a resource
             let new_scene = ResourceLoader::godot_singleton()
-                .load(path.to_string(), "", false).unwrap();
+                .load(path, "", false).unwrap();
 
             // Convert the scene resource to a Node
             self.current_scene = unsafe { 
@@ -403,7 +413,7 @@ impl Game {
     fn get_external_game_data(&self, owner: &Node2D) {
         let url: &'static str;
         
-        if self.in_development { url = self.development_url } else { url = self.production_url }
+        if self.game_config.in_development { url = game_consts::DEVELOPMENT_URL } else { url = game_consts::PRODUCTION_URL }
         
         match self.new_http_node(owner, url, "_get_java_spring_backend_response")
         {
@@ -422,8 +432,10 @@ impl Game {
             // ! Here comes the http response, parsed as a Variant<Dictionary>
             let response = networking::http_body_to_string(body);
 
+            // TODO Refactor the sunrise - sunset hours
             self.set_sunrise_sunset_hours(&response);
-            self.set_cities_weather(&response);
+            self.game_external_data.cities_weather_loaded =
+                City::set_cities_weather(self.game_cities.iter_mut(), &response); 
            
         } else {
             self.game_external_data.spring_backend_response_code = _response_code;
@@ -440,52 +452,6 @@ impl Game {
         let sunset_hour = response.get("sunsetHour").unwrap().to::<String>().unwrap().parse::<i32>().unwrap();
         self.game_external_data.todays_sunset_time = utils::convert_from_unix_timestamp(
             sunset_hour + game_consts::UNIX_TIMESTAMP_OFFSET);
-    }
-
-    // Encapsulates the process of sets the weather of all the cities of the game
-    fn set_cities_weather(&mut self, response: &Dictionary) {
-        let current_weather = response.get("gameCities")
-            .expect("No gameCities entry")
-            .to::<VariantArray>()
-            .expect("Panic converting the gameCities entry to VariantArray");
-
-        godot_print!("\nWEATHER: {:?}\n", &current_weather);
-
-        // Iterate all over the game cities / towns
-        let mut idx: i32 = 0;
-        // ! IMPORTANT: Our REST API always send the cities ordered by ID. The `self.game_cities` attribute stores cities created
-        // in base the order that the cities are hardcoded in the vector returned by the `GameCity::values()` associated fn.
-        // That order maps the ID of the cities on the JSON.
-        for location in self.game_cities.iter_mut() {
-            let current_idx_data = current_weather.get(idx)
-                .to::<Dictionary>()
-                .expect("Fail to get the current_idx_data");
-            if location.get_name() == current_idx_data.get("name")
-                .unwrap()
-                .to_string() {
-            
-                let external_weather_data = current_idx_data
-                        .get("weather")
-                        .unwrap()
-                        .to::<Dictionary>()
-                        .unwrap();
-                
-                let location_weather_instance = CityWeather::new(
-                    external_weather_data.get("weatherIDCode").unwrap().to::<i32>().unwrap(),
-                    external_weather_data.get("mainCode").unwrap().to::<String>().unwrap(),
-                    external_weather_data.get("description").unwrap().to::<String>().unwrap(),
-                    external_weather_data.get("icon").unwrap().to::<String>().unwrap()
-                );
-
-                location.set_weather(location_weather_instance);
-                idx += 1;
-
-                self.game_external_data.cities_weather_loaded = true;
-            } else {
-                godot_print!("Something went wrong retriving data and matching it with the correct city at a given index");
-            }
-        }
-        godot_print!("\n************\nGAME CITIES and it's data: {:?}", &self.game_cities);
     }
 
     // <------------------------- WEATHER CONTROL ----------------------->
