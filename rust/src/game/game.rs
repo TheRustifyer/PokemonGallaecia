@@ -160,7 +160,7 @@ impl Game {
 
         // Deactivate de main game nodes when data isn't still retrieved from the REST Api's
         // Should this one better just as a grey or loading screen??
-        self.current_scene.unwrap().set_visible(false);
+        // self.current_scene.unwrap().set_visible(false);
         self.player_node.unwrap().set_visible(false);
 
         // Loads all the availiable cities/towns in the game
@@ -231,9 +231,7 @@ impl Game {
             self.control_day_phases(base);
             // Makes the scenes visible
             debug_info::print_tref_node_name(self.current_scene);
-            godot_print!("CS visible before: {:?}", self.current_scene.unwrap().is_visible());
             self.current_scene.unwrap().set_visible(true);
-            godot_print!("CS visible after: {:?}", self.current_scene.unwrap().is_visible());
             self.player_node.unwrap().set_visible(true);
 
             // All data loaded, change the flag to avoid enter this piece of code
@@ -327,36 +325,26 @@ impl Game {
     fn load_initial_scene(&mut self, #[base] base: &Node2D) {
         let path = utils::retrieve_game_data().current_scene_path;
         godot_print!("Loading: {:?}", path.to_string());
+        self.current_scene_path = path.to_string();
+
         if !path.to_string().ends_with("Map.tscn") {
             self.current_scene_type = CurrentSceneType::Indoors;
 
-            // First load it as a resource
-            let new_scene = ResourceLoader::godot_singleton()
-                .load(path.clone(), "", false).unwrap();
-
-            self.current_scene_path = path.to_string();
-            
             // Convert the scene resource to a Node
-            self.current_scene = unsafe { 
-                new_scene.assume_safe()
-                    .cast::<PackedScene>()
-                    .unwrap()
-                    .instance(0)
-                    .unwrap()
-                    .assume_safe()
-                    .cast::<Node2D>()
-            };
+            self.current_scene = nodes::load_node(path);
 
-            // Insert it on the SceneTree, and set the order
-            // unsafe { base.call_deferred("remove_child", &[self.current_scene.unwrap().to_variant()]) };
-            // unsafe { base.call_deferred("add_child", &[self.world_map_node.unwrap().to_variant()]) };
-            
-            godot_print!("Parent: {:?}", self.current_scene.unwrap().get_parent());
-            base.add_child(self.current_scene.unwrap(), true);
-            godot_print!("Parent: {:?}", unsafe { self.current_scene.unwrap().get_parent().unwrap().assume_safe().name()});
-            base.move_child(self.current_scene.unwrap(), 1);
             base.remove_child(self.world_map_node.unwrap());
+            base.add_child(self.current_scene.unwrap(), true);
+            base.move_child(self.current_scene.unwrap(), 0);
 
+            let player_pos = unsafe { base.get_node("Player").unwrap().assume_safe().cast::<KinematicBody2D>().unwrap().position() };
+            self.current_scene.unwrap().set_position(
+                player_pos - Vector2::new(192.5, 422.0)
+                // TODO The handcoded calculations must put the values
+                // accordingly to the scene maded. Those are the ones
+                // for the Pokemon Center
+            );
+            
             debug_info::print_node_children_names(base);
         } else {
             // If the game was saved on the outdoors world, its already
@@ -390,6 +378,7 @@ impl Game {
 
             scene_transition_animation.play("FadeToBlack", -1.0, 0.5, false);
 
+            // Swap scenes
             nodes::remove_child_def(base, self.current_scene);
             nodes::add_child_def(base, self.world_map_node);
             nodes::move_child_def(base, self.world_map_node, 0);
