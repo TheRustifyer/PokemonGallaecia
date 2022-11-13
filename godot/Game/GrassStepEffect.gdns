@@ -1,8 +1,0 @@
-[gd_resource type="NativeScript" load_steps=2 format=2]
-
-[ext_resource path="res://godot/rust_library.gdnlib" type="GDNativeLibrary" id=1]
-
-[resource]
-resource_name = "GrassStepEffect"
-class_name = "GrassStepEffect"
-library = ExtResource( 1 )

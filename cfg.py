@@ -80,16 +80,10 @@ def replace_rust_dll():
     """ replaces the last compiled version of the native library
         for the new compiled one
     """
-    '''First we need to declare a new thread to make Python
-    wait for the compilation. That fn starts a new process separated from the
-    interpreter, so Python just calls that function and keep his Python job, due to 
-    for him does isn't happening inside the interpreter.'''
-
     # Call fn to autocompile the Rust shared library for gdnative
     compile_rust(current_path, rust_dir)
 
     subprocess_args.insert(1, silently_override_file_switch)
-    print(subprocess_args)
     process = subprocess.Popen(
         subprocess_args,
         # shell=True,
@@ -104,7 +98,7 @@ def replace_rust_dll():
         process_stdout = process.stdout.read(100)
         execution_result = process_stdout.decode('UTF-8').strip()
         print('Coping files, wait...')
-        print('\t' + execution_result + f'\n\tFile: {library} to {godot_dir}')
+        print(execution_result + f'File: {library} to {godot_dir}')
 
         if OS == 'Windows':
             desktop_result_notification(True)

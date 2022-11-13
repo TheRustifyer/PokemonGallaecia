@@ -11,8 +11,10 @@ use game::pokemon::Pokemon;
 use game::pokemon_specie::PokemonSpecie;
 use game::pokemon_database::PokemonDB;
 use game::area_scene_switcher::AreaSceneSwitcher;
-use game::tall_grass::TallGrass;
-use game::grass_step_effect::GrassStepEffect;
+use game::effects::{
+    tall_grass::TallGrass,
+    grass_step_effect::GrassStepEffect
+};
 use game::landing_dust_effect::LandingDustEffect;
 use game::map::Map;
 use game::player::{PlayerAnimation, PlayerCharacter};

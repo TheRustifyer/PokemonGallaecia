@@ -4,22 +4,23 @@ import os
 
 def compile_rust(prev_path, desired_path):
     """ Compiles the Rust gdnative library with the
-        godot-rust bindings"""
+        godot-rust bindings.
+        Note: Cargo build command gives his output always on stderr,
+        regardless of whether the program compiled successfully or not,
+        which is a little bit weird. BTW, we are capturing stdout in order
+        to make the program wait for the complete execution of the process,
+        otherwise Python process will running without wait Rust compilation
+        to ends. (When subprocess with cargo build spawns, it's independent of the
+        Python's interpreter thread).'
+    """
     os.chdir(desired_path)
 
     process = subprocess.Popen(
         'cargo build',
         shell=True,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE
+        # stderr=subprocess.PIPE
     )
-
-    '''NOTE: Cargo build command gives his output always on stderr,
-    regardless of whether the program compiled successfully or not, 
-    which is a little bit weird. BTW, we are capturing stdout in order to make the program
-    wait for the complete execution of the process, otherwise Python process will running without
-    wait Rust compilation to ends. (When subprocess with cargo build spawns, it's independent of the
-    Python interpreter thread.'''
 
     process_stdout = process.stdout.read(1000)
     execution_result_out = process_stdout.decode('UTF-8').strip()

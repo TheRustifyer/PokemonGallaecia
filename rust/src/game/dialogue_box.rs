@@ -139,7 +139,6 @@ impl DialogueBox {
 
     #[method]
     fn _process(&mut self, #[base] base: &NinePatchRect, _delta: f64) {
-
         // If the `printing` flag is true means that the `_print_dialogue` method was triggered by a signal binding
         if self.printing {
             self.timer += _delta; // Uses a timer as a "time handler", using delta to set it's value
@@ -244,7 +243,6 @@ impl DialogueBox {
         }
 
         if Input::is_action_just_pressed(&self.input, "Menu_Down", false) && self.current_char == self.text_to_print.len() as i32 {
-            
             if self.decision_selected == n_av_decisions as i32{
                 self.decision_selected = 1;
                 menu_selector_arrow.set_position(
@@ -265,7 +263,6 @@ impl DialogueBox {
     }
 
     fn play_arrow_animation(&mut self, owner: &NinePatchRect, dialogue_text_label: &TRef<RichTextLabel>) {
-
         let arrow_sprite = unsafe { owner.get_node("Cursor/Arrow")
             .unwrap().assume_safe().cast::<AnimatedSprite>().unwrap() };
 
@@ -281,13 +278,10 @@ impl DialogueBox {
     }
 
     fn printer(&mut self, dialogue_text_label: &TRef<RichTextLabel>) {
-
         if let Some(current_char_to_print) = self.text_to_print.chars().nth(self.current_char as usize) {
-
             if current_char_to_print == '\n' {
                 self.current_line += 1;
             }
-
             dialogue_text_label.set_bbcode(dialogue_text_label.bbcode() + 
             GodotString::from(String::from(current_char_to_print)));
         }

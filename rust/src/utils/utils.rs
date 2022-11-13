@@ -10,6 +10,93 @@ use chrono::{Datelike, Duration as Dur, NaiveDate, NaiveTime, Utc, Weekday};
 use chrono::prelude::{DateTime, Local};
 use std::time::{UNIX_EPOCH, Duration};
 
+
+/// Contains utilery functions to debug print some intrinsic information about
+/// the requested object
+pub mod debug_info {
+    use gdnative::prelude::{godot_print, Node2D, Ref, Node, Shared, TRef};
+
+    /// Prints the name of a node
+    pub fn print_node_name(node: Option<Ref<Node, Shared>>) {
+        godot_print!(
+            "Node name: {:?}",
+            unsafe { node.unwrap().assume_safe().name() }
+        );
+    }
+
+    /// Prints the name of a node given an [`Option<TRef<'static, Node2D>>`]
+    pub fn print_tref_node_name(tref: Option<TRef<'static, Node2D>>) {
+        godot_print!("TRef Node name: {:?}", tref.unwrap().name());
+    }
+
+    /// Prints the name of the children nodes attached to a [`Node2D`]
+    pub fn print_node_children_names(node: &Node2D) {
+        godot_print!("\n");
+        for child in 0..node.get_child_count() {
+            godot_print!(
+                "Children name: {:?}",
+                unsafe { node.get_child(child).unwrap().assume_safe().name() }
+            )
+        }
+    }
+}
+
+
+/// Common operations on Godot's nodes
+pub mod nodes {
+    use gdnative::prelude::{
+        ResourceLoader, PackedScene, TRef, 
+        GodotObject, Node, SubClass, Object,
+        ToVariant, Node2D
+    };
+
+    /// Loads a T as a node given a path to a scene resource
+    pub fn load_node<T: GodotObject + SubClass<Node>>(path: String) -> Option<TRef<'static, T>> {
+        // In order to go to a new scene, we must first load it as a resource
+        let new_scene = ResourceLoader::godot_singleton()
+            .load(path.to_string(), "", false).unwrap();
+        unsafe { 
+            new_scene.assume_safe()
+                .cast::<PackedScene>()
+                .unwrap()
+                .instance(0)
+                .unwrap()
+                .assume_safe()
+                .cast::<T>() 
+        }
+    }
+
+    /// Adds a child to a node using `call_deferred`
+    pub fn add_child_def(base: &Node, node: Option<TRef<'static, Node2D>>) {
+        unsafe { 
+            base.call_deferred(
+                "add_child",
+                &[node.unwrap().to_variant()]
+            ) 
+        };
+    }
+
+    /// Removes a child from a given node using `call_deferred`
+    pub fn remove_child_def(base: &Node, node: Option<TRef<'static, Node2D>>) {
+        unsafe { 
+            base.call_deferred(
+                "remove_child",
+                &[node.unwrap().to_variant()]
+            ) 
+        };
+    }
+
+    /// Moves the child position inside the childrens of a node using `call_deferred`
+    pub fn move_child_def(base: &Node, node: Option<TRef<'static, Node2D>>, index: usize) {
+        unsafe { 
+            base.call_deferred(
+                "move_child",
+                &[node.unwrap().to_variant(), index.to_variant()]
+            ) 
+        };
+    }
+}
+
 /// Used to match week days integer values with Variants
 #[derive(PartialEq, Clone, Debug, ToVariant)]
 pub enum DaysOfTheWeek {

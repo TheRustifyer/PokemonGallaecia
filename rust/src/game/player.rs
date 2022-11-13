@@ -6,7 +6,7 @@ use serde::ser::Serializer;
 use gdnative::{api::RayCast2D, prelude::*};
 use gdnative::api::{AnimatedSprite, KinematicBody2D};
 
-use crate::{game::dialogue_box::DialogueBoxStatus};
+use crate::game::dialogue_box::DialogueBoxStatus;
 use crate::game::code_abstractions::{
     character::{CharacterTileMovement, CharacterJump},
     signals::RegisterSignal

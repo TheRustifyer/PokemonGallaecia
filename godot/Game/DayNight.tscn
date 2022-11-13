@@ -1,0 +1,8 @@
+[gd_scene format=2]
+
+[node name="DayNight" type="CanvasModulate"]
+visible = false
+light_mask = -2147483647
+position = Vector2( 3.88107, 1.5892 )
+z_index = -1
+color = Color( 0.2, 0.2, 0.301961, 1 )
