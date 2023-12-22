@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=2]
 
-[ext_resource path="res://gfx/Tilemaps/Interiors/Pokemon Center.png" type="Texture" id=1]
+[ext_resource path="res://gfx/Tilemaps/Interiors/Pokemon Center.png" type="Texture2D" id=1]
 [ext_resource path="res://godot/Game/SceneSwitcher.tscn" type="PackedScene" id=2]
 
 [sub_resource type="RectangleShape2D" id=1]
@@ -12,7 +12,7 @@ __meta__ = {
 "_edit_group_": true
 }
 
-[node name="Interior" type="Sprite" parent="."]
+[node name="Interior" type="Sprite2D" parent="."]
 position = Vector2( 200, 368 )
 texture = ExtResource( 1 )
 

@@ -1,7 +1,7 @@
 [gd_scene load_steps=20 format=2]
 
 [ext_resource path="res://godot/Player/PlayerAnimation.gdns" type="Script" id=1]
-[ext_resource path="res://gfx/Players/Male 16-3.png" type="Texture" id=18]
+[ext_resource path="res://gfx/Players/Male 16-3.png" type="Texture2D" id=18]
 
 [sub_resource type="AtlasTexture" id=1]
 flags = 4
@@ -126,7 +126,7 @@ animations = [ {
 "speed": 5.0
 } ]
 
-[node name="PlayerAnimation" type="AnimatedSprite"]
+[node name="PlayerAnimation" type="AnimatedSprite2D"]
 position = Vector2( -1, 0 )
 scale = Vector2( 3, 3 )
 frames = SubResource( 17 )

@@ -1,6 +1,6 @@
 [gd_scene load_steps=8 format=2]
 
-[ext_resource path="res://gfx/Tilemaps/Grass/grass_step_animation.png" type="Texture" id=1]
+[ext_resource path="res://gfx/Tilemaps/Grass/grass_step_animation.png" type="Texture2D" id=1]
 [ext_resource path="res://godot/Game/GrassStepEffect.gdns" type="Script" id=2]
 
 [sub_resource type="AtlasTexture" id=1]
@@ -31,7 +31,7 @@ animations = [ {
 "speed": 10.0
 } ]
 
-[node name="GrassStepEffect" type="AnimatedSprite"]
+[node name="GrassStepEffect" type="AnimatedSprite2D"]
 frames = SubResource( 5 )
 frame = 2
 playing = true

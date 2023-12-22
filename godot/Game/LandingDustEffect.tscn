@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://godot/Game/LandingDustEffect.gdns" type="Script" id=1]
-[ext_resource path="res://gfx/Players/jump_landing_dust.png" type="Texture" id=2]
+[ext_resource path="res://gfx/Players/jump_landing_dust.png" type="Texture2D" id=2]
 
 [sub_resource type="AtlasTexture" id=1]
 flags = 4
@@ -26,7 +26,7 @@ animations = [ {
 "speed": 10.0
 } ]
 
-[node name="LandingDustEffect" type="AnimatedSprite"]
+[node name="LandingDustEffect" type="AnimatedSprite2D"]
 light_mask = 31
 frames = SubResource( 4 )
 animation = "dust_effect"

@@ -1,15 +1,15 @@
 [gd_scene load_steps=8 format=2]
 
-[ext_resource path="res://gfx/Tilemaps/Buildings/pokemon_tileset_from_public_tiles_by_chaoticcherrycake_d5xdb0y.png" type="Texture" id=1]
-[ext_resource path="res://gfx/Tilemaps/Grass/Sin título.png" type="Texture" id=2]
-[ext_resource path="res://gfx/Tilemaps/GreenThings/Rock, grassy.png" type="Texture" id=7]
-[ext_resource path="res://gfx/Tilemaps/GreenThings/Rock, grassy (stepping stone).png" type="Texture" id=8]
+[ext_resource path="res://gfx/Tilemaps/Buildings/pokemon_tileset_from_public_tiles_by_chaoticcherrycake_d5xdb0y.png" type="Texture2D" id=1]
+[ext_resource path="res://gfx/Tilemaps/Grass/Sin título.png" type="Texture2D" id=2]
+[ext_resource path="res://gfx/Tilemaps/GreenThings/Rock, grassy.png" type="Texture2D" id=7]
+[ext_resource path="res://gfx/Tilemaps/GreenThings/Rock, grassy (stepping stone).png" type="Texture2D" id=8]
 
 [sub_resource type="OccluderPolygon2D" id=1]
-polygon = PoolVector2Array( 0, 0, 16, 0, 16, 16, 0, 16 )
+polygon = PackedVector2Array( 0, 0, 16, 0, 16, 16, 0, 16 )
 
 [sub_resource type="OccluderPolygon2D" id=2]
-polygon = PoolVector2Array( 0, 0, 16, 0, 16, 16, 0, 16 )
+polygon = PackedVector2Array( 0, 0, 16, 0, 16, 16, 0, 16 )
 
 [sub_resource type="TileSet" id=3]
 7/name = "RockGrassy"
@@ -156,4 +156,4 @@ polygon = PoolVector2Array( 0, 0, 16, 0, 16, 16, 0, 16 )
 tile_set = SubResource( 3 )
 cell_size = Vector2( 16, 16 )
 format = 1
-tile_data = PoolIntArray( 524303, 1, 0, 524304, 1, 0, 524305, 1, 0, 524306, 1, 0, 524307, 1, 0, 524308, 1, 0, 524309, 1, 0, 589839, 1, 0, 589840, 1, 0, 589841, 1, 0, 589842, 1, 0, 589843, 1, 0, 589844, 1, 0, 589845, 1, 0, 655380, 1, 0, 655381, 1, 0, 720911, 1, 0, 720917, 1, 0, 720918, 1, 0, 720919, 1, 0, 786447, 1, 0, 851983, 1, 0, 851984, 1, 0, 851985, 1, 0, 851986, 1, 0, 851987, 1, 0, 851988, 1, 0, 851989, 1, 0, 851990, 1, 0, 851991, 1, 0, 851992, 1, 0, 917519, 1, 0, 917520, 1, 0, 917521, 1, 0, 917522, 1, 0, 917523, 1, 0, 917524, 1, 0, 917525, 1, 0 )
+tile_data = PackedInt32Array( 524303, 1, 0, 524304, 1, 0, 524305, 1, 0, 524306, 1, 0, 524307, 1, 0, 524308, 1, 0, 524309, 1, 0, 589839, 1, 0, 589840, 1, 0, 589841, 1, 0, 589842, 1, 0, 589843, 1, 0, 589844, 1, 0, 589845, 1, 0, 655380, 1, 0, 655381, 1, 0, 720911, 1, 0, 720917, 1, 0, 720918, 1, 0, 720919, 1, 0, 786447, 1, 0, 851983, 1, 0, 851984, 1, 0, 851985, 1, 0, 851986, 1, 0, 851987, 1, 0, 851988, 1, 0, 851989, 1, 0, 851990, 1, 0, 851991, 1, 0, 851992, 1, 0, 917519, 1, 0, 917520, 1, 0, 917521, 1, 0, 917522, 1, 0, 917523, 1, 0, 917524, 1, 0, 917525, 1, 0 )

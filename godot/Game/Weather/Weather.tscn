@@ -1,6 +1,6 @@
 [gd_scene load_steps=4 format=2]
 
-[ext_resource path="res://gfx/Weather/rain.png" type="Texture" id=1]
+[ext_resource path="res://gfx/Weather/rain.png" type="Texture2D" id=1]
 
 [sub_resource type="CanvasItemMaterial" id=1]
 particles_animation = true
@@ -8,7 +8,7 @@ particles_anim_h_frames = 10
 particles_anim_v_frames = 1
 particles_anim_loop = false
 
-[sub_resource type="ParticlesMaterial" id=2]
+[sub_resource type="ParticleProcessMaterial" id=2]
 emission_shape = 2
 emission_box_extents = Vector3( 960, 1, 1 )
 flag_align_y = true
@@ -26,7 +26,7 @@ anim_offset_random = 0.4
 [node name="Weather" type="Node2D"]
 z_as_relative = false
 
-[node name="Rain" type="Particles2D" parent="."]
+[node name="Rain" type="GPUParticles2D" parent="."]
 material = SubResource( 1 )
 position = Vector2( 11.3265, 26.4285 )
 z_index = 3

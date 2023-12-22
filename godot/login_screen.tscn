@@ -1,9 +1,9 @@
 [gd_scene load_steps=10 format=2]
 
-[ext_resource path="res://gfx/Feltpen.ttf" type="DynamicFontData" id=1]
-[ext_resource path="res://gfx/blue_button11.png" type="Texture" id=2]
-[ext_resource path="res://gfx/blackboard.jpg" type="Texture" id=3]
-[ext_resource path="res://gfx/blue_button12.png" type="Texture" id=4]
+[ext_resource path="res://gfx/Feltpen.ttf" type="FontFile" id=1]
+[ext_resource path="res://gfx/blue_button11.png" type="Texture2D" id=2]
+[ext_resource path="res://gfx/blackboard.jpg" type="Texture2D" id=3]
+[ext_resource path="res://gfx/blue_button12.png" type="Texture2D" id=4]
 [ext_resource path="res://godot/login_screen.gdns" type="Script" id=6]
 
 [sub_resource type="GDScript" id=1]
@@ -30,15 +30,15 @@ func _on_TextureButton_pressed(extra_arg_0, extra_arg_1):
 	print(extra_arg_0, extra_arg_1)
 "
 
-[sub_resource type="DynamicFont" id=2]
+[sub_resource type="FontFile" id=2]
 size = 42
 font_data = ExtResource( 1 )
 
-[sub_resource type="DynamicFont" id=3]
+[sub_resource type="FontFile" id=3]
 size = 24
 font_data = ExtResource( 1 )
 
-[sub_resource type="DynamicFont" id=4]
+[sub_resource type="FontFile" id=4]
 size = 40
 font_data = ExtResource( 1 )
 
@@ -51,10 +51,10 @@ __meta__ = {
 }
 
 [node name="TextureRect" type="TextureRect" parent="."]
-margin_left = 3.94388
-margin_top = 2.0
-margin_right = 1026.94
-margin_bottom = 599.0
+offset_left = 3.94388
+offset_top = 2.0
+offset_right = 1026.94
+offset_bottom = 599.0
 texture = ExtResource( 3 )
 expand = true
 script = SubResource( 1 )
@@ -65,19 +65,19 @@ __meta__ = {
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
-margin_left = 24.0
-margin_top = 24.0
-margin_right = -24.0
-margin_bottom = -24.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
 [node name="Label" type="Label" parent="VBoxContainer"]
-margin_right = 976.0
-margin_bottom = 400.0
-rect_min_size = Vector2( 0, 400 )
-custom_fonts/font = SubResource( 2 )
+offset_right = 976.0
+offset_bottom = 400.0
+custom_minimum_size = Vector2( 0, 400 )
+theme_override_fonts/font = SubResource( 2 )
 text = "Placeholder text"
 align = 1
 valign = 1
@@ -86,31 +86,31 @@ __meta__ = {
 }
 
 [node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
-margin_top = 404.0
-margin_right = 976.0
-margin_bottom = 477.0
-rect_min_size = Vector2( 73, 73 )
+offset_top = 404.0
+offset_right = 976.0
+offset_bottom = 477.0
+custom_minimum_size = Vector2( 73, 73 )
 size_flags_horizontal = 3
-custom_constants/separation = 12
+theme_override_constants/separation = 12
 
 [node name="UsernameInput" type="LineEdit" parent="VBoxContainer/HBoxContainer"]
-margin_right = 399.0
-margin_bottom = 73.0
+offset_right = 399.0
+offset_bottom = 73.0
 size_flags_horizontal = 3
-custom_fonts/font = SubResource( 3 )
+theme_override_fonts/font = SubResource( 3 )
 
 [node name="PasswordInput" type="LineEdit" parent="VBoxContainer/HBoxContainer"]
-margin_left = 411.0
-margin_right = 810.0
-margin_bottom = 73.0
+offset_left = 411.0
+offset_right = 810.0
+offset_bottom = 73.0
 size_flags_horizontal = 3
-custom_fonts/font = SubResource( 3 )
+theme_override_fonts/font = SubResource( 3 )
 
 [node name="LoginButton" type="TextureButton" parent="VBoxContainer/HBoxContainer"]
-margin_left = 822.0
-margin_right = 895.0
-margin_bottom = 73.0
-rect_min_size = Vector2( 73, 73 )
+offset_left = 822.0
+offset_right = 895.0
+offset_bottom = 73.0
+custom_minimum_size = Vector2( 73, 73 )
 texture_normal = ExtResource( 2 )
 texture_pressed = ExtResource( 4 )
 expand = true
@@ -119,10 +119,10 @@ __meta__ = {
 }
 
 [node name="TextOnButton" type="Label" parent="VBoxContainer/HBoxContainer"]
-margin_left = 907.0
-margin_top = 5.0
-margin_right = 976.0
-margin_bottom = 68.0
-custom_fonts/font = SubResource( 4 )
+offset_left = 907.0
+offset_top = 5.0
+offset_right = 976.0
+offset_bottom = 68.0
+theme_override_fonts/font = SubResource( 4 )
 text = "OK"
 [connection signal="pressed" from="VBoxContainer/HBoxContainer/LoginButton" to="." method="_on_login_button_pressed"]
