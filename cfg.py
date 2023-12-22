@@ -43,10 +43,10 @@ else:
 # This will give us back a list with all files inside
 try:
     rust_files = os.listdir(rust_compiling_folder)
-    #! Let's gonna handle the posible 'path already does not exists
+    #! Let's gonna handle the posible 'path already does not exists # TODO instead of try-except, just if (path exists please)
 except FileNotFoundError:
-    print('The path isn\'t already created. Please, run "cargo build" for the first time.')
-    # compile_rust(current_path, rust_dir)
+    print('Project hasn\'t been compiled before. Running "cargo build" for the first time.')
+    compile_rust(current_path, rust_dir)
     rust_files = os.listdir(rust_compiling_folder)
 
 # Finding out target dynamic library

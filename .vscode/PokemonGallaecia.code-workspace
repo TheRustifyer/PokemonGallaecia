@@ -4,5 +4,34 @@
 			"path": ".."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"telemetry.telemetryLevel": "off",
+		"pylint.args": [
+			"--rcfile=${workspaceFolder}/pyproject.toml"
+		],
+		"rust-analyzer.assist.emitMustUse": true,
+		"rust-analyzer.cargo.autoreload": true,
+		"rust-analyzer.procMacro.enable": true,
+		"rust-analyzer.procMacro.attributes.enable": true,
+		"rust-analyzer.cargo.buildScripts.enable": true,
+		"rust-analyzer.runnables.extraEnv": [
+			{
+				"platform": "win32", // windows only
+				"env": {
+					"APP_DATA": "windows specific data"
+				}
+			},
+			{
+				"platform": ["linux"],
+				"env": {
+					"APP_DATA": "linux data",
+				}
+			},
+			{ // for all platforms
+				"env": {
+					"APP_COMMON_DATA": "xxx",
+				}
+			}
+		]
+	}
 }
