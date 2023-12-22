@@ -16,8 +16,8 @@ impl<'a, T> DBRow<'a, T> {
     }
 }
 
-#[derive(NativeClass)]
-#[inherit(Node2D)]
+#[derive(GodotClass)]
+#[class(base=Node2D)]
 #[derive(Debug)]
 /// Using Nodes as tables, as more nodes as rows, creates a simulation of a real database by using nodes as the main objects.
 pub struct PokemonDB {
@@ -49,7 +49,7 @@ impl PokemonDB {
         pkm_resource
     }
 
-    #[export]
+    
     fn _ready(&mut self, owner: &Node2D) {
         //Load db, create it's structure and checks it's integrity
         self.create_database_structure(owner);

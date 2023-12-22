@@ -1,7 +1,7 @@
 use gdnative::prelude::*;
 
-#[derive(NativeClass)]
-#[inherit(Node2D)]
+#[derive(GodotClass)]
+#[class(base=Node2D)]
 #[derive(Debug)]
 /// The base class for a Pokemon data representation and data manipulation, holded as a Godot Node using another node as parent and as a DB simulator
 pub struct PokemonSpecie {

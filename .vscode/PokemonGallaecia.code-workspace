@@ -32,6 +32,9 @@
 					"APP_COMMON_DATA": "xxx",
 				}
 			}
+		],
+		"rust-analyzer.linkedProjects": [
+			"./rust/Cargo.toml"
 		]
 	}
 }

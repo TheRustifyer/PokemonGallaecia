@@ -1,22 +1,50 @@
-use gdnative::prelude::*;
-use gdnative::api::AnimationPlayer;
+use godot::{bind::{GodotClass, godot_api}, engine::{AnimationPlayer, Sprite2D, Texture, INode2D, Node2D}, obj::{Gd, Base}, builtin::Signal};
+use godot::private::class_macros::builder::ClassBuilder;
 
 use crate::game::code_abstractions::signals::RegisterSignal;
 
-#[derive(NativeClass)]
-#[inherit(Node2D)]
-#[derive(Debug)]
+#[derive(GodotClass, Debug)]
+#[class(base=Node2D)]
 pub struct TallGrass {
-    animation_player: Option<TRef<'static, AnimationPlayer>>,
-    grass_overlay: TRef<'static, Sprite>,
-    grass_overlay_texture: Option<Ref<Texture>>,
+    // animation_player: Gd<AnimationPlayer>,
+    // grass_overlay: Gd<Sprite2D>,
+    // grass_overlay_texture: Gd<Texture>,
+    // #[base] grass_overlay: Base<Sprite2D>, // ! sprite or node?
+    #[base] grass_overlay: Base<Node2D>,
+    animation_player: Gd<AnimationPlayer>,
+    grass_overlay_texture: Gd<Texture>,
 }
 
 impl RegisterSignal<Self> for TallGrass {
-    fn register_signal(_builder: &ClassBuilder<Self>) {
+    fn register_signal(_builder: &Signal) {
         _builder.signal( "").done();
     }
 }
+
+#[godot_api]
+impl INode2D for TallGrass {
+    fn init(sprite: Base<Node2D>) -> Self {
+
+        Self {
+            grass_overlay: sprite,
+            animation_player: sprite.get_node("AnimationPlayer".into())
+                .unwrap().cast::<AnimationPlayer>(),
+            grass_overlay_texture: ResourceLoader::godot_singleton()
+                .load("res://gfx/Tilemaps/Grass/stepped_tall_grass.png", "", false)
+                .unwrap().assume_safe()
+                .cast::<Texture>()
+                .unwrap()
+                .assume_shared(),
+        }
+        
+        // Self {
+        //     speed: 400.0,
+        //     angular_speed: std::f64::consts::PI,
+        //     sprite
+        // }
+    }
+}
+
 
 #[methods]
 impl TallGrass {
@@ -28,8 +56,8 @@ impl TallGrass {
         }
     }
 
-    #[method]
-    fn _ready(&mut self, #[base] base: TRef<Node2D>) {
+    
+    fn _ready(&mut self, base: TRef<Node2D>) {
 
         self.animation_player = Some(unsafe { base.get_node("AnimationPlayer")
             .unwrap().assume_safe().cast::<AnimationPlayer>().unwrap() });
@@ -42,24 +70,24 @@ impl TallGrass {
             .assume_shared() });
     }
 
-    #[method]
+    
     /// Receives a signal when a body enteres the TallGrass (connected on the Godot GUI)
-    fn _on_area2d_body_entered(&mut self, #[base] base: TRef<Node2D>, _body: Variant) {
+    fn _on_area2d_body_entered(&mut self, base: TRef<Node2D>, _body: Variant) {
         self.player_in_grass(base);
         self.animation_player.unwrap().play("Stepped", 0.0, 1.0, false);
     }
 
-    #[method]
+    
     // Receives a signal when a body leaves the TallGrass (connected on the Godot GUI)
-    fn _on_area2d_body_exited(&mut self, #[base] base: &Node2D, _body: Variant) {
+    fn _on_area2d_body_exited(&mut self, base: &Node2D, _body: Variant) {
         if unsafe { self.grass_overlay.assume_shared().is_instance_sane() } {
             self.grass_overlay.queue_free();
             base.remove_child(self.grass_overlay);
         }  
     }
 
-    #[method]
-    fn player_in_grass(&mut self, #[base] base: TRef<Node2D>) {
+    
+    fn player_in_grass(&mut self, base: TRef<Node2D>) {
         // Creates a new grass step effect
         let grass_step_effect = unsafe { ResourceLoader::godot_singleton()
             .load("res://godot/Game/GrassStepEffect.tscn", "", false)

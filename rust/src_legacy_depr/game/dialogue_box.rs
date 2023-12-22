@@ -25,8 +25,8 @@ impl Default for DialogueBoxStatus {
 /// Dialogue Box it's build to manage all the text interactions in the game through the classical text box of Pokémon.
 ///
 /// Showing text to the screen through his child (a RichTextLabel
-#[derive(NativeClass)]
-#[inherit(NinePatchRect)]
+#[derive(GodotClass)]
+#[class(base=NinePatchRect)]
 #[register_with(Self::register_signal)]
 #[derive(Debug)]
 pub struct DialogueBox {
@@ -110,8 +110,8 @@ impl DialogueBox {
         } 
     }
 
-    #[method]
-    fn _ready(&mut self, #[base] base: TRef<NinePatchRect>) {
+    
+    fn _ready(&mut self, base: TRef<NinePatchRect>) {
         base.set_process(true);
         
         // Retrieves a reference Ref<RichTextLabel> to the text label
@@ -137,8 +137,8 @@ impl DialogueBox {
         self.menu_selector_arrow_initial_position = self.menu_selector_arrow.unwrap().position();
     }
 
-    #[method]
-    fn _process(&mut self, #[base] base: &NinePatchRect, _delta: f64) {
+    
+    fn _process(&mut self, base: &NinePatchRect, _delta: f64) {
 
         // If the `printing` flag is true means that the `_print_dialogue` method was triggered by a signal binding
         if self.printing {
@@ -332,9 +332,9 @@ impl DialogueBox {
         self.menu_selector_arrow.unwrap().set_position(self.menu_selector_arrow_initial_position);
     }
 
-    #[method]
+    
     /// Takes care about connect the DialogueBox signals to our PlayerCharacter
-    fn connect_to_player(&self, #[base] base: TRef<NinePatchRect>) {
+    fn connect_to_player(&self, base: TRef<NinePatchRect>) {
         let receiver = unsafe { self.player_ref.unwrap().assume_safe() };
         base.connect("dialogue_box_active", receiver, "handle_interaction",
             VariantArray::new_shared(), 0).unwrap();
@@ -342,7 +342,7 @@ impl DialogueBox {
             VariantArray::new_shared(), 0).unwrap();
     }
 
-    #[method]
+    
     /// Triggered by any connected signal through the game, sets the starting point to print content and provides
     /// the text that should be printed, passed by any availiable caller
     fn _print_dialogue(&mut self, dialogue_elections: VariantArray) {
@@ -372,7 +372,7 @@ impl DialogueBox {
 }
 
 
-#[derive(Debug, ToVariant, Clone)]
+#[derive(Debug, Clone)]
 pub struct DialogueElection<T> {
     number_of_decisions: i32,
     availiable_decisions: Vec<T>,

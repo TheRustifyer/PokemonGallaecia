@@ -1,5 +1,4 @@
-use gdnative::prelude::*;
-use gdnative::api::Area2D;
+use godot::bind::GodotClass;
 
 use crate::game::code_abstractions::signals::RegisterSignal;
 #[derive(Debug)]
@@ -9,9 +8,8 @@ pub enum WhereIsPlayer {
     Untracked
 }
 
-#[derive(NativeClass)]
-#[inherit(Area2D)]
-#[derive(Debug)]
+#[derive(GodotClass, Debug)]
+#[class(base=Area2D)]
 #[register_with(Self::register_signal)]
 /// Class that dinamycally forms a path to the next scene based on how Nodes are routed on the GodotEditor,
 /// detects where the Area is located on the tree and automatically loads the scene relative to the event triggerd by the player

@@ -4,8 +4,8 @@ use gdnative::api::{LineEdit, Node};
 use crate::utils::utils;
 use crate::game_client::gamer::Gamer;
 use crate::utils::consts::{labels, line_edit, scenes};
-#[derive(NativeClass)]
-#[inherit(Node)]
+#[derive(GodotClass)]
+#[class(base=Node)]
 pub struct LoginScreen {
     gamer: Option<Gamer>,
 }
@@ -25,7 +25,7 @@ impl LoginScreen {
         self.gamer = player;
     }
 
-    #[export]
+    
     fn _ready(&mut self, _owner: &Node) {
         //Setting the intro of the app :)
         utils::set_label_text(_owner, 
@@ -51,7 +51,7 @@ impl LoginScreen {
         Gamer::credentials_to_rust_string((get_username_on_input, get_password_on_input))
     }
 
-    #[export]
+    
     /// The receiver of the signal from Godot when the login button gets pressed
     fn _on_login_button_pressed(&mut self, _owner: &Node) {
 

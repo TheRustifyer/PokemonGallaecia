@@ -5,7 +5,7 @@ use crate::utils::utils;
 
 use super::game::Weather;
 
-#[derive(PartialEq, Clone, Debug, ToVariant, Serialize, Deserialize)]
+#[derive(PartialEq, Clone, Debug, Serialize, Deserialize)]
 pub enum GameCity {
     CampoDePruebas,
     PuebloDeTeo,

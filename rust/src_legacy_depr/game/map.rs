@@ -1,8 +1,8 @@
 use gdnative::prelude::*;
 
 // use crate::game::code_abstractions::signals::RegisterSignal;
-#[derive(NativeClass)]
-#[inherit(Node2D)]
+#[derive(GodotClass)]
+#[class(base=Node2D)]
 #[derive(Debug)]
 // #[register_with(Self::register_signal)]
 pub struct Map;

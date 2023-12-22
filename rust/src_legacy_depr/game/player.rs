@@ -49,8 +49,8 @@ impl PlayerData {
 }
 
 
-#[derive(NativeClass)]
-#[inherit(KinematicBody2D)]
+#[derive(GodotClass)]
+#[class(base=KinematicBody2D)]
 #[register_with(Self::register_signal)]
 #[derive(Debug)]
 #[derive(Serialize, Deserialize)]
@@ -252,7 +252,7 @@ impl PlayerCharacter {
         }
     }
 
-    #[export]
+    
     fn _ready(&mut self, owner: &KinematicBody2D) {
         // Adds the PlayerCharacter Node to the group that takes care about data persistence
         owner.add_to_group("save_game_data", false);
@@ -277,7 +277,7 @@ impl PlayerCharacter {
         self.player_shadow.unwrap().set_visible(false); // The shadow it's only visible when the player it's jumping
     }
 
-    #[export]
+    
     fn _physics_process(&mut self, owner: &KinematicBody2D, delta: f32) {
         // Checks that the player it's able to move
         if self.player_status != PlayerStatus::Interacting {
@@ -307,7 +307,7 @@ impl PlayerCharacter {
     ///
     /// The info parameter just provides an String that contains info from the signal that will be used to match
     /// a certain behaviour with that provided String.
-    #[export]
+    
     fn handle_interaction(&mut self, _owner: &KinematicBody2D, signal_info: String) {
         // Get a full `slice` of the parameters in order to match it with a `classical` &str
         let signal_info = &signal_info[..];
@@ -364,7 +364,7 @@ impl PlayerCharacter {
     /// If the player character is moving, should be an animated representation.
     ///
     /// Emit the signal "animate" and send the current player motion data for the receivers
-    #[export]
+    
     fn animate_character(&self, owner: &KinematicBody2D) {
         owner.emit_signal("animate", &[self.input_direction.to_variant()]);
     }
@@ -376,14 +376,14 @@ impl PlayerCharacter {
          "_save_player_position", VariantArray::new_shared(), 0).unwrap();
     }
 
-    #[export]
+    
     fn save_game_data(&self, owner: &KinematicBody2D) {
         owner.emit_signal("player_position", &[(self.initial_position.x, self.initial_position.y).to_variant()]);
     }
 }
 
-#[derive(NativeClass)]
-#[inherit(AnimatedSprite)]
+#[derive(GodotClass)]
+#[class(base=AnimatedSprite)]
 #[register_with(Self::register_signal)]
 #[derive(Debug)]
 pub struct PlayerAnimation {
@@ -409,8 +409,8 @@ impl PlayerAnimation {
         }
     }
 
-    #[method]
-    fn _ready(&mut self, #[base] base: &AnimatedSprite) {
+    
+    fn _ready(&mut self, base: &AnimatedSprite) {
         // Adds the PlayerCharacter Node to the group that takes care about data persistence
         base.add_to_group("save_game_data", false);
 
@@ -427,8 +427,8 @@ impl PlayerAnimation {
         self.connect_to_game_data(base);
     }
 
-    #[method]
-    fn _on_player_animate(&mut self, #[base] base: &AnimatedSprite, _motion: Vector2) {
+    
+    fn _on_player_animate(&mut self, base: &AnimatedSprite, _motion: Vector2) {
         
         let character_animated_sprite = unsafe { base.get_node_as::<AnimatedSprite>( ".") }.unwrap();
 
@@ -482,8 +482,8 @@ impl PlayerAnimation {
             "_save_player_direction", VariantArray::new_shared(), 0).unwrap();
     }
 
-    #[method]
-    fn save_game_data(&self, #[base] base: &AnimatedSprite) {
+    
+    fn save_game_data(&self, base: &AnimatedSprite) {
         base.emit_signal("player_direction", &[self.idle_player_direction.to_variant()]);
     }
 }
@@ -500,7 +500,7 @@ impl Default for PlayerStatus {
     fn default() -> Self { PlayerStatus::Idle }
 }
 
-#[derive(PartialEq, Clone, Debug, ToVariant, Deserialize)]
+#[derive(PartialEq, Clone, Debug, Deserialize)]
 pub enum PlayerDirection {
     Upwards,
     Downwards,

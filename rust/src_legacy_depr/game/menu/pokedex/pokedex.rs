@@ -10,8 +10,8 @@ use crate::utils::utils;
 
 // use crate::utils::utils;
 
-#[derive(NativeClass)]
-#[inherit(Control)]
+#[derive(GodotClass)]
+#[class(base=Control)]
 // #[register_with(Self::register_signal)]
 #[derive(Debug)]
 /// The code representation on the `LEGENDARY` Pokémon's Pokédex
@@ -44,7 +44,7 @@ impl Pokedex {
     }
 
     
-    #[export]
+    
     fn _ready(&mut self, _owner: &Control) {
         // First of all, we need to initialize our references out of the Struct constructor
         
@@ -64,7 +64,7 @@ impl Pokedex {
 
     }
 
-    #[export]
+    
     fn _process(&mut self, owner: &Control, delta: f64) {
         self.handle_pokedex_input_events(owner, delta);
     }

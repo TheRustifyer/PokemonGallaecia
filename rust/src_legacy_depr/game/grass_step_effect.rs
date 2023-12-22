@@ -1,8 +1,8 @@
 use gdnative::prelude::*;
 use gdnative::api::AnimatedSprite;
 
-#[derive(NativeClass)]
-#[inherit(AnimatedSprite)]
+#[derive(GodotClass)]
+#[class(base=AnimatedSprite)]
 #[derive(Debug)]
 pub struct GrassStepEffect;
 
@@ -12,14 +12,14 @@ impl GrassStepEffect {
         Self { }
     }
 
-    #[method]
-    fn _ready(&self, #[base] base: &AnimatedSprite) {
+    
+    fn _ready(&self, base: &AnimatedSprite) {
         base.set_frame(0);
         base.play("", false);
     }
 
-    #[method]
-    fn _on_grass_step_effect_animation_finished(&self, #[base] base: &AnimatedSprite) {
+    
+    fn _on_grass_step_effect_animation_finished(&self, base: &AnimatedSprite) {
         base.queue_free()
     }
 

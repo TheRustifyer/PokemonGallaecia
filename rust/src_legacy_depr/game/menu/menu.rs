@@ -38,8 +38,8 @@ pub enum MenuOptions {
     Exit
 }
 
-#[derive(NativeClass)]
-#[inherit(NinePatchRect)]
+#[derive(GodotClass)]
+#[class(base=NinePatchRect)]
 #[register_with(Self::register_signal)]
 #[derive(Debug)]
 pub struct Menu {
@@ -85,7 +85,7 @@ impl Menu {
         }
     }
 
-    #[export]
+    
     fn _ready(&mut self, owner: TRef<NinePatchRect>) {
         owner.set_process(true);
 
@@ -104,12 +104,12 @@ impl Menu {
         // Call the function that connect the signals of this struct with the player character
         self.connect_to_player(owner);
 
-        // Sets#[method] a reference to the cursor sprite
+        // Sets a reference to the cursor sprite
         self.cursor_pointer = self.get_node_reference_from_root(&owner,"Game/Player/Camera2D/CanvasLayer/Menu/Arrow");
         self.cursor_pointer_update(&owner);
     }
 
-    #[export]
+    
     fn _process(&mut self, owner: &NinePatchRect, _delta: f64) {
         self.handle_menu_input_events(owner);
     }
@@ -196,7 +196,7 @@ impl Menu {
             );
     }
 
-    #[export]
+    
     /// Takes care about connect the Menu custom signals to our PlayerCharacter
     fn connect_to_player(&self, _owner: TRef<NinePatchRect>) {
         let player_character = unsafe { self.player_node_ref.unwrap().assume_safe() };
@@ -207,7 +207,7 @@ impl Menu {
     }
 
     /// Changes the scene to a designed one when a menu option is selected by the player
-    #[export]
+    
     fn menu_option_to_scene(&mut self, owner: &NinePatchRect, menu_option: i32) {
         match menu_option + 1 {
             1 => utils::change_scene(owner, "res://godot/Game/Pokedex.tscn".to_string()),
