@@ -8,9 +8,8 @@ use godot::engine::{ISprite2D, Sprite2D};
 
 #[derive(GodotClass)]
 #[class(base=Sprite2D)]
-struct PlayerCharacter {
-    #[export] speed: f64,
-    #[export] angular_speed: f64,
+pub struct PlayerCharacter {
+    // #[export] asset: Gd<Sprite2D>
 
     #[base]
     sprite: Base<Sprite2D>
@@ -19,22 +18,23 @@ struct PlayerCharacter {
 #[godot_api]
 impl ISprite2D for PlayerCharacter {
     fn init(sprite: Base<Sprite2D>) -> Self {
-        godot_print!("Hello, world!"); // Prints to the Godot console
+        godot_print!("Player initialized");
         
         Self {
-            speed: 400.0,
-            angular_speed: std::f64::consts::PI,
             sprite
         }
     }
 
     fn ready(&mut self) {
-        godot_print!("From ready");
+        godot_print!("Player ready");
+        self.sprite.set_texture(
+            load("res://gfx/character/character.png")
+        );
     }
 
     fn process(&mut self, _delta: f64) {
-        godot_print!("From process");
+        // godot_print!("From process");
 
-        let mut _velocity = Vector2::new(0.0, 0.0);
+        // let mut _velocity = Vector2::new(0.0, 0.0);
     }
 }
