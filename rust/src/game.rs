@@ -1,9 +1,8 @@
 //! Contains the ROOT elements of the project, which are the components and
 //! bindings for the base of all nodes in our games hierarchy
 
-use godot::{bind::{GodotClass, godot_api}, engine::{INode, Node, load, PackedScene, PackedSceneExt}, obj::Base, log::godot_print};
+use godot::{bind::{GodotClass, godot_api}, engine::{INode, Node}, obj::Base, log::godot_print};
 
-use crate::player::PlayerCharacter;
 
 #[derive(GodotClass)]
 #[class(base=Node)]
@@ -24,16 +23,21 @@ impl INode for Game {
     }
 
     fn ready(&mut self) {
-        let player_character_scene = load::<PackedScene>("res://scenes/player.tscn")
-            .instantiate_as::<PlayerCharacter>()
-            .upcast::<Node>();
-        self.game.add_child(player_character_scene);
-
-        for child in self.game.get_children().iter_shared() {
-            let c = child.get_name();
-            godot_print!("Child name: {:?}", c);
-        }
-        
         godot_print!("Game ready");
+        // let mut player_character_scene = load::<PackedScene>("res://scenes/player.tscn")
+        //     .instantiate_as::<PlayerCharacter>()
+        //     .upcast::<Node>();
+        
+        // self.game.add_child(player_character_scene.clone());
+        // player_character_scene.set_owner(
+        //     self.game.get_node(self.game.get_path()).unwrap()
+        // );
+        
+
+        // for child in self.game.get_children().iter_shared() {
+        //     let c = child.get_name();
+        //     godot_print!("Child name: {:?}", c);
+        // }
+        
     }
 }

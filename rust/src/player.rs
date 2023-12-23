@@ -4,37 +4,31 @@
 //! Holds the `gdext` bindings exposed to `Godot 4` 
 
 use godot::prelude::*;
-use godot::engine::{ISprite2D, Sprite2D};
+use godot::engine::{ICharacterBody2D, CharacterBody2D};
 
 #[derive(GodotClass)]
-#[class(base=Sprite2D)]
+#[class(base=CharacterBody2D)]
 pub struct PlayerCharacter {
-    // #[export] asset: Gd<Sprite2D>
+    // #[export] asset: Gd<CharacterBody2D>
 
     #[base]
-    sprite: Base<Sprite2D>
+    character: Base<CharacterBody2D>
 }
 
 #[godot_api]
-impl ISprite2D for PlayerCharacter {
-    fn init(sprite: Base<Sprite2D>) -> Self {
-        godot_print!("Player initialized");
+impl ICharacterBody2D for PlayerCharacter {
+    fn init(character: Base<CharacterBody2D>) -> Self {
+        godot_print!("Player Character initialized");
         
         Self {
-            sprite
+            character
         }
     }
 
     fn ready(&mut self) {
         godot_print!("Player ready");
-        self.sprite.set_texture(
-            load("res://gfx/character/character.png")
-        );
     }
 
-    fn process(&mut self, _delta: f64) {
-        // godot_print!("From process");
-
-        // let mut _velocity = Vector2::new(0.0, 0.0);
+    fn physics_process(&mut self, _delta: f64) {
     }
 }
