@@ -1,3 +1,164 @@
-[gd_scene format=3 uid="uid://cbj7mo1xd34l1"]
+[gd_scene load_steps=19 format=3 uid="uid://cbj7mo1xd34l1"]
+
+[ext_resource type="Texture2D" uid="uid://dixde6mopkpxb" path="res://gfx/character/main_sprite_frames.png" id="1_4fibt"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7nkef"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vrk3n"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(32, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_eq8l7"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(32, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_isg40"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(32, 96, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_7wn0f"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(0, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_paet8"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(32, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ifo31"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(64, 0, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_jj4w6"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(0, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_3ejeh"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(32, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_o3b1h"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(64, 32, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_p3rtq"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(0, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_ps36e"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(32, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_2vcmk"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(64, 64, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_rraos"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(0, 96, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_xfi7p"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(32, 96, 32, 32)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_do4yy"]
+atlas = ExtResource("1_4fibt")
+region = Rect2(64, 96, 32, 32)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_kees0"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7nkef")
+}],
+"loop": true,
+"name": &"idle downwards",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_vrk3n")
+}],
+"loop": true,
+"name": &"idle left",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_eq8l7")
+}],
+"loop": true,
+"name": &"idle right",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_isg40")
+}],
+"loop": true,
+"name": &"idle upwards",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_7wn0f")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_paet8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ifo31")
+}],
+"loop": true,
+"name": &"walking downwards",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_jj4w6")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_3ejeh")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_o3b1h")
+}],
+"loop": true,
+"name": &"walking left",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_p3rtq")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_ps36e")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_2vcmk")
+}],
+"loop": true,
+"name": &"walking right",
+"speed": 5.0
+}, {
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_rraos")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_xfi7p")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_do4yy")
+}],
+"loop": true,
+"name": &"walking upwards",
+"speed": 5.0
+}]
 
 [node name="PlayerCharacter" type="PlayerCharacter"]
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_kees0")
+animation = &"idle downwards"
