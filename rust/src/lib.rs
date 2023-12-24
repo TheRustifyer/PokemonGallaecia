@@ -11,7 +11,6 @@
 use godot::prelude::*;
 
 pub mod game;
-pub mod player;
 
 struct PokemonGallaecia;
 

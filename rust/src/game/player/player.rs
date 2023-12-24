@@ -6,11 +6,16 @@
 use godot::prelude::*;
 use godot::engine::{ICharacterBody2D, CharacterBody2D};
 
+use super::player_direction::PlayerDirection;
+use super::player_status::PlayerStatus;
+
 #[derive(GodotClass)]
 #[class(base=CharacterBody2D)]
 pub struct PlayerCharacter {
-    // #[export] asset: Gd<CharacterBody2D>
-
+    #[export(enum = (Idle, Walking, Running, Interacting))]
+    status: i32,
+    #[export(enum = (Downwards, Upwards, Left, Right))]
+    direction: i32,
     #[base]
     character: Base<CharacterBody2D>
 }
@@ -21,6 +26,8 @@ impl ICharacterBody2D for PlayerCharacter {
         godot_print!("Player Character initialized");
         
         Self {
+            status: PlayerStatus::Idle as i32, // There's no other possible state in the initialization stage
+            direction: PlayerDirection::default() as i32, // ! TODO: change it when the persistance is ready
             character
         }
     }
