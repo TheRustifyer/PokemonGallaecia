@@ -14,7 +14,7 @@ pub struct Game {
 #[godot_api]
 impl INode for Game {
     fn init(game: Base<Node>) -> Self {
-        godot_print!("Game initialized");
+        godot_print!("<Game> initialized");
         
         Self {
             development_mode: true,
@@ -23,7 +23,7 @@ impl INode for Game {
     }
 
     fn ready(&mut self) {
-        godot_print!("Game ready");
+        godot_print!("<Game> ready");
         // let mut player_character_scene = load::<PackedScene>("res://scenes/player.tscn")
         //     .instantiate_as::<PlayerCharacter>()
         //     .upcast::<Node>();

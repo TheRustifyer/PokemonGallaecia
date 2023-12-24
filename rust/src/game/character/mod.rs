@@ -2,7 +2,6 @@
 //! any character in the game, player-controlled or NPC
 
 pub mod character;
-pub mod player;
 pub mod animation;
-mod status;
-mod direction;
+pub mod status;
+pub mod direction;

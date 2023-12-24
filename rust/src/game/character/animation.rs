@@ -13,7 +13,7 @@ pub struct CharacterAnimation {
 #[godot_api]
 impl IAnimatedSprite2D for CharacterAnimation {
     fn init(animation: Base<AnimatedSprite2D>) -> Self {
-        godot_print!("Character Animation initialized");
+        godot_print!("<CharacterAnimation> initialized");
         Self { animation }
     }
 }
