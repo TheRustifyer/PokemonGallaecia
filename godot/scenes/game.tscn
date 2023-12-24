@@ -4,6 +4,4 @@
 
 [node name="Game" type="Game"]
 
-[node name="PlayerCharacter" parent="." instance=ExtResource("1_k66pe")]
-status = 0
-direction = 0
+[node name="Player" parent="." instance=ExtResource("1_k66pe")]
