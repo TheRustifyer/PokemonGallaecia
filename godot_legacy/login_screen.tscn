@@ -1,0 +1,128 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://gfx/Feltpen.ttf" type="FontFile" id=1]
+[ext_resource path="res://gfx/blue_button11.png" type="Texture2D" id=2]
+[ext_resource path="res://gfx/blackboard.jpg" type="Texture2D" id=3]
+[ext_resource path="res://gfx/blue_button12.png" type="Texture2D" id=4]
+[ext_resource path="res://godot/login_screen.gdns" type="Script" id=6]
+
+[sub_resource type="GDScript" id=1]
+script/source = "extends TextureRect
+
+
+# Declare member variables here. Examples:
+# var a = 2
+# var b = \"text\"
+
+
+# Called when the node enters the scene tree for the first time.
+func _ready():
+	pass # Replace with function body.
+
+
+# Called every frame. 'delta' is the elapsed time since the previous frame.
+#func _process(delta):
+#	pass
+
+
+
+func _on_TextureButton_pressed(extra_arg_0, extra_arg_1):
+	print(extra_arg_0, extra_arg_1)
+"
+
+[sub_resource type="FontFile" id=2]
+size = 42
+font_data = ExtResource( 1 )
+
+[sub_resource type="FontFile" id=3]
+size = 24
+font_data = ExtResource( 1 )
+
+[sub_resource type="FontFile" id=4]
+size = 40
+font_data = ExtResource( 1 )
+
+[node name="LearnProgrammingWithGodot" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 6 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TextureRect" type="TextureRect" parent="."]
+offset_left = 3.94388
+offset_top = 2.0
+offset_right = 1026.94
+offset_bottom = 599.0
+texture = ExtResource( 3 )
+expand = true
+script = SubResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="VBoxContainer" type="VBoxContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 24.0
+offset_right = -24.0
+offset_bottom = -24.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="VBoxContainer"]
+offset_right = 976.0
+offset_bottom = 400.0
+custom_minimum_size = Vector2( 0, 400 )
+theme_override_fonts/font = SubResource( 2 )
+text = "Placeholder text"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="HBoxContainer" type="HBoxContainer" parent="VBoxContainer"]
+offset_top = 404.0
+offset_right = 976.0
+offset_bottom = 477.0
+custom_minimum_size = Vector2( 73, 73 )
+size_flags_horizontal = 3
+theme_override_constants/separation = 12
+
+[node name="UsernameInput" type="LineEdit" parent="VBoxContainer/HBoxContainer"]
+offset_right = 399.0
+offset_bottom = 73.0
+size_flags_horizontal = 3
+theme_override_fonts/font = SubResource( 3 )
+
+[node name="PasswordInput" type="LineEdit" parent="VBoxContainer/HBoxContainer"]
+offset_left = 411.0
+offset_right = 810.0
+offset_bottom = 73.0
+size_flags_horizontal = 3
+theme_override_fonts/font = SubResource( 3 )
+
+[node name="LoginButton" type="TextureButton" parent="VBoxContainer/HBoxContainer"]
+offset_left = 822.0
+offset_right = 895.0
+offset_bottom = 73.0
+custom_minimum_size = Vector2( 73, 73 )
+texture_normal = ExtResource( 2 )
+texture_pressed = ExtResource( 4 )
+expand = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="TextOnButton" type="Label" parent="VBoxContainer/HBoxContainer"]
+offset_left = 907.0
+offset_top = 5.0
+offset_right = 976.0
+offset_bottom = 68.0
+theme_override_fonts/font = SubResource( 4 )
+text = "OK"
+[connection signal="pressed" from="VBoxContainer/HBoxContainer/LoginButton" to="." method="_on_login_button_pressed"]

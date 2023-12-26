@@ -1,0 +1,83 @@
+[gd_scene load_steps=13 format=2]
+
+[ext_resource path="res://gfx/Pokedex/pokedex1hd.png" type="Texture2D" id=1]
+[ext_resource path="res://godot/Game/Pokedex.gdns" type="Script" id=2]
+[ext_resource path="res://gfx/selection_box.png" type="Texture2D" id=3]
+
+[sub_resource type="AtlasTexture" id=1]
+flags = 4
+atlas = ExtResource( 1 )
+region = Rect2( 0, 0, 1920, 1080 )
+
+[sub_resource type="AtlasTexture" id=2]
+flags = 4
+atlas = ExtResource( 1 )
+region = Rect2( 1920, 0, 1920, 1080 )
+
+[sub_resource type="AtlasTexture" id=3]
+flags = 4
+atlas = ExtResource( 1 )
+region = Rect2( 0, 1080, 1920, 1080 )
+
+[sub_resource type="AtlasTexture" id=4]
+flags = 4
+atlas = ExtResource( 1 )
+region = Rect2( 1920, 1080, 1920, 1080 )
+
+[sub_resource type="AtlasTexture" id=5]
+flags = 4
+atlas = ExtResource( 1 )
+region = Rect2( 0, 2160, 1920, 1080 )
+
+[sub_resource type="AtlasTexture" id=6]
+flags = 4
+atlas = ExtResource( 1 )
+region = Rect2( 1920, 2160, 1920, 1080 )
+
+[sub_resource type="AtlasTexture" id=7]
+flags = 4
+atlas = ExtResource( 1 )
+region = Rect2( 0, 3240, 1920, 1080 )
+
+[sub_resource type="AtlasTexture" id=8]
+flags = 4
+atlas = ExtResource( 1 )
+region = Rect2( 1920, 3240, 1920, 1080 )
+
+[sub_resource type="SpriteFrames" id=9]
+animations = [ {
+"frames": [ SubResource( 1 ), SubResource( 2 ), SubResource( 3 ), SubResource( 4 ), SubResource( 5 ), SubResource( 6 ), SubResource( 7 ), SubResource( 8 ) ],
+"loop": true,
+"name": "New Anim",
+"speed": 5.0
+} ]
+
+[node name="Pokedex" type="Control"]
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="PokedexItems" type="Node2D" parent="."]
+
+[node name="Selector" type="NinePatchRect" parent="."]
+offset_left = 300.0
+offset_top = 300.0
+offset_right = 790.0
+offset_bottom = 428.0
+texture = ExtResource( 3 )
+patch_margin_left = 17
+patch_margin_top = 5
+patch_margin_right = 17
+patch_margin_bottom = 5
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Pokédex" type="AnimatedSprite2D" parent="."]
+position = Vector2( 1182.27, 553.243 )
+scale = Vector2( 1.56547, 1.33626 )
+frames = SubResource( 9 )
+animation = "New Anim"
+frame = 3
+playing = true

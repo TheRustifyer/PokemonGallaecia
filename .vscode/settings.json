@@ -1,0 +1,23 @@
+{   
+    "C_Cpp.default.intelliSenseMode": "linux-clang-x64",
+    "C_Cpp.default.compilerPath": "~/tools/llvm-project/build/bin/clang",
+    "[rust]": {
+        "editor.defaultFormatter": "rust-lang.rust-analyzer"
+    },
+    "rust-analyzer.linkedProjects": [
+        "./rust/Cargo.toml"
+    ],
+    "rust-analyzer.showUnlinkedFileNotification": false,
+    "files.associations": {
+        ".gdextension": "toml"
+    },
+    "telemetry.telemetryLevel": "off",
+    "pylint.args": [
+        "--rcfile=${workspaceFolder}/pyproject.toml"
+    ],
+    "rust-analyzer.cargo.buildScripts.enable": true,
+    "rust-analyzer.cargo.autoreload": true,
+    "rust-analyzer.procMacro.enable": true,
+    "rust-analyzer.procMacro.attributes.enable": true,
+    // "rust-analyzer.diagnostics.disabled": ["unresolved-proc-macro"],
+}

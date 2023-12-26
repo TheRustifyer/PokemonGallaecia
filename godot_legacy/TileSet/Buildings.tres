@@ -1,0 +1,398 @@
+[gd_resource type="TileSet" load_steps=30 format=2]
+
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/House (soot-built, flat top).png" type="Texture2D" id=1]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/House (soot-built, square).png" type="Texture2D" id=2]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/Hut (grass).png" type="Texture2D" id=3]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/Hut (tree).png" type="Texture2D" id=4]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/Barn (custom).png" type="Texture2D" id=5]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/Apartment Building (medium).png" type="Texture2D" id=6]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/City House.png" type="Texture2D" id=7]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/House (green roof, log cabin).png" type="Texture2D" id=8]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/Cottage (fine).png" type="Texture2D" id=9]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/House (gray roof, one story).png" type="Texture2D" id=10]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/Cottage (stone).png" type="Texture2D" id=11]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/Apartment Building (large).png" type="Texture2D" id=12]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/House (blue roof, one story).png" type="Texture2D" id=13]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/House (green roof, no flowerboxes).png" type="Texture2D" id=14]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/Apartment Building (small).png" type="Texture2D" id=15]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/House (slanted roof, two stories).png" type="Texture2D" id=16]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/House (green roof, with flowerboxes).png" type="Texture2D" id=17]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/House (green, gray roof).png" type="Texture2D" id=18]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/House (soot-built).png" type="Texture2D" id=19]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/House (red roof, two stories).png" type="Texture2D" id=20]
+[ext_resource path="res://gfx/Tilemaps/Buildings/Houses/House (red roof, floral print).png" type="Texture2D" id=21]
+
+[sub_resource type="ConvexPolygonShape2D" id=1]
+points = PackedVector2Array( -56, 56, -56, -48, -56, -48, 56, -48, 56, 56 )
+
+[sub_resource type="ConvexPolygonShape2D" id=2]
+points = PackedVector2Array( -56, 56, -56, -48, -56, -48, 56.5045, -47.7703, 56, 56 )
+
+[sub_resource type="ConvexPolygonShape2D" id=3]
+points = PackedVector2Array( -56, 56, -56, -48, -56, -48, 56.5045, -47.7703, 56, 56 )
+
+[sub_resource type="ConvexPolygonShape2D" id=4]
+points = PackedVector2Array( -56, 56, -55.9999, -33.28, -22.2486, -44.3733, 11.5027, -55.4667, 56.5045, -44.3733, 56, 56 )
+
+[sub_resource type="ConvexPolygonShape2D" id=5]
+points = PackedVector2Array( -56, 56, -56, -48, -56, -48, 56.5045, -47.7703, 56, 56 )
+
+[sub_resource type="ConvexPolygonShape2D" id=6]
+points = PackedVector2Array( -56, 56, -54.0022, -37.8541, -54.0022, -37.8541, 54.2544, -40.8, 56, 56 )
+
+[sub_resource type="ConvexPolygonShape2D" id=7]
+points = PackedVector2Array( 50.0533, 57.4377, -52.0314, 58.0664, -50.6329, -40.0079, 50.9856, -37.4932 )
+
+[sub_resource type="ConvexPolygonShape2D" id=8]
+points = PackedVector2Array( 50.9856, -37.4932, -50.6329, -40.0079, -54.0022, -37.8541 )
+
+[resource]
+0/name = "Apartment Building (large)"
+0/texture = ExtResource( 12 )
+0/tex_offset = Vector2( 0, 0 )
+0/modulate = Color( 1, 1, 1, 1 )
+0/region = Rect2( 0, 0, 112, 112 )
+0/tile_mode = 0
+0/occluder_offset = Vector2( 56, 56 )
+0/navigation_offset = Vector2( 56, 56 )
+0/shape_offset = Vector2( 58, 56 )
+0/shape_transform = Transform2D( 0.991071, 0, 0, 1.00481, 58, 56 )
+0/shape = SubResource( 1 )
+0/shape_one_way = false
+0/shape_one_way_margin = 1.0
+0/shapes = [ {
+"autotile_coord": Vector2( 0, 0 ),
+"one_way": false,
+"one_way_margin": 1.0,
+"shape": SubResource( 1 ),
+"shape_transform": Transform2D( 0.991071, 0, 0, 1.00481, 58, 56 )
+} ]
+0/z_index = 0
+1/name = "Apartment Building (medium)"
+1/texture = ExtResource( 6 )
+1/tex_offset = Vector2( 0, 0 )
+1/modulate = Color( 1, 1, 1, 1 )
+1/region = Rect2( 0, 0, 112, 92 )
+1/tile_mode = 0
+1/occluder_offset = Vector2( 56, 46 )
+1/navigation_offset = Vector2( 56, 46 )
+1/shape_offset = Vector2( 55.277, 42.5385 )
+1/shape_transform = Transform2D( 0.983016, 0, 0, 0.865385, 55.277, 42.5385 )
+1/shape = SubResource( 2 )
+1/shape_one_way = false
+1/shape_one_way_margin = 1.0
+1/shapes = [ {
+"autotile_coord": Vector2( 0, 0 ),
+"one_way": false,
+"one_way_margin": 1.0,
+"shape": SubResource( 2 ),
+"shape_transform": Transform2D( 0.983016, 0, 0, 0.865385, 55.277, 42.5385 )
+} ]
+1/z_index = 0
+2/name = "Apartment Building (small)"
+2/texture = ExtResource( 15 )
+2/tex_offset = Vector2( 0, 0 )
+2/modulate = Color( 1, 1, 1, 1 )
+2/region = Rect2( 0, 0, 64, 80 )
+2/tile_mode = 0
+2/occluder_offset = Vector2( 32, 40 )
+2/navigation_offset = Vector2( 32, 40 )
+2/shape_offset = Vector2( 31.277, 36.5385 )
+2/shape_transform = Transform2D( 0.983016, 0, 0, 0.865385, 31.277, 36.5385 )
+2/shape = SubResource( 5 )
+2/shape_one_way = false
+2/shape_one_way_margin = 1.0
+2/shapes = [ {
+"autotile_coord": Vector2( 0, 0 ),
+"one_way": false,
+"one_way_margin": 1.0,
+"shape": SubResource( 5 ),
+"shape_transform": Transform2D( 0.983016, 0, 0, 0.865385, 31.277, 36.5385 )
+} ]
+2/z_index = 0
+3/name = "Barn (custom)"
+3/texture = ExtResource( 5 )
+3/tex_offset = Vector2( 0, 0 )
+3/modulate = Color( 1, 1, 1, 1 )
+3/region = Rect2( 0, 0, 80, 80 )
+3/tile_mode = 0
+3/occluder_offset = Vector2( 40, 40 )
+3/navigation_offset = Vector2( 40, 40 )
+3/shape_offset = Vector2( 0, 0 )
+3/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+3/shape_one_way = false
+3/shape_one_way_margin = 0.0
+3/shapes = [  ]
+3/z_index = 0
+4/name = "City House"
+4/texture = ExtResource( 7 )
+4/tex_offset = Vector2( 0, 0 )
+4/modulate = Color( 1, 1, 1, 1 )
+4/region = Rect2( 0, 0, 80, 144 )
+4/tile_mode = 0
+4/occluder_offset = Vector2( 40, 72 )
+4/navigation_offset = Vector2( 40, 72 )
+4/shape_offset = Vector2( 0, 0 )
+4/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+4/shape_one_way = false
+4/shape_one_way_margin = 0.0
+4/shapes = [  ]
+4/z_index = 0
+5/name = "Cottage (fine)"
+5/texture = ExtResource( 9 )
+5/tex_offset = Vector2( 0, 0 )
+5/modulate = Color( 1, 1, 1, 1 )
+5/region = Rect2( 0, 0, 80, 80 )
+5/tile_mode = 0
+5/occluder_offset = Vector2( 40, 40 )
+5/navigation_offset = Vector2( 40, 40 )
+5/shape_offset = Vector2( 0, 0 )
+5/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+5/shape_one_way = false
+5/shape_one_way_margin = 0.0
+5/shapes = [  ]
+5/z_index = 0
+6/name = "Cottage (stone)"
+6/texture = ExtResource( 11 )
+6/tex_offset = Vector2( 0, 0 )
+6/modulate = Color( 1, 1, 1, 1 )
+6/region = Rect2( 0, 0, 80, 72 )
+6/tile_mode = 0
+6/occluder_offset = Vector2( 40, 36 )
+6/navigation_offset = Vector2( 40, 36 )
+6/shape_offset = Vector2( 0, 0 )
+6/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+6/shape_one_way = false
+6/shape_one_way_margin = 0.0
+6/shapes = [  ]
+6/z_index = 0
+7/name = "House (blue roof, one story)"
+7/texture = ExtResource( 13 )
+7/tex_offset = Vector2( 0, 0 )
+7/modulate = Color( 1, 1, 1, 1 )
+7/region = Rect2( 0, 0, 96, 64 )
+7/tile_mode = 0
+7/occluder_offset = Vector2( 48, 32 )
+7/navigation_offset = Vector2( 48, 32 )
+7/shape_offset = Vector2( 48, 32 )
+7/shape_transform = Transform2D( 0.888854, 0, 0, 0.634014, 48, 32 )
+7/shape = SubResource( 6 )
+7/shape_one_way = false
+7/shape_one_way_margin = 1.0
+7/shapes = [ {
+"autotile_coord": Vector2( 0, 0 ),
+"one_way": false,
+"one_way_margin": 1.0,
+"shape": SubResource( 6 ),
+"shape_transform": Transform2D( 0.888854, 0, 0, 0.634014, 48, 32 )
+} ]
+7/z_index = 0
+8/name = "House (gray roof, one story)"
+8/texture = ExtResource( 10 )
+8/tex_offset = Vector2( 0, 0 )
+8/modulate = Color( 1, 1, 1, 1 )
+8/region = Rect2( 0, 0, 80, 64 )
+8/tile_mode = 0
+8/occluder_offset = Vector2( 40, 32 )
+8/navigation_offset = Vector2( 40, 32 )
+8/shape_offset = Vector2( 40, 29.332 )
+8/shape_transform = Transform2D( 0.803571, 0, 0, 0.595813, 40, 29.332 )
+8/shape = SubResource( 7 )
+8/shape_one_way = false
+8/shape_one_way_margin = 1.0
+8/shapes = [ {
+"autotile_coord": Vector2( 0, 0 ),
+"one_way": false,
+"one_way_margin": 1.0,
+"shape": SubResource( 7 ),
+"shape_transform": Transform2D( 0.803571, 0, 0, 0.595813, 40, 29.332 )
+}, {
+"autotile_coord": Vector2( 0, 0 ),
+"one_way": false,
+"one_way_margin": 1.0,
+"shape": SubResource( 8 ),
+"shape_transform": Transform2D( 0.803571, 0, 0, 0.595813, 40, 29.332 )
+} ]
+8/z_index = 0
+9/name = "House (green roof, log cabin)"
+9/texture = ExtResource( 8 )
+9/tex_offset = Vector2( 0, 0 )
+9/modulate = Color( 1, 1, 1, 1 )
+9/region = Rect2( 0, 0, 64, 64 )
+9/tile_mode = 0
+9/occluder_offset = Vector2( 32, 32 )
+9/navigation_offset = Vector2( 32, 32 )
+9/shape_offset = Vector2( 0, 0 )
+9/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+9/shape_one_way = false
+9/shape_one_way_margin = 0.0
+9/shapes = [  ]
+9/z_index = 0
+10/name = "House (green roof, no flowerboxes)"
+10/texture = ExtResource( 14 )
+10/tex_offset = Vector2( 0, 0 )
+10/modulate = Color( 1, 1, 1, 1 )
+10/region = Rect2( 0, 0, 80, 64 )
+10/tile_mode = 0
+10/occluder_offset = Vector2( 40, 32 )
+10/navigation_offset = Vector2( 40, 32 )
+10/shape_offset = Vector2( 0, 0 )
+10/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+10/shape_one_way = false
+10/shape_one_way_margin = 0.0
+10/shapes = [  ]
+10/z_index = 0
+11/name = "House (green roof, with flowerboxes)"
+11/texture = ExtResource( 17 )
+11/tex_offset = Vector2( 0, 0 )
+11/modulate = Color( 1, 1, 1, 1 )
+11/region = Rect2( 0, 0, 80, 64 )
+11/tile_mode = 0
+11/occluder_offset = Vector2( 40, 32 )
+11/navigation_offset = Vector2( 40, 32 )
+11/shape_offset = Vector2( 0, 0 )
+11/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+11/shape_one_way = false
+11/shape_one_way_margin = 0.0
+11/shapes = [  ]
+11/z_index = 0
+12/name = "House (green, gray roof)"
+12/texture = ExtResource( 18 )
+12/tex_offset = Vector2( 0, 0 )
+12/modulate = Color( 1, 1, 1, 1 )
+12/region = Rect2( 0, 0, 64, 64 )
+12/tile_mode = 0
+12/occluder_offset = Vector2( 32, 32 )
+12/navigation_offset = Vector2( 32, 32 )
+12/shape_offset = Vector2( 0, 0 )
+12/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+12/shape_one_way = false
+12/shape_one_way_margin = 0.0
+12/shapes = [  ]
+12/z_index = 0
+13/name = "House (red roof, floral print)"
+13/texture = ExtResource( 21 )
+13/tex_offset = Vector2( 0, 0 )
+13/modulate = Color( 1, 1, 1, 1 )
+13/region = Rect2( 0, 0, 96, 64 )
+13/tile_mode = 0
+13/occluder_offset = Vector2( 48, 32 )
+13/navigation_offset = Vector2( 48, 32 )
+13/shape_offset = Vector2( 0, 0 )
+13/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+13/shape_one_way = false
+13/shape_one_way_margin = 0.0
+13/shapes = [  ]
+13/z_index = 0
+14/name = "House (red roof, two stories)"
+14/texture = ExtResource( 20 )
+14/tex_offset = Vector2( 0, 0 )
+14/modulate = Color( 1, 1, 1, 1 )
+14/region = Rect2( 0, 0, 80, 80 )
+14/tile_mode = 0
+14/occluder_offset = Vector2( 40, 40 )
+14/navigation_offset = Vector2( 40, 40 )
+14/shape_offset = Vector2( 43.8094, 41.1154 )
+14/shape_transform = Transform2D( 0.755525, 0, 0, 0.721154, 43.8094, 41.1154 )
+14/shape = SubResource( 3 )
+14/shape_one_way = false
+14/shape_one_way_margin = 1.0
+14/shapes = [ {
+"autotile_coord": Vector2( 0, 0 ),
+"one_way": false,
+"one_way_margin": 1.0,
+"shape": SubResource( 3 ),
+"shape_transform": Transform2D( 0.755525, 0, 0, 0.721154, 43.8094, 41.1154 )
+} ]
+14/z_index = 0
+15/name = "House (slanted roof, two stories)"
+15/texture = ExtResource( 16 )
+15/tex_offset = Vector2( 0, 0 )
+15/modulate = Color( 1, 1, 1, 1 )
+15/region = Rect2( 0, 0, 80, 80 )
+15/tile_mode = 0
+15/occluder_offset = Vector2( 40, 40 )
+15/navigation_offset = Vector2( 40, 40 )
+15/shape_offset = Vector2( 39.8206, 40 )
+15/shape_transform = Transform2D( 0.711083, 0, 0, 0.721154, 39.8206, 40 )
+15/shape = SubResource( 4 )
+15/shape_one_way = false
+15/shape_one_way_margin = 1.0
+15/shapes = [ {
+"autotile_coord": Vector2( 0, 0 ),
+"one_way": false,
+"one_way_margin": 1.0,
+"shape": SubResource( 4 ),
+"shape_transform": Transform2D( 0.711083, 0, 0, 0.721154, 39.8206, 40 )
+} ]
+15/z_index = 0
+16/name = "House (soot-built)"
+16/texture = ExtResource( 19 )
+16/tex_offset = Vector2( 0, 0 )
+16/modulate = Color( 1, 1, 1, 1 )
+16/region = Rect2( 0, 0, 48, 72 )
+16/tile_mode = 0
+16/occluder_offset = Vector2( 24, 36 )
+16/navigation_offset = Vector2( 24, 36 )
+16/shape_offset = Vector2( 0, 0 )
+16/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+16/shape_one_way = false
+16/shape_one_way_margin = 0.0
+16/shapes = [  ]
+16/z_index = 0
+17/name = "House (soot-built, flat top)"
+17/texture = ExtResource( 1 )
+17/tex_offset = Vector2( 0, 0 )
+17/modulate = Color( 1, 1, 1, 1 )
+17/region = Rect2( 0, 0, 48, 72 )
+17/tile_mode = 0
+17/occluder_offset = Vector2( 24, 36 )
+17/navigation_offset = Vector2( 24, 36 )
+17/shape_offset = Vector2( 0, 0 )
+17/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+17/shape_one_way = false
+17/shape_one_way_margin = 0.0
+17/shapes = [  ]
+17/z_index = 0
+18/name = "House (soot-built, square)"
+18/texture = ExtResource( 2 )
+18/tex_offset = Vector2( 0, 0 )
+18/modulate = Color( 1, 1, 1, 1 )
+18/region = Rect2( 0, 0, 48, 64 )
+18/tile_mode = 0
+18/occluder_offset = Vector2( 24, 32 )
+18/navigation_offset = Vector2( 24, 32 )
+18/shape_offset = Vector2( 0, 0 )
+18/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+18/shape_one_way = false
+18/shape_one_way_margin = 0.0
+18/shapes = [  ]
+18/z_index = 0
+19/name = "Hut (grass)"
+19/texture = ExtResource( 3 )
+19/tex_offset = Vector2( 0, 0 )
+19/modulate = Color( 1, 1, 1, 1 )
+19/region = Rect2( 0, 0, 48, 64 )
+19/tile_mode = 0
+19/occluder_offset = Vector2( 24, 32 )
+19/navigation_offset = Vector2( 24, 32 )
+19/shape_offset = Vector2( 0, 0 )
+19/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+19/shape_one_way = false
+19/shape_one_way_margin = 0.0
+19/shapes = [  ]
+19/z_index = 0
+20/name = "Hut (tree)"
+20/texture = ExtResource( 4 )
+20/tex_offset = Vector2( 0, 0 )
+20/modulate = Color( 1, 1, 1, 1 )
+20/region = Rect2( 0, 0, 48, 48 )
+20/tile_mode = 0
+20/occluder_offset = Vector2( 24, 24 )
+20/navigation_offset = Vector2( 24, 24 )
+20/shape_offset = Vector2( 0, 0 )
+20/shape_transform = Transform2D( 1, 0, 0, 1, 0, 0 )
+20/shape_one_way = false
+20/shape_one_way_margin = 0.0
+20/shapes = [  ]
+20/z_index = 0

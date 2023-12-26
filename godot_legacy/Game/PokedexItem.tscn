@@ -1,0 +1,60 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://gfx/dialog_box.png" type="Texture2D" id=1]
+[ext_resource path="res://godot/Fonts/Pokemon DPPt.ttf" type="FontFile" id=2]
+[ext_resource path="res://gfx/Pokedex/pokeball.png" type="Texture2D" id=3]
+
+[sub_resource type="FontFile" id=1]
+size = 32
+font_data = ExtResource( 2 )
+
+[sub_resource type="FontFile" id=2]
+size = 32
+font_data = ExtResource( 2 )
+
+[node name="PokedexItem" type="NinePatchRect"]
+offset_right = 490.0
+offset_bottom = 128.0
+texture = ExtResource( 1 )
+patch_margin_left = 17
+patch_margin_top = 5
+patch_margin_right = 17
+patch_margin_bottom = 5
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="PokemonNumber" type="Label" parent="."]
+offset_left = 30.0
+offset_top = 39.0
+offset_right = 100.0
+offset_bottom = 87.0
+theme_override_fonts/font = SubResource( 1 )
+theme_override_colors/font_color = Color( 0, 0, 0, 1 )
+text = "001"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="PokemonName" type="Label" parent="."]
+offset_left = 115.0
+offset_top = 40.0
+offset_right = 379.0
+offset_bottom = 89.0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+theme_override_fonts/font = SubResource( 2 )
+theme_override_colors/font_color = Color( 0, 0, 0, 1 )
+text = "sdfasfadfadsfadsfadsfas"
+align = 1
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Captured" type="Sprite2D" parent="."]
+position = Vector2( 436.825, 63.0711 )
+scale = Vector2( 0.106285, 0.0875136 )
+texture = ExtResource( 3 )
