@@ -15,19 +15,28 @@ use super::status::CharacterStatus;
 pub struct CharacterState {
     #[var(get, set = set_status_from_discriminant)]
     #[export(enum = (Idle, Walking, Running, Interacting))]
-    pub status: i32,
+    status: i32,
     
     #[var(get, set = set_direction_from_discriminant)]
     #[export(enum = (Downwards, Upwards, Left, Right))]
-    pub direction: i32,
+    direction: i32,
 
-    // // TODO refcount to the parent?
-
-    #[base] pub base: Base<Node>
+    #[var(get, set)]
+    #[export]
+    initial_position: Vector2
 }
 
 #[godot_api]
 impl CharacterState {
+    pub fn new() -> Self {
+        godot_print!("<CharacterState> constructor called");
+        Self {
+            status: CharacterStatus::Idle as i32, // There's no other possible state in the initialization stage
+            direction: CharacterDirection::default() as i32, // ! TODO: change it when the persistance is ready
+            initial_position: Vector2::ZERO, // TODO read from config or player saved data (or NPC as well)
+        }
+    } 
+
     /// Retrieves the current [`CharacterStatus`] stored in this node
     pub fn get_character_status(&self) -> CharacterStatus {
         CharacterStatus::from(self.status)
@@ -55,14 +64,9 @@ impl CharacterState {
 
 #[godot_api]
 impl INode for CharacterState {
-    fn init(base: Base<Node>) -> Self {
+    fn init(_base: Base<Node>) -> Self {
         godot_print!("<CharacterState> initialized");
-        
-        Self {
-            status: CharacterStatus::Idle as i32, // There's no other possible state in the initialization stage
-            direction: CharacterDirection::default() as i32, // ! TODO: change it when the persistance is ready
-            base
-        }
+        Self::new()
     }
 
     fn ready(&mut self) {
