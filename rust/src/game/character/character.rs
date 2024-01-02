@@ -13,11 +13,11 @@ use super::status::CharacterStatus;
 #[derive(Debug, GodotClass, Default)]
 #[class(base=Node)]
 pub struct CharacterState {
-    #[var(get, set = set_status_from_discriminant)]
+    #[var(get = get_integral_status, set = set_integral_status)]
     #[export(enum = (Idle, Walking, Running, Interacting))]
     status: i32,
     
-    #[var(get, set = set_direction_from_discriminant)]
+    #[var(get = get_integral_direction, set = set_integral_direction)]
     #[export(enum = (Downwards, Upwards, Left, Right))]
     direction: i32,
 
@@ -36,24 +36,44 @@ impl CharacterState {
     }
 
     /// Retrieves the current [`CharacterStatus`] stored in this node
-    pub fn get_character_status(&self) -> CharacterStatus {
+    pub fn get_status(&self) -> CharacterStatus {
         CharacterStatus::from(self.status)
     }
 
     /// Retrieves the current [`CharacterDirection`] stored in this node
-    pub fn get_character_direction(&self) -> CharacterDirection {
+    pub fn get_direction(&self) -> CharacterDirection {
         CharacterDirection::from(self.direction)
     }
 
+    /// Modifies the current [`CharacterStatus`] stored in this node
+    pub fn set_status(&mut self, status: CharacterStatus) {
+        self.status = status.into();
+    }
+
+    /// Modifies the current [`CharacterDirection`] stored in this node
+    pub fn set_direction(&mut self, direction: CharacterDirection) {
+        self.direction = direction.into();
+    }
+
     #[func]
-    fn set_status_from_discriminant(&mut self, value: i32) {
+    pub fn get_integral_status(&self) -> i32 {
+        self.status
+    }
+
+    #[func]
+    pub fn get_integral_direction(&self) -> i32 {
+        self.direction
+    }
+
+    #[func]
+    pub fn set_integral_status(&mut self, value: i32) {
         let new_status = CharacterStatus::from(value);
         godot_print!("Setting <CharacterState> 'status' to: {new_status}");
         self.status = new_status as i32;
     }
 
     #[func]
-    fn set_direction_from_discriminant(&mut self, value: i32) {
+    pub fn set_integral_direction(&mut self, value: i32) {
         let new_direction = CharacterDirection::from(value);
         godot_print!("Setting <CharacterState> 'status' to: {new_direction}");
         self.direction = new_direction as i32;

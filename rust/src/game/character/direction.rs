@@ -27,6 +27,12 @@ impl From<i32> for CharacterDirection {
     }
 }
 
+impl Into<i32> for CharacterDirection {
+    fn into(self) -> i32 {
+        self as i32
+    }
+}
+
 impl Display for CharacterDirection {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         let direction_str = match self {

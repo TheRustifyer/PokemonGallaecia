@@ -2,7 +2,6 @@ use std::fmt::{Display, Formatter, Result};
 
 /// Represents the possible states of some character during gameplay.
 #[derive(PartialEq, Copy, Clone, Debug, Default)]
-#[allow(dead_code)] // ! TODO provisional while rewriting
 pub enum CharacterStatus {
     /// The character is stationary, not in motion.
     #[default] Idle = 0,
@@ -23,6 +22,12 @@ impl From<i32> for CharacterStatus {
             x if x == 3 => Self::Interacting,
             _ => panic!("Tried to create a `CharacterStatus` from an unknown discriminant")
         }
+    }
+}
+
+impl Into<i32> for CharacterStatus {
+    fn into(self) -> i32 {
+        self as i32
     }
 }
 
