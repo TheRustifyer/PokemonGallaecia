@@ -1,8 +1,27 @@
 //! Contains the ROOT elements of the project, which are the components and
 //! bindings for the base of all nodes in our games hierarchy
-
 use godot::{bind::{GodotClass, godot_api}, engine::{INode, Node}, obj::Base, log::godot_print};
 
+/// General constant values that won't change though the whole lifecycle of the game
+pub mod constants {
+    /// Constant configuration values for entities related with the player's controlled character
+    pub mod player {
+        /// The rate at which the player's controlled character change it's possition in the map
+        pub const WALK_SPEED: f64 = 400.0;
+    }
+}
+
+/// Store constant data that comes from the engine
+pub mod engine {
+    /// Literals for matching the periphericals inputs
+    pub mod input {
+        pub const INPUT_EVENT_MOVE_UP: &'static str = "up";
+        pub const INPUT_EVENT_MOVE_DOWN: &'static str = "down";
+        pub const INPUT_EVENT_MOVE_LEFT: &'static str = "left";
+        pub const INPUT_EVENT_MOVE_RIGHT: &'static str = "right";
+
+    }
+}
 
 #[derive(GodotClass)]
 #[class(base=Node)]

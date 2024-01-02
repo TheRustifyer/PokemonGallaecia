@@ -1,4 +1,4 @@
-//! The [`Character.rs`] file
+//! The [`character.rs`] file
 //! 
 //! Holds a generic binding class for any representable character in the game,
 // //! whether is the player-controllable character or an NPC
@@ -21,13 +21,23 @@ pub struct CharacterState {
     #[export(enum = (Downwards, Upwards, Left, Right))]
     pub direction: i32,
 
-    // TODO refcount to the parent?
+    // // TODO refcount to the parent?
 
     #[base] pub base: Base<Node>
 }
 
 #[godot_api]
 impl CharacterState {
+    /// Retrieves the current [`CharacterStatus`] stored in this node
+    pub fn get_character_status(&self) -> CharacterStatus {
+        CharacterStatus::from(self.status)
+    }
+
+    /// Retrieves the current [`CharacterDirection`] stored in this node
+    pub fn get_character_direction(&self) -> CharacterDirection {
+        CharacterDirection::from(self.direction)
+    }
+
     #[func]
     fn set_status_from_discriminant(&mut self, value: i32) {
         let new_status = CharacterStatus::from(value);
