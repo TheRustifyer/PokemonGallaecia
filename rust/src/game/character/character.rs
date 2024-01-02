@@ -10,7 +10,7 @@ use super::status::CharacterStatus;
 
 /// A general purpose type for holding data driven behaviour and encapsulate state details
 /// about properties that has in common both player-controlled characters and NPCs
-#[derive(Debug, GodotClass)]
+#[derive(Debug, GodotClass, Default)]
 #[class(base=Node)]
 pub struct CharacterState {
     #[var(get, set = set_status_from_discriminant)]
@@ -28,14 +28,12 @@ pub struct CharacterState {
 
 #[godot_api]
 impl CharacterState {
-    pub fn new() -> Self {
-        godot_print!("<CharacterState> constructor called");
-        Self {
-            status: CharacterStatus::Idle as i32, // There's no other possible state in the initialization stage
-            direction: CharacterDirection::default() as i32, // ! TODO: change it when the persistance is ready
-            initial_position: Vector2::ZERO, // TODO read from config or player saved data (or NPC as well)
-        }
-    } 
+    pub fn new() -> Gd<Self> {
+        godot_print!("<CharacterState> constructed");
+        Gd::from_init_fn(|_base| {
+            Self::default()
+        })
+    }
 
     /// Retrieves the current [`CharacterStatus`] stored in this node
     pub fn get_character_status(&self) -> CharacterStatus {
@@ -66,7 +64,7 @@ impl CharacterState {
 impl INode for CharacterState {
     fn init(_base: Base<Node>) -> Self {
         godot_print!("<CharacterState> initialized");
-        Self::new()
+        Self {..Default::default()}
     }
 
     fn ready(&mut self) {

@@ -7,7 +7,7 @@ pub mod constants {
     /// Constant configuration values for entities related with the player's controlled character
     pub mod player {
         /// The rate at which the player's controlled character change it's possition in the map
-        pub const WALK_SPEED: f64 = 400.0;
+        pub const WALK_SPEED: f32 = 50.0;
     }
 }
 
